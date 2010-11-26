@@ -104,10 +104,7 @@
 				<configuration>
 					<links>
 						<link>http://download.oracle.com/javase/6/docs/api/</link>
-						<link>http://static.springsource.org/spring/docs/3.0.x/javadoc-api/</link>
 						<link>http://slf4j.org/apidocs/</link>
-						<link>http://jml.blathersource.org/javadocs/</link>
-						<link>http://dustin.github.com/java-memcached-client/apidocs/</link>
 					</links>
 				</configuration>
 			</plugin>

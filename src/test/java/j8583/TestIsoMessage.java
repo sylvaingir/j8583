@@ -15,7 +15,7 @@ import com.solab.iso8583.MessageFactory;
  * 
  * @author Enrique Zamudio
  */
-public class SimpleMessageTests {
+public class TestIsoMessage {
 
 	private MessageFactory mf;
 
@@ -31,7 +31,7 @@ public class SimpleMessageTests {
 	public void testCreation() {
 		IsoMessage iso = mf.newMessage(0x200);
 		assert iso.getType() == 0x200;
-		assert iso.getField(3).getType() == IsoType.NUMERIC && ((Number)iso.getObjectValue(3)).intValue() == 650000;
+		assert iso.getField(3).getType() == IsoType.NUMERIC && "650000".equals((String)iso.getObjectValue(3));
 		assert iso.getField(32).getType() == IsoType.LLVAR;
 		assert iso.getField(35).getType() == IsoType.LLVAR;
 		assert iso.getField(43).getType() == IsoType.ALPHA && ((String)iso.getObjectValue(43)).length() == 40;
@@ -44,7 +44,7 @@ public class SimpleMessageTests {
 		for (int i = 4; i < 32; i++) {
 			assert !iso.hasField(i);
 		}
-		for (int i = 36; i < 48; i++) {
+		for (int i = 36; i < 43; i++) {
 			assert !iso.hasField(i);
 		}
 		for (int i = 50; i < 60; i++) {
@@ -61,7 +61,7 @@ public class SimpleMessageTests {
 	/** Parses a message from a file and checks the fields. */
 	@Test
 	public void testParsing() throws IOException, ParseException {
-		InputStream ins = getClass().getResourceAsStream("example.txt");
+		InputStream ins = getClass().getResourceAsStream("/parse1.txt");
 		byte[] buf = new byte[400];
 		int pos = 0;
 		while (ins.available() > 0) {
