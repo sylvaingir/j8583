@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="j8583">
+<bannerLeft>
+	<name>j8583</name>
+	<src>http://sflogo.sourceforge.net/sflogo.php?group_id=194767&type=7</src>
+	<href>http://j8583.sourceforge.net/</href>
+</bannerLeft>
+<bannerRight>
+</bannerRight>
+<body>
+	<links>
+		<item name="Project Page" href="http://sf.net/projects/j8583/" />
+		<item name="Download" href="http://sourceforge.net/projects/j8583/files/j8583/"/>
+	</links>
+
+	<menu name="j8583 1.3">
+		<item name="Introduction" href="index.html"/>
+		<item name="API docs" href="apidocs/index.html" />
+		<item name="Beginner's Guide" href="guide.html"/>
+		<item name="Spring Example" href="spring.html"/>
+		<item name="Groovy Compatibility" href="groovy.html" />
+		<item name="Download" href="http://sourceforge.net/projects/j8583/files/j8583/" />
+		<item name="Español" href="/es/index.html" />
+	</menu>
+</body>
+<poweredBy>
+	<logo name="Hosted by SourceForge" href="http://sourceforge.net/donate/index.php?group_id=194767"
+		img="http://images.sourceforge.net/images/project-support.jpg" />
+</poweredBy>
+</project>
