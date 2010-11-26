@@ -3,6 +3,7 @@ package j8583;
 import com.solab.iso8583.CustomField;
 
 /** This is an example of a custom field codec, which converts between strings and instances of this same class.
+ * It's used to test the encoding and decoding of custom fields by the message factory.
  * 
  * @author Enrique Zamudio
  */
@@ -20,7 +21,7 @@ public class CustomField48 implements CustomField<CustomField48> {
 	public void setValue2(int value) {
 		v2 = value;
 	}
-	public int setValue2() {
+	public int getValue2() {
 		return v2;
 	}
 
@@ -46,12 +47,33 @@ public class CustomField48 implements CustomField<CustomField48> {
 	@Override
 	public String encodeField(CustomField48 value) {
 		StringBuilder sb = new StringBuilder();
-		if (v1 != null) {
-			sb.append(v1);
+		if (value.getValue1() != null) {
+			sb.append(value.getValue1());
 		}
 		sb.append('|');
-		sb.append(v2);
+		sb.append(value.getValue2());
 		return sb.toString();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof CustomField48)) {
+			return false;
+		}
+		CustomField48 other = (CustomField48)obj;
+		if (other.getValue2() == v2) {
+			if (other.getValue1() == null) {
+				return v1 == null;
+			} else {
+				return other.getValue1().equals(v1);
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return (v1 == null ? 0 : v1.hashCode()) | v2;
 	}
 
 }
