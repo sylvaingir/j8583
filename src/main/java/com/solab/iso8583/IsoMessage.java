@@ -22,11 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /** Represents an ISO8583 message. This is the core class of the framework.
  * Contains the bitmap which is modified as fields are added/removed.
@@ -46,7 +42,7 @@ public class IsoMessage {
     /** Indicates if the message is binary-coded. */
     private boolean binary;
     /** This is where the values are stored. */
-    private Map<Integer,IsoValue<?>> fields = new ConcurrentHashMap<Integer,IsoValue<?>>();
+    private IsoValue<?>[] fields = new IsoValue<?>[129];
     /** Stores the optional ISO header. */
     private String isoHeader;
     private int etx = -1;
@@ -108,16 +104,13 @@ public class IsoMessage {
      * @param field The field number. 1 is the secondary bitmap and is not returned as such;
      * real fields go from 2 to 128. */
     public Object getObjectValue(int field) {
-    	IsoValue<?> v = fields.get(field);
-    	if (v == null) {
-    		return null;
-    	}
-    	return v.getValue();
+    	IsoValue<?> v = fields[field];
+    	return v == null ? null : v.getValue();
     }
 
     /** Returns the IsoValue for the specified field. First real field is 2. */
     public IsoValue<?> getField(int field) {
-    	return fields.get(field);
+    	return fields[field];
     }
 
     /** Stored the field in the specified index. The first field is the secondary bitmap and has index 1,
@@ -126,11 +119,7 @@ public class IsoMessage {
     	if (index < 2 || index > 128) {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
-    	if (field == null) {
-    		fields.remove(index);
-    	} else {
-    		fields.put(index, field);
-    	}
+    	fields[index] = field;
     }
 
     /** Sets the specified value in the specified field, creating an IsoValue internally.
@@ -156,7 +145,7 @@ public class IsoMessage {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
     	if (value == null) {
-    		fields.remove(index);
+    		fields[index] = null;
     	} else {
     		IsoValue v = null;
     		if (t.needsLength()) {
@@ -164,14 +153,14 @@ public class IsoMessage {
     		} else {
     			v = new IsoValue(t, value, encoder);
     		}
-    		fields.put(index, v);
+    		fields[index] = v;
     	}
     }
 
     /** Returns true is the message has a value in the specified field.
      * @param idx The field number. */
     public boolean hasField(int idx) {
-    	return fields.get(idx) != null;
+    	return fields[idx] != null;
     }
 
     /** Writes a message to a stream, after writing the specified number of bytes indicating
@@ -289,12 +278,11 @@ public class IsoMessage {
     	}
 
     	//Bitmap
-    	ArrayList<Integer> keys = new ArrayList<Integer>();
-    	keys.addAll(fields.keySet());
-    	Collections.sort(keys);
     	BitSet bs = new BitSet(forceb2 ? 128 : 64);
-    	for (Integer i : keys) {
-    		bs.set(i - 1);
+    	for (int i = 2 ; i < 129; i++) {
+    		if (fields[i] != null) {
+        		bs.set(i - 1);
+    		}
     	}
     	if (forceb2) {
     		bs.set(0);
@@ -338,12 +326,14 @@ public class IsoMessage {
     	}
 
     	//Fields
-    	for (Integer i : keys) {
-    		IsoValue<?> v = fields.get(i);
-    		try {
-    			v.write(bout, binary);
-    		} catch (IOException ex) {
-    			//should never happen, writing to a ByteArrayOutputStream
+    	for (int i = 2; i < 129; i++) {
+    		IsoValue<?> v = fields[i];
+    		if (v != null) {
+        		try {
+        			v.write(bout, binary);
+        		} catch (IOException ex) {
+        			//should never happen, writing to a ByteArrayOutputStream
+        		}
     		}
     	}
     	return bout.toByteArray();

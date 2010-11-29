@@ -114,6 +114,8 @@ public enum IsoType {
 	        }
 	        System.arraycopy(x, 0, c, lim, x.length);
 	        return new String(c);
+		} else if (this == AMOUNT) {
+			return IsoType.NUMERIC.format(new BigDecimal(value).movePointRight(2).intValue(), 12);
 		}
 		throw new IllegalArgumentException("Cannot format String as " + this);
 	}

@@ -96,7 +96,9 @@ public class IsoValue<T> implements Cloneable {
 		if (length == 0 && t.needsLength()) {
 			throw new IllegalArgumentException(String.format("Length must be greater than zero for type %s (value '%s')", t, val));
 		} else if (t == IsoType.LLVAR || t == IsoType.LLLVAR) {
-			length = custom == null ? val.toString().length() : custom.encodeField(value).length();
+			if (len == 0) {
+				length = custom == null ? val.toString().length() : custom.encodeField(value).length();
+			}
 			if (t == IsoType.LLVAR && length > 99) {
 				throw new IllegalArgumentException("LLVAR can only hold values up to 99 chars");
 			} else if (t == IsoType.LLLVAR && length > 999) {
@@ -130,7 +132,11 @@ public class IsoValue<T> implements Cloneable {
 		}
 		if (type == IsoType.NUMERIC || type == IsoType.AMOUNT) {
 			if (type == IsoType.AMOUNT) {
-				return type.format((BigDecimal)value, 12);
+				if (value instanceof BigDecimal) {
+					return type.format((BigDecimal)value, 12);
+				} else {
+					return type.format(value.toString(), 12);
+				}
 			} else if (value instanceof Number) {
 				return type.format(((Number)value).longValue(), length);
 			} else {

@@ -88,29 +88,33 @@ public class FieldParseInfo {
 				throw new ParseException(String.format("Insufficient data for LLVAR field, pos %d", pos), pos);
 			}
 			if (custom == null) {
-				return new IsoValue<String>(type, new String(buf, pos + 2, length), null);
+				return new IsoValue<String>(type, new String(buf, pos + 2, length), length, null);
 			} else {
-				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 2, length)), custom);
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 2, length)), length, custom);
 				if (v.getValue() == null) {
-					return new IsoValue<String>(type, new String(buf, pos + 2, length), null);
+					return new IsoValue<String>(type, new String(buf, pos + 2, length), length, null);
 				}
 				return v;
 			}
 		} else if (type == IsoType.LLLVAR) {
+			if (!(Character.isDigit(buf[pos]) && Character.isDigit(buf[pos+1]) && Character.isDigit(buf[pos+2]))) {
+				throw new ParseException(String.format("Invalid LLLVAR length '%s' pos %d", new String(buf, pos, 3), pos), pos);
+			}
 			length = ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
 			if (length < 0) {
 				throw new ParseException(String.format("Invalid LLLVAR length %d pos %d", length, pos), pos);
 			}
-			if (pos+3 > buf.length || length+pos+3 > buf.length) {
+			if (length+pos+3 > buf.length) {
 				throw new ParseException(String.format("Insufficient data for LLLVAR field, pos %d", pos), pos);
 			}
+			String _v = length == 0 ? "" : new String(buf, pos + 3, length);
 			if (custom == null) {
-				return new IsoValue<String>(type, new String(buf, pos + 3, length), null);
+				return new IsoValue<String>(type, _v, length, null);
 			} else {
-				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 3, length)), custom);
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(_v), length, custom);
 				if (v.getValue() == null) {
 					//problems decoding? return the string
-					return new IsoValue<String>(type, new String(buf, pos + 3, length), null);
+					return new IsoValue<String>(type, _v, length, null);
 				}
 				return v;
 			}

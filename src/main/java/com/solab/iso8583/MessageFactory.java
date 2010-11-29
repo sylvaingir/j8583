@@ -313,25 +313,46 @@ public class MessageFactory {
 			return m;
 		}
 		//Now we parse each field
-		for (Integer i : index) {
-			FieldParseInfo fpi = parseGuide.get(i);
-			if (bs.get(i - 1)) {
-				if (ignoreLast && pos >= buf.length && i == index.get(index.size() -1)) {
-					log.warn("Field {} is not really in the message even though it's in the bitmap", i);
-					bs.clear(i - 1);
-				} else {
-					IsoValue<?> val = useBinary ? fpi.parseBinary(buf, pos, getCustomField(i)) : fpi.parse(buf, pos, getCustomField(i));
-					m.setField(i, val);
-					if (useBinary && !(val.getType() == IsoType.ALPHA || val.getType() == IsoType.LLVAR
-							|| val.getType() == IsoType.LLLVAR)) {
-						pos += (val.getLength() / 2) + (val.getLength() % 2);
+		if (useBinary) {
+			for (Integer i : index) {
+				FieldParseInfo fpi = parseGuide.get(i);
+				if (bs.get(i - 1)) {
+					if (ignoreLast && pos >= buf.length && i == index.get(index.size() -1)) {
+						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
+						bs.clear(i - 1);
 					} else {
-						pos += val.getLength();
+						IsoValue<?> val = fpi.parseBinary(buf, pos, getCustomField(i));
+						m.setField(i, val);
+						if (!(val.getType() == IsoType.ALPHA || val.getType() == IsoType.LLVAR
+								|| val.getType() == IsoType.LLLVAR)) {
+							pos += (val.getLength() / 2) + (val.getLength() % 2);
+						} else {
+							pos += val.getLength();
+						}
+						if (val.getType() == IsoType.LLVAR) {
+							pos++;
+						} else if (val.getType() == IsoType.LLLVAR) {
+							pos += 2;
+						}
 					}
-					if (val.getType() == IsoType.LLVAR) {
-						pos += useBinary ? 1 : 2;
-					} else if (val.getType() == IsoType.LLLVAR) {
-						pos += useBinary ? 2 : 3;
+				}
+			}
+		} else {
+			for (Integer i : index) {
+				FieldParseInfo fpi = parseGuide.get(i);
+				if (bs.get(i - 1)) {
+					if (ignoreLast && pos >= buf.length && i == index.get(index.size() -1)) {
+						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
+						bs.clear(i - 1);
+					} else {
+						IsoValue<?> val = fpi.parse(buf, pos, getCustomField(i));
+						m.setField(i, val);
+						pos += val.getLength();
+						if (val.getType() == IsoType.LLVAR) {
+							pos += 2;
+						} else if (val.getType() == IsoType.LLLVAR) {
+							pos += 3;
+						}
 					}
 				}
 			}
@@ -402,6 +423,14 @@ public class MessageFactory {
 	 * programatically. */
 	public IsoMessage getMessageTemplate(int type) {
 		return typeTemplates.get(type);
+	}
+
+	public void freeze() {
+		typeTemplates = Collections.unmodifiableMap(typeTemplates);
+		parseMap = Collections.unmodifiableMap(parseMap);
+		parseOrder = Collections.unmodifiableMap(parseOrder);
+		isoHeaders = Collections.unmodifiableMap(isoHeaders);
+		customFields = Collections.unmodifiableMap(customFields);
 	}
 
 	/** Sets a map with the fields that are to be expected when parsing a certain type of
