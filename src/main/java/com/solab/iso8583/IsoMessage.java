@@ -355,7 +355,7 @@ public class IsoMessage {
     	for (int i : idx) {
     		IsoValue<?> v = src.getField(i);
     		if (v != null) {
-        		setValue(i, v.getValue(), v.getType(), v.getLength());
+        		setValue(i, v.getValue(), v.getEncoder(), v.getType(), v.getLength());
     		}
     	}
     }

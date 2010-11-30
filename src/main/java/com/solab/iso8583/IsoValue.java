@@ -177,6 +177,11 @@ public class IsoValue<T> implements Cloneable {
 		return value == null ? 0 : toString().hashCode();
 	}
 
+	/** Returns the CustomField encoder for this value. */
+	public CustomField<T> getEncoder() {
+		return encoder;
+	}
+
 	/** Writes the formatted value to a stream, with the length header
 	 * if it's a variable length type. */
 	public void write(OutputStream outs, boolean binary) throws IOException {
