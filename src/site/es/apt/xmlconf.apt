@@ -1,0 +1,80 @@
+	-----
+	XML Configuration
+	-----
+
+XML Configuration
+
+  The MessageFactory can read a XML file to setup message templates, ISO headers by type and parsing templates,
+  which are the most cumbersome parts to configure programmatically.
+
+  There are three types of main elements that you need to specify in the config file: <<<header>>>,
+  <<<template>>>, and <<<parse>>>. All these must be contained in a single <<<j8583-config>>> element.
+  There is a DTD available at {{{http://j8583.sourceforge.net/j8583.dtd}}}.
+
+* <<<header>>> element
+
+  Specify a <<<header>>> element for every type of message that needs an ISO header. Only one per message type:
+
++-----
+<header type="0200">ISO015000050</header>
+<header type="0400">ISO015000050</header>
++-----
+
+* <<<template>>> element
+
+  Each <<<template>>> element defines a message template, with the message type and the fields that the
+  template should include. Every new message of that type that the MessageFactory creates will contain those
+  same values, so this is very useful for defining fixed values, which will be the same in every message.
+  Only one template per type.
+
++-----
+<template type="0200">
+    <field num="3" type="NUMERIC" length="6">650000</field>
+    <field num="32" type="LLVAR">456</field>
+    <field num="35" type="LLVAR">4591700012340000=</field>
+    <field num="43" type="ALPHA" length="40">Fixed-width data</field>
+    <field num="48" type="LLLVAR">Life, the Universe, and Everything|42</field>
+    <field num="49" type="ALPHA" length="3">840</field>
+    <field num="60" type="LLLVAR">B456PRO1+000</field>
+    <field num="61" type="LLLVAR">This field can have a value up to 999 characters long.</field>
+    <field num="100" type="LLVAR">999</field>
+    <field num="102" type="LLVAR">ABCD</field>
+</template>
++-----
+
+* <<<parse>>> element
+
+  Each <<<parse>>> element defines a parsing template for a message type. It must include all the fields that
+  an incoming message can contain, each field with its type and length (if needed). Only ALPHA and NUMERIC
+  types need to have a length specified. The other types either have a fixed length, or have their length
+  specified as part of the field (LLVAR and LLLVAR).
+
++-----
+<parse type="0210">
+    <field num="3" type="NUMERIC" length="6" />
+    <field num="4" type="AMOUNT" />
+    <field num="7" type="DATE10" />
+    <field num="11" type="NUMERIC" length="6" />
+    <field num="12" type="TIME" />
+    <field num="13" type="DATE4" />
+    <field num="15" type="DATE4" />
+    <field num="17" type="DATE_EXP" />
+    <field num="32" type="LLVAR" />
+    <field num="35" type="LLVAR" />
+    <field num="37" type="NUMERIC" length="12" />
+    <field num="38" type="NUMERIC" length="6" />
+    <field num="39" type="NUMERIC" length="2" />
+    <field num="41" type="ALPHA" length="16" />
+    <field num="43" type="ALPHA" length="40" />
+    <field num="48" type="LLLVAR" />
+    <field num="49" type="ALPHA" length="3" />
+    <field num="60" type="LLLVAR" />
+    <field num="61" type="LLLVAR" />
+    <field num="70" type="ALPHA" length="3" />
+    <field num="90" type="ALPHA" length="42" />
+    <field num="100" type="LLVAR" />
+    <field num="102" type="LLVAR" />
+    <field num="126" type="LLLVAR" />
+</parse>
++-----
+  

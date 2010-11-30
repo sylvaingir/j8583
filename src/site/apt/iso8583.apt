@@ -1,0 +1,144 @@
+	-----
+	ISO8583
+	-----
+
+Introduction to ISO8583
+
+  The specification is available at iso.org and it's gotten really complicated; this is just an introduction
+  to the generalities of the specification. There is actually a
+  {{{http://en.wikipedia.org/wiki/ISO_8583}really good article}} on Wikipedia covering the whole spec and its
+  different versions.
+
+* Data types
+
+  ISO 8583 specifies a lot of data types, the most common of which are implemented directly in j8583 through
+  the <<<IsoType>>> enum. Here is a table of the most common ISO types and their j8583 counterpart:
+
+*--------------*----------------*-----------------+
+| <<ISO type>> | <<j8583 type>> | <<Description >> |
+*--------------*----------------*-----------------+
+| Numeric      | NUMERIC        | Fixed-width numeric values, padded with zeroes to the left.|
+*--------------*----------------*-----------------+
+| Alphanumeric | ALPHA          | Fixed-width alphanumeric values, padded with spaces to the right.|
+*--------------*----------------*-----------------+
+| Date         | DATE10         | Date in format mmddHHMMSS, fixed width of 10. |
+*--------------*----------------*-----------------+
+| Date         | DATE4          | Date in format mmdd, fixed width of 4. |
+*--------------*----------------*-----------------+
+| Expiration Date | DATE_EXP     | Date in format yymm, fixed width of 4. Used for credit card expiration dates. |
+*--------------*----------------*-----------------+
+| Time         | TIME           | Time of day in format HHMMSS, fixed width of 6. |
+*--------------*----------------*-----------------+
+| Amount       | AMOUNT         | Currency amount, a positive number expressed in cents, with a fixed width of 4. For example one dollar is encoded as 000000000100 |
+*--------------*----------------*-----------------+
+| LLVAR        | LLVAR          | Variable-width alphanumeric value, up to 99 characters long. The length of the value is encoded in the first 2 characters of the value, for example "HEY" is encoded as 03HEY |
+*--------------*----------------*-----------------+
+| LLLVAR       | LLLVAR         | Variable-width alphanumeric value, up to 999 characters long. The length of the value is encoded in the first 3 characters of the value, for example "HEY" is encoded as 003HEY |
+*--------------*----------------*-----------------+
+ISO 8583 types and their corresponding j8583 types
+
+* Common scenarios
+
+  ISO8583 implementations can vary a lot, depending on the provider, and the type of products and transactions it
+  is being used for; but there are certain fields which are almost always used in a very similar manner. I will
+  describe those here. <<DISCLAIMER:>> This is only something I have learned from experience, and I must say
+  my experience has been rather limited to mobile carrier providers. Here I focus more on the field number and
+  type, rather on the usage of the field itself.
+
+** Message types
+
+  These are some of the most common message types. There is some logic to this, if you look at the message types
+  as 2-byte hex values: The first byte states the type of operation: 02 are payments, 04 reversals, 08 tests;
+  the second byte indicates if it's a request or a response. And sometimes repeated requests should end in 1
+  instead of 0, for example reversals are 0400 the first time but 0401 the next time you send them.
+
+*------:--+
+| 0200 | A payment or sale request.
+*------:--+
+| 0210 | A payment or sale response.
+*------:--+
+| 0400 | A reversal request (to undo a previous 0200 operation).
+*------:--+
+| 0410 | A reversal response.
+*------:--+
+| 0600 | A query (to check the status of a previous operation, or check an account's balance, etc).
+*------:--+
+| 0610 | A query response.
+*------:--+
+| 0800 | An echo request (just to keep the connection alive and make sure the other side is responsive).
+*------:--+
+| 0810 | An echo response.
+*------:--+
+
+  Some implementations require you to send 0400 for a reversal when you only have the request (so in case of
+  timeout you use 0400) and 0420 when you did get the response (so in case of some other error in your system).
+
+** Common fields
+
+  [Field 3] Operation code, NUMERIC of length 6.
+
+  [Field 4] Amount, AMOUNT.
+
+  [Field 7] Date, DATE10.
+
+  [Field 11] Trace, NUMERIC of length 6.
+
+  [Field 17] Transaction date, DATE4.
+
+  [Field 37] Reference number, NUMERIC of length 12.
+
+  [Field 38] Confirmation number, NUMERIC of length 6.
+
+  [Field 39] Response code, NUMERIC of length 2.
+
+  [Field 41] Terminal ID, ALPHA of length 8 or 16.
+
+  [Field 49] Currency, NUMERIC of length 3. See the {{{http://en.wikipedia.org/wiki/ISO_4217}ISO 4217}} table of currencies.
+
+  [Field 128] MAC (Message Authentication Code). Usually ALPHA or NUMERIC of length 16.
+[]
+
+** Asynchronous transmission and reception
+
+  When communicating two systems with ISO8583, usually the communication is asynchronous and all messages are
+  handled through a single connection. Between a terminal and a bigger system the communication will be synchronous.
+
+  In asynchronous communications, the client can send any number of requests to the server, and the server may
+  respond to those requests in a different order in which they were sent. This is why the trace number (field 11)
+  is very important and should not be reused; if the client sends requests with traces 123000, 123001 and 123002,
+  the server may send back first 123001, then 123002, then 123000. The client will know which response corresponds
+  to which request by checking the trace of the responses.
+
+  The messages can vary in length depending on the message type and the fields it contains. The protocol was
+  designed so that a message can be read in parts; first the message type, then the primary bitmap, and from there
+  the rest of the fields (secondary bitmap included) can be read and processed one by one. This is very convenient
+  for small devices like POS terminals, but is not very efficient in larger systems with a high transaction volume.
+  In these cases, the sender first encodes the whole message, measures it, and sends the length as a 2- or 4-byte
+  unsigned integer (most significant bit first). This way the receiver knows to read 2 or 4 bytes, interpret them
+  as an unsigned integer, and read those many bytes to get an ISO message. Using 2 bytes allows for messages of up
+  to 65535 bytes, and 4 bytes allows for 2.14 million bytes long, which is a bit of overkill, given that a message
+  can be as long as 127290 bytes, if it's encoded in ASCII and has 127 LLLVAR fields each with 999 characters.
+
+*** Message terminator
+
+  The length header that is sent before a message is very useful to separate the reading operation from the parsing
+  of the message; you can dedicate a thread to read from a socket, and put those buffers on a queue where another
+  thread parses them. However, a length header only says how many bytes to read and so the reader must read all
+  those bytes, but what if the message is invalid because it is <longer> than the length says? To avoid this error,
+  some systems use a message terminator. This is just a character that must be found at the end of every message.
+  If messages are encoded as text, a common terminator is ASCII 0x03. The terminator may or may not be counted
+  as part of the message, that depends on the implementation. You can specify the terminator via the <<<etx>>>
+  property of an IsoMessage, of preferably in the MessageFactory so that all new messages already will have the
+  property set. To keep the messages from using a terminator, set <<<etx>>> to -1.
+
+** Binary encoding
+
+  Many ISO8583 implementations use plain text for the messages (even if the length header is binary). But some
+  implementations encode the messages as binary. The main differences are that the message type is only 2 bytes
+  long instead of 4 (the ASCII version is actually a hex representation of the message type), the bitmap is not
+  hex-encoded, so it's only 8 bytes long; and all numeric values (including date/time fields) are encoded using
+  {{{http://en.wikipedia.org/wiki/Binary-coded_decimal}BCD}} (including the headers for LLVAR and LLLVAR fields).
+
+  You can encode messages in binary by setting the <<<binary>>> property of IsoMessages, or in the MessageFactory
+  directly by setting the <<<useBinaryMessages>>> so that it gets set on all new messages. It must be set in
+  the MessageFactory if you want it to parse binary messages.

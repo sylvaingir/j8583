@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="j8583">
 <bannerLeft>
-	<name>j8583</name>
-	<src>http://sflogo.sourceforge.net/sflogo.php?group_id=194767&type=7</src>
-	<href>http://j8583.sourceforge.net/</href>
+  <name>j8583</name>
+  <href>http://j8583.sourceforge.net/</href>
 </bannerLeft>
 <bannerRight>
+	<name>j8583</name>
+	<src>http://sflogo.sourceforge.net/sflogo.php?group_id=194767&amp;type=7</src>
+	<href>http://j8583.sourceforge.net/</href>
 </bannerRight>
 <body>
 	<links>
@@ -17,6 +19,8 @@
 		<item name="Introduction" href="index.html"/>
 		<item name="API docs" href="apidocs/index.html" />
 		<item name="Beginner's Guide" href="guide.html"/>
+		<item name="ISO8583" href="iso8583.html" />
+		<item name="XML config" href="xmlconf.html" />
 		<item name="Spring Example" href="spring.html"/>
 		<item name="Groovy Compatibility" href="groovy.html" />
 		<item name="Download" href="http://sourceforge.net/projects/j8583/files/j8583/" />

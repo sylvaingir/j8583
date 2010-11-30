@@ -37,10 +37,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<organization>
-		<name>Java Mexico</name>
-		<url>http://javamexico.org</url>
-	</organization>
 	<developers>
 		<developer>
 			<id>chochos</id>
