@@ -29,7 +29,7 @@ Introduction to ISO8583
 *--------------*----------------*-----------------+
 | Time         | TIME           | Time of day in format HHMMSS, fixed width of 6. |
 *--------------*----------------*-----------------+
-| Amount       | AMOUNT         | Currency amount, a positive number expressed in cents, with a fixed width of 4. For example one dollar is encoded as 000000000100 |
+| Amount       | AMOUNT         | Currency amount, a positive number expressed in cents, with a fixed width of 12. For example one dollar is encoded as 000000000100 |
 *--------------*----------------*-----------------+
 | LLVAR        | LLVAR          | Variable-width alphanumeric value, up to 99 characters long. The length of the value is encoded in the first 2 characters of the value, for example "HEY" is encoded as 03HEY |
 *--------------*----------------*-----------------+
@@ -116,7 +116,7 @@ ISO 8583 types and their corresponding j8583 types
   In these cases, the sender first encodes the whole message, measures it, and sends the length as a 2- or 4-byte
   unsigned integer (most significant bit first). This way the receiver knows to read 2 or 4 bytes, interpret them
   as an unsigned integer, and read those many bytes to get an ISO message. Using 2 bytes allows for messages of up
-  to 65535 bytes, and 4 bytes allows for 2.14 million bytes long, which is a bit of overkill, given that a message
+  to 65535 bytes, and 4 bytes allows for 2.14 billion bytes long, which is a bit of overkill, given that a message
   can be as long as 127290 bytes, if it's encoded in ASCII and has 127 LLLVAR fields each with 999 characters.
 
 *** Message terminator

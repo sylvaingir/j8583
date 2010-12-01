@@ -1,27 +1,27 @@
 	-----
-	Groovy compatibility
+	Compatibilidad con Groovy
 	-----
 
-Isn't ANY Java library compatible with Groovy?
+¿Qué no cualquier biblioteca de Java es compatible con Groovy?
 
-  Yes, of course. You can use j8583 in Groovy just as you would use any other Java library. However,
-  some j8583 classes have certain methods in them written specifically for usage within Groovy.
+  Por supuesto. Se puede utilizar j8583 en Groovy al igual que cualquier otra biblioteca de Java. Sin embargo,
+  algunas clases de j8583 tienen algunos métodos con el expreso propósito de ser utilizados desde Groovy.
 
-* j8583 short-hand in Groovy
+* Atajos de j8583 en Groovy
 
-  In Java, you can deal with values in an IsoMessage like this:
+  En Java, se pueden manejar los valores de un IsoMessage en alguna de las siguientes formas:
 
 +-----
-message.setValue(32, "Some value", IsoType.LLVAR, 0);
+message.setValue(32, "Algun valor", IsoType.LLVAR, 0);
 IsoValue isoValue = message.getField(32);
 String value = (String)message.getObjectValue(32);
 Object value2 = message.getField(32).getValue();
 +-----
 
-  In Groovy you can do the same like this
+  En Groovy se puede hacer lo mismo de esta forma:
 
 +-----
-message[32] = IsoType.LLVAR("Some value")
+message[32] = IsoType.LLVAR("Algun valor")
 message[7] = IsoType.DATE10(new Date())
 message[41] = IsoType.ALPHA("Term", 16)
 message[11] = IsoType.NUMERIC(123, 6)
@@ -29,7 +29,8 @@ IsoValue isoValue = message[32]
 def value = message[32]?.value
 +-----
 
-  This is because the IsoMessage class has get <<<getAt()>>> and <<<putAt()>>> methods that work similar
-  to <<<getField()>>> and <<<setField>>>, and the IsoType class has two <<<call()>>> methods, with and without
-  length, which return IsoValue instances with the proper type and length. The variant that has a length parameter
-  must be used with NUMERIC and ALPHA types, and the other types can use the variant without length.
+  Esto es posible gracias a que la clase IsoMessage implementa los métodos <<<getAt()>>> y <<<putAt()>>>, que
+  funcionan de manera similar a <<<getField()>>> y <<<setField()>>>; la clase IsoType tiene dos variantes del
+  método <<<call()>>>, una con longitud y otra sin longitud, los cuales devuelven instancias de IsoValue con
+  el valor y longitud apropiados. La variante con longitud debe ser utiliza para crear valores tipo
+  NUMERIC y ALPHA, mientras que los demás tipos pueden utilizar la variante sin longitud.

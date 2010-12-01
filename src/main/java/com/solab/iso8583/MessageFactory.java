@@ -208,7 +208,7 @@ public class MessageFactory {
 	 * and the rest of the message must come. */
 	public IsoMessage parseMessage(byte[] buf, int isoHeaderLength) throws ParseException {
 		IsoMessage m = new IsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
-		//TODO it only parses ASCII messages for now
+		//TODO Not really sure if binary support really works, unit tests pending...
 		int type = 0;
 		if (useBinary) {
 			type = ((buf[isoHeaderLength] & 0xff) << 8) | (buf[isoHeaderLength + 1] & 0xff);
@@ -425,6 +425,8 @@ public class MessageFactory {
 		return typeTemplates.get(type);
 	}
 
+	/** Invoke this method in case you want to freeze the configuration, making message and parsing
+	 * templates, as well as iso headers and custom fields, immutable. */
 	public void freeze() {
 		typeTemplates = Collections.unmodifiableMap(typeTemplates);
 		parseMap = Collections.unmodifiableMap(parseMap);
