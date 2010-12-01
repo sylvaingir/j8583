@@ -7,7 +7,7 @@ Usage Guide
   This guide explains how to setup j8583. If you want to know more about the ISO8583 protocol,
   please read the {{{iso8583.html}corresponding page}}.
 
-The MessageFactory and IsoMessage classes
+* The MessageFactory and IsoMessage classes
 
   These are the two main classes you need to use to work with ISO8583 messages. An IsoMessage can be
   encoded into a byte array or a ByteBuffer to be written to an OutputStream, or it can directly write itself
@@ -15,26 +15,27 @@ The MessageFactory and IsoMessage classes
   to use a secondary bitmap if necessary. An IsoMessage has settings to encode itself in binary or ASCII,
   to use a secondary bitmap even if it's not necessary, and it can have its own ISO header.
 
-  However, it can be cumbersome to programmatically create IsoMessages all the time. The MessageFactory is a big aid
-  in IsoMessages with predefined values; also, it can set the date and the trace number in each new message.
+  However, it can be cumbersome to programmatically create IsoMessages all the time. The MessageFactory is a
+  big aid in creating IsoMessages with predefined values; also, it can set the date and the trace number
+  in each new message.
 
 * Configuring the MessageFactory
 
   There are five main things you need to configure in a MessageFactory: ISO headers, message templates,
   parsing templates, TraceNumberGenerator, and custom field encoders.
 
-* ISO headers
+** ISO headers
 
   ISO headers are strings that are associated with a message type. Whenever you ask the message factory
   to create an IsoMessage, it will pass the corresponding ISO header (if present) to the new message.
 
-* Message templates
+** Message templates
 
   A message template is an IsoMessage itself; the MessageFactory can have a template for each message type
   it needs to create. When it creates a message and it has a template for that message type, it copies the
   fields from the template to the new message before returning it.
 
-* Parsing templates
+** Parsing templates
 
   A parsing template is a map containing FieldParseInfo objects as values and the field numbers as the keys.
   A FieldParseInfo object contains an IsoType and an optional length; with this information and the field number,
@@ -48,7 +49,7 @@ The MessageFactory and IsoMessage classes
   contain all the fields specified in the bitmap of a message, or the MessageFactory won't be able to parse it
   because it has no way of knowing how it should parse that field (and also all subsequent fields).
 
-* The TraceNumberGenerator
+** The TraceNumberGenerator
 
   When creating new messages, they usually need to have a unique trace number, contained in field 11. Also, they
   usually need to have the date they were created (or the date the transaction was originated) in field 7.
@@ -64,7 +65,7 @@ The MessageFactory and IsoMessage classes
   TraceNumberGenerator, getting the new trace number from a sequence in a database or some similar mechanism.
   As an example, the library includes the SimpleTraceGenerator, which simply increments an in-memory value.
 
-* Custom field encoders
+** Custom field encoders
 
   Certain implementations of ISO8583 specify fields which contain many subfields. If you only handle strings
   in those fields, you'll have to encode all those values before storing them in an IsoMessage, and decode them

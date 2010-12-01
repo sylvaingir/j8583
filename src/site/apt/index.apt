@@ -22,7 +22,7 @@ ISO header (optional)|Message Type|primary bitmap|secondary bitmap (optional)|da
 
   The ISO header is a string containing some code that can vary according to the message type.
 
-  The message type is a 4-digit number (or 2 bytes when using binary format).
+  The message type is a number expressed as 4 hex digits (or 2 bytes when using binary format).
 
   The bitmap is 64 bits long and it is encoded as 16 hex characters or as 8 bytes when using binary format.
   Every bit that is set in the bitmap indicates that the corresponding field is present. If the first bit is set,
@@ -37,7 +37,7 @@ ISO header (optional)|Message Type|primary bitmap|secondary bitmap (optional)|da
 * How does j8583 work?
 
   j8583 offers a MessageFactory, which once properly configured, can create different message types with
-  some values predefined, and can also parse a byte array to create a iso message. Messages are represented
+  some values predefined, and can also parse a byte array to create an ISO message. Messages are represented
   by IsoMessage objects, which store IsoValue instances for their data fields. You can work with the IsoValues
   or use the convenience methods of IsoMessage to work directly with the stored values.
 

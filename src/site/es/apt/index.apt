@@ -1,46 +1,49 @@
 	-----
-	Introduction to j8583
+	Introducción a j8583
 	-----
 
-What it j8583?
+¿Qué es j8583?
 
-  Simply put, j8583 is a Java library to generate and read ISO8583 messages. It does not handle sending or
-  reading them over a network connection, but it does parse the data you have read and can generate the
-  data you need to write, or write it directly to an OutputStream.
+  Puesto de manera muy simple, j8583 es una biblioteca de clases de Java para generar y leer mensajes de ISO8583.
+  No maneja el envío y recepción de dichos mensajes a través de una conexión de red, pero sí procesa las tramas
+  que se lean de un socket y puede generar las tramas que hay que enviar, o escribirlas directamente a un
+  OutputStream.
 
-* What is ISO8583?
+* ¿Qué es ISO8583?
 
-  ISO8583 is a message format used for credit card transactions, banking and other commercial interaction between
-  different systems. It has an ASCII variant and a binary one, and it is somewhat convoluted and difficult to
-  implement.
+  ISO8583 es un formato de mensajería utilizado principalmente para transacciones de tarjetas de crédito,
+  para comunicación con bancos y otras entidades comerciales o financieras. Hay una variante ASCII y una binaria,
+  y la especificación es bastante enredada y algo difícil de implementar.
 
-  The main format of the ISO8583 is something like this:
+  El formato principal de un mensaje ISO8583 es más o menos así:
 
 +-----
-ISO header (optional)|Message Type|primary bitmap|secondary bitmap (optional)|data fields
+Encabezado ISO (opcional)|Tipo de mensaje|bitmap primario|bitmap secundario (opcional)|campos de datos
 +-----
 
-  The ISO header is a string containing some code that can vary according to the message type.
+  El encabezado ISO es una cadena que contiene ciertos códigos que varían según el tipo de mensaje.
 
-  The message type is a 4-digit number (or 2 bytes when using binary format).
+  El tipo de mensaje es un número de 4 dígitos hexadecimales (o 2 bytes cuando se usa formato binario).
 
-  The bitmap is 64 bits long and it is encoded as 16 hex characters or as 8 bytes when using binary format.
-  Every bit that is set in the bitmap indicates that the corresponding field is present. If the first bit is set,
-  then field 1 is present, and so on.
+  El bitmap contiene 64 bits y se codifica como 16 caracteres hexadecimales, como 8 bytes en formato binario.
+  Cada bit encendido en el bitmap indica que el campo correspondiente está presente en el mensaje. Si el primer
+  bit está encendido, entonces el mensaje contiene el campo 1, etc.
 
-  The fields in the message are numbered from 1 to 64. Field 1 is the secondary bitmap, if present. The secondary
-  bitmap allows for the message to have fields from 65 to 128.
+  Los campos en el mensaje están numerados del 1 al 64. El campo 1 es el bitmap secundario y permite que el mensaje
+  contenga campos del 64 al 128.
 
-  You can {{{iso8583.html}check the ISO8583 guide}} for more information; Wikipedia has
-  {{{http://en.wikipedia.org/wiki/ISO_8583}a very good article}} on the whole specification.
+  Puedes {{{iso8583.html}leer la guía de ISO8583}} para mayor información; Wikipedia tiene un
+  {{{http://es.wikipedia.org/wiki/ISO_8583}excelente artículo}} que abarca la especificación de manera más
+  completa.
 
-* How does j8583 work?
+* ¿Cómo funciona j8583?
 
-  j8583 offers a MessageFactory, which once properly configured, can create different message types with
-  some values predefined, and can also parse a byte array to create a iso message. Messages are represented
-  by IsoMessage objects, which store IsoValue instances for their data fields. You can work with the IsoValues
-  or use the convenience methods of IsoMessage to work directly with the stored values.
+  j8583 ofrece una clase MessageFactory, que una vez configurada, puede crear mensajes de distintos tipos
+  con algunos valores predefinidos, y también puede leer un arreglo de bytes y convertirlo en un mensaje ISO.
+  Los mensajes son representados por objetos de la clase IsoMessage, los cuales almacenan instancias de la
+  clase IsoValue como valores en sus campos. Se puede trabajar directamente son los IsoValues o se pueden
+  usar algunos métodos de conveniencia del IsoMessage para trabajar directamente con los datos almacenados.
 
-  j8583 can directly handle the basic data types: numeric values, strings, and dates. If you want to encode
-  a custom object in a field, you can implement a custom field encoder. More information is available in the
-  {{{guide.html}user's guide}}.
+  j8583 puede manejar de forma directa los tipos de datos básicos: valores numéricos, cadenas, y fechas.
+  Si deseas guardar objetos de otra clase en un campo, puedes implementar tu propio codificador/decodificador
+  de datos para ese campo. En la {{{guide.html}guía del usuario}} hay más información al respecto.

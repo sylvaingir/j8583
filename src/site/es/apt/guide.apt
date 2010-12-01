@@ -4,79 +4,90 @@
 
 Usage Guide
 
-  This guide explains how to setup j8583. If you want to know more about the ISO8583 protocol,
-  please read the {{{iso8583.html}corresponding page}}.
+  Esta guía explica brevemente cómo configurar y utilizar j8583. Para conocer más acerca del protocolo
+  ISO8583 como tal, favor de leer la {{{iso8583.html}página correspondiente}}.
 
-The MessageFactory and IsoMessage classes
+* Las clases MessageFactory e IsoMessage
 
-  These are the two main classes you need to use to work with ISO8583 messages. An IsoMessage can be
-  encoded into a byte array or a ByteBuffer to be written to an OutputStream, or it can directly write itself
-  to an OutputStream. You can set and get the values for each field in an IsoMessage, and it will adjust itself
-  to use a secondary bitmap if necessary. An IsoMessage has settings to encode itself in binary or ASCII,
-  to use a secondary bitmap even if it's not necessary, and it can have its own ISO header.
+  Estas son las dos clases principales que se utilizan para trabajar con mensajes ISO8583. Un mensaje puede
+  ser codificado como un arreglo de bytes, o un ByteBuffer, para escribirse a un OutputStream, o bien se
+  puede pedir al mensaje que se escriba directamente a un OutputStream. Se pueden leer y modificar los valores
+  de los distintos campos en el mensaje, el cual se ajustará para utilizar un bitmap secundario si es necesario.
+  El IsoMessage se puede configurar para codificarse en ASCII o binario, para utilizar el bitmap secundario
+  incluso cuando no es necesario, y para tener su propio encabezado ISO.
 
-  However, it can be cumbersome to programmatically create IsoMessages all the time. The MessageFactory is a big aid
-  in IsoMessages with predefined values; also, it can set the date and the trace number in each new message.
+  Sin embargo, puede ser muy tedioso crear directamente objetos IsoMessage por código. La clase MessageFactory
+  es una gran ayuda para crear mensajes con valores predefinidos, y además puede fijar la fecha actual y un
+  nuevo número de traza en cada mensaje nuevo.
 
-* Configuring the MessageFactory
+* Configuración de la MessageFactory
 
-  There are five main things you need to configure in a MessageFactory: ISO headers, message templates,
-  parsing templates, TraceNumberGenerator, and custom field encoders.
+  Hay cinco aspectos principales que se pueden configurar en una MessageFactory: Los encabezados ISO, las
+  plantillas de mensajes, las plantillas de lectura, el generador de números de traza, y los codificadores
+  para campos especiales.
 
-* ISO headers
+** Encabezados ISO
 
-  ISO headers are strings that are associated with a message type. Whenever you ask the message factory
-  to create an IsoMessage, it will pass the corresponding ISO header (if present) to the new message.
+  Los encabezados ISO son cadenas que están asociadas con un tipo de mensajes. Cuando se solicita a la fábrica
+  de mensajes que genere un IsoMessage nuevo, ésta le pondré al encabezado ISO correspondiente, si se ha
+  configurado uno para el tipo de mensaje solicitado.
 
-* Message templates
+** Plantillas de mensajes
 
-  A message template is an IsoMessage itself; the MessageFactory can have a template for each message type
-  it needs to create. When it creates a message and it has a template for that message type, it copies the
-  fields from the template to the new message before returning it.
+  Una plantilla de mensaje es en sí misma un IsoMessage; la fábrica de mensajes puede tener una plantilla
+  para cada tipo de mensaje que necesita crear. Cuando se le pide crear un mensaje de un tipo para el cual
+  tiene una plantilla, le pondrá los valores de la plantilla al nuevo mensaje.
 
-* Parsing templates
+** Plantillas de lectura
 
-  A parsing template is a map containing FieldParseInfo objects as values and the field numbers as the keys.
-  A FieldParseInfo object contains an IsoType and an optional length; with this information and the field number,
-  the MessageFactory can parse incoming messages, first analyzing the message type and then using the parsing
-  template for that type; when parsing a message, the MessageFactory only parses the fields that are specified
-  in the message's bitmap. For example if the bitmap specifies field 4, the factory will get the FieldParseInfo
-  stored in the map under key 4, and will attempt to parse the field according to the type and length specified
-  by the FieldParseInfo.
+  Una plantilla de lectura es un mapa que contiene objetos FieldParseInfo como valores, y los números de campo
+  a los que pertenecen serán las llaves. Un objeto FieldParseInfo contiene el tipo de valor en forma de un IsoType
+  y opcionalmente la longitud del campo; con esta información la fábrica de mensajes puede procesar tramas
+  entrantes, analizando primero el tipo de mensaje y luego utilizando la plantilla de lectura para ese tipo
+  de mensaje. Cuando se lee un mensaje de esta forma, la fábrica de mensajes únicamente procesa los campos
+  que indique el bitmap del mensaje. Por ejemplo si el bitmap tiene encendido el bit 4, la fábrica obtiene el
+  FieldParseInfo para el campo 4 e intenta leer ese campo según el tipo y longitud especificados por el objeto
+  obtenido.
 
-  A message does not need to contain all the fields specified in a parsing template, but a parsing template must
-  contain all the fields specified in the bitmap of a message, or the MessageFactory won't be able to parse it
-  because it has no way of knowing how it should parse that field (and also all subsequent fields).
+  Un mensaje no necesita contener todos los campos especificados en una plantilla de lectura, pero en cambio
+  una plantilla de lectura sí necesita tener todos los campos indicados en el bitmap de un mensaje para poder
+  procesarlo; si un mensaje entrante indica tener un campo para el cual la plantilla no tiene información, no se
+  puede crear el mensaje porque no se sabe cómo leer ese campo y por lo tanto no se pueden leer tampoco los
+  campos que le siguen.
 
-* The TraceNumberGenerator
+** El generador de números de traza
 
-  When creating new messages, they usually need to have a unique trace number, contained in field 11. Also, they
-  usually need to have the date they were created (or the date the transaction was originated) in field 7.
-  The MessageFactory can automatically set the current date on all new messages, you just need to set the
-  <<<assignDate>>> property to <<<true>>>. And it can also assign a new trace number to each message it creates,
-  but for this it needs a TraceNumberGenerator.
+  Los mensajes ISO por lo general necesitan tener un número de traza único, en el campo 11. Por lo general
+  también necesitan tener la fecha en que fueron creados (o la fecha en que se origina la transacción), en el
+  campo 7. La MessageFactory puede ponerle automáticamente la fecha actual a todos los mensajes que crea; para
+  ello únicamente hay que activar la propiedad <<<assignDate>>>. También puede asignar un nuevo número de traza
+  a cada mensaje creado, pero para ello necesita la ayuda de un TraceNumberGenerator.
 
-  The TraceNumberGenerator interface defines a <<<nextTrace()>>> method, which must return a new trace number
-  between 1 and 999999. It needs to be cyclic, so it returns 1 again after returning 999999. And usually, it
-  needs to be thread-safe.
+  La interfaz <<<TraceNumberGenerator>>> define un método <<<nextTrace()>>>, el cual debe devolver un nuevo
+  número de traza entre 1 y 999999 cada vez que se invoca. El método necesita ser cíclico, es decir que devuelva
+  1 después de haber devuelto 999999. Y por lo general necesita ser <<thread-safe>> (que pueda ser invocado por
+  varios hilos a la vez).
 
-  j8583 only defines the interface; in production environments you will usually need to implement your own
-  TraceNumberGenerator, getting the new trace number from a sequence in a database or some similar mechanism.
-  As an example, the library includes the SimpleTraceGenerator, which simply increments an in-memory value.
+  j8583 únicamente define la interfaz; en ambientes de producción es común tener una implementación propia de
+  TraceNumberGenerator que obtenga una nueva traza de una secuencia en una base de datos o algún mecanismo
+  similar de persistencia. Como ejemplo, la biblioteca incluye la clase SimpleTraceGenerator, que simplemente
+  maneja un entero en memoria que va incrementando.
 
-* Custom field encoders
+** Codificadores de campos especiales
 
-  Certain implementations of ISO8583 specify fields which contain many subfields. If you only handle strings
-  in those fields, you'll have to encode all those values before storing them in an IsoMessage, and decode them
-  when you get them from an IsoMessage.
+  Algunas implementaciones de ISO8583 especifican campos que contienen varios sub-campos. Si solamente se manejan
+  cadenas para estos campos, entonces hay que generar las cadenas apropiadas a partir de los valores necesarios
+  para luego ponerlas en el IsoMessage, y también convertir las cadenas de mensajes entrantes en objetos que
+  contengan los valores separados y convertidos a sus tipos apropiados.
 
-  In these cases you can implement a CustomField, which is an interface that defines two methods, one for encoding
-  an object into a String and another for decoding an object from a String. You can pass the MessageFactory a
-  CustomField for every field where you want to store custom values, so that parsed messages will return the
-  objects decoded by the CustomFields instead of just strings; and when you set a value in an IsoMessage, you
-  can specify the CustomField to be used to encode the value as a String.
+  En estos casos, se puede implementar la interfaz CustomField, la cual define dos métodos, uno para codificar
+  un objeto y obtener una cadena, y otro para generar un objeto a partir de una cadena. Se puede pasar un
+  CustomField a la fábrica de mensajes por cada campo en el cual se necesitan manejar valores especiales, para
+  que los mensajes leídos de tramas ya contengan el valor convertido en el campo. Y cuando se fija un valor
+  en un IsoMessage, se le puede pasar el CustomField para que sepa codificar dicho valor al momento de generar
+  su trama.
 
-* XML configuration
+* Configuración por XML
 
-  The easiest way to configure the message templates and parsing templates is by using a
-  {{{xmlconf.html}XML config file}} and pass it to the MessageFactory.
+  La manera más fácil de configurar las plantillas de mensajes y de lectura para una fábrica de mensajes es
+  crear un {{{xmlconf.html}archivo de configuración XML}} y pasarlo a la MessageFactory.
