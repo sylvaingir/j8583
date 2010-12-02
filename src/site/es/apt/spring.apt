@@ -1,32 +1,32 @@
 	-----
-	Configuring with Spring
+	Configuración con Spring
 	-----
 
-Configuration via Spring
+Configurando j8583 con Spring
 
-  You can configure a MessageFactory as a bean in a Spring ApplicationContext, and inject it into any
-  other components that need to create or parse IsoMessages.
+  Se puede definir una MessageFactory como un componente en un ApplicationContext de Spring, para poder
+  inyectarlo en cualquier otro componente que la necesita para crear o leer mensajes ISO.
 
-* Setting up the MessageFactory
+* Configuración de la MessageFactory
 
-  The properties that you want to set up in the Spring config are:
+  Las propiedades que se pueden configurar en la definición del componente en Spring son:
 
 *------------+---------------------------------+
-| configPath | Specify the path to the XML configuration file with the message and parsing templates.
+| configPath | Indica la ruta al archivo de configuración XML que contiene las plantillas de mensajes y de lectura. Debe ser una ruta dentro del classpath.
 *------------+---------------------------------+
-| customFields | A map with the CustomField implementations that should be used for each field (the keys are the field numbers).
+| customFields | Un mapa con los CustomFields que se deben usar en cada campo que los requiera (las llaves son los números de campo).
 *------------+---------------------------------+
-| assignDate | Set it to true to have the MessageFactory set field 7 to a DATE10 with the date the message was created.
+| assignDate | Se pone en <true> para que la MessageFactory le ponga la fecha actual a los mensajes nuevos en el campo 7, tipo DATE10.
 *------------+---------------------------------+
-| etx        | Set it to the numeric value of the message terminator, or -1 if you don't want to use a terminator.
+| etx        | Se indica el valor numérico del caracter que debe ser el terminador de mensajes, o -1 para no usar un terminador.
 *------------+---------------------------------+
-| forceSecondaryBitmap | If true, then the messages will include the secondary bitmap even if they don't contain any fields above 64. Some providers require this.
+| forceSecondaryBitmap | Si se activa, los mensajes creados incluirán el bitmap secundario en la trama generada aún cuando no tengan campos del 65 al 128. Algunos proveedores requieren esto.
 *------------+---------------------------------+
-| ignoreLastMissingField | If true, then the factory only logs a warning when parsing incomplete messages. By default it will throw a ParseException.
+| ignoreLastMissingField | Si se activa esta propiedad, entonces al leer mensajes que se terminan antes de haber procesado todos los campos indicados en el bitmap, únicamente se imprime una advertencia en la bitácora. Normalmente (con la propiedad desactiva) se arroja una ParseException cuando faltan campos en el mensaje.
 *------------+---------------------------------+
-| useBinaryMessages | Can be true or false (default false). The factory passes this value to new messages so that they're encoded in binary or ASCII.
+| useBinaryMessages | Si se activa esta propiedad, se pasa a los mensajes creados para que al generar sus tramas lo hagan en formato binario. El default es que se utilice ASCII.
 *------------+---------------------------------+
-| traceNumberGenerator | Set to an implementation of TraceNumberGenerator so that the factory sets a new trace value in field 11 on new messages.
+| traceNumberGenerator | Se pasa la implementación de TraceNumberGenerator para que la fábrica pueda ponerle un nuevo número de traza en el campo 11 a los mensajes creados.
 *------------+---------------------------------+
 
   Example:

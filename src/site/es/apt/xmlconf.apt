@@ -1,31 +1,32 @@
 	-----
-	XML Configuration
+	Configuración por XML
 	-----
 
-XML Configuration
+Configuración por XML
 
-  The MessageFactory can read a XML file to setup message templates, ISO headers by type and parsing templates,
-  which are the most cumbersome parts to configure programmatically.
+  La clase MessageFactory puede leer un archivo XML para congfigurar sus plantillas de mensajes, encabezados ISO
+  y plantillas de lectura, que son las partes más tediosas de configurar por código.
 
-  There are three types of main elements that you need to specify in the config file: <<<header>>>,
-  <<<template>>>, and <<<parse>>>. All these must be contained in a single <<<j8583-config>>> element.
-  There is a DTD available at {{{http://j8583.sourceforge.net/j8583.dtd}}}.
+  Hay tres tipos principales de elementos que se deben especificar en el archivo de configuración: <<<header>>>,
+  <<<template>>> y <<<parse>>>. Estos deben ir dentro de un único elemento <<<j8583-config>>> en el archivo.
+  Existe un DTD disponible en {{{http://j8583.sourceforge.net/j8583.dtd}}}.
 
-* <<<header>>> element
+* Elemento <<<header>>>
 
-  Specify a <<<header>>> element for every type of message that needs an ISO header. Only one per message type:
+  Se debe especificar un elemento <<<header>>> por cada tipo de mensaje que necesita un encabezado ISO,
+  únicamente uno por cada tipo de mensaje:
 
 +-----
 <header type="0200">ISO015000050</header>
 <header type="0400">ISO015000050</header>
 +-----
 
-* <<<template>>> element
+* Elemento <<<template>>>
 
-  Each <<<template>>> element defines a message template, with the message type and the fields that the
-  template should include. Every new message of that type that the MessageFactory creates will contain those
-  same values, so this is very useful for defining fixed values, which will be the same in every message.
-  Only one template per type.
+  Cada elemento <<<template>>> define una plantilla de mensaje, con el tipo del mismo y los campos que debe
+  incluir, con sus valores ya definidos. Cada mensaje de este tipo que se pida a la fábrica de mensajes, contendrá
+  los valores definidos en la plantilla. Esto es muy útil para campos que siempre tienen el mismo valor en todos
+  los mensajes creados. Solamente se permite una plantilla por tipo.
 
 +-----
 <template type="0200">
@@ -42,12 +43,12 @@ XML Configuration
 </template>
 +-----
 
-* <<<parse>>> element
+* Elemento <<<parse>>>
 
-  Each <<<parse>>> element defines a parsing template for a message type. It must include all the fields that
-  an incoming message can contain, each field with its type and length (if needed). Only ALPHA and NUMERIC
-  types need to have a length specified. The other types either have a fixed length, or have their length
-  specified as part of the field (LLVAR and LLLVAR).
+  Cada elemento <<<parse>>> define una plantilla de lectura para un tipo de mensaje. Debe incluir todos los
+  campos que el mensaje entrante pueda contener, indicando el tipo y longitud de cada campo (la longitud depende
+  del tipo de dato). Solamente los tipos ALPHA y NUMERIC deben incluir longitud, los demás ya la tienen predefinida
+  o la toman del mismo campo cuando se lee el mensaje (LLVAR y LLLVAR).
 
 +-----
 <parse type="0210">
