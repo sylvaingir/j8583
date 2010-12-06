@@ -50,7 +50,13 @@ public enum IsoType {
 	/** Time of day in format HHmmss */
 	TIME(false, 6),
 	/** An amount, expressed in cents with a fixed length of 12. */
-	AMOUNT(false, 12);
+	AMOUNT(false, 12),
+	/** Similar to ALPHA but holds byte arrays instead of strings. */
+	BINARY(true, 0),
+	/** Similar to LLVAR but holds byte arrays instead of strings. */
+	LLBIN(false, 0),
+	/** Similar to LLLVAR but holds byte arrays instead of strings. */
+	LLLBIN(false, 0);
 
 	private boolean needsLen;
 	private int length;
@@ -85,7 +91,7 @@ public enum IsoType {
 		throw new IllegalArgumentException("Cannot format date as " + this);
 	}
 
-	/** Formats the string to the given length (length is only useful if type is ALPHA). */
+	/** Formats the string to the given length (length is only useful if type is ALPHA, NUMERIC or BINARY). */
 	public String format(String value, int length) {
 		if (this == ALPHA) {
 	    	if (value == null) {
@@ -116,6 +122,23 @@ public enum IsoType {
 	        return new String(c);
 		} else if (this == AMOUNT) {
 			return IsoType.NUMERIC.format(new BigDecimal(value).movePointRight(2).intValue(), 12);
+		} else if (this == BINARY) {
+
+	    	if (value == null) {
+	    		value = "";
+	    	}
+	        if (value.length() > length) {
+	            return value.substring(0, length);
+	        }
+	        char[] c = new char[length];
+	        System.arraycopy(value.toCharArray(), 0, c, 0, value.length());
+	        for (int i = value.length(); i < c.length; i++) {
+	            c[i] = '0';
+	        }
+	        return new String(c);
+
+		} else if (this == LLBIN || this == LLLBIN) {
+			return value;
 		}
 		throw new IllegalArgumentException("Cannot format String as " + this);
 	}
@@ -145,6 +168,8 @@ public enum IsoType {
 			//No hay decimales asi que dejamos los dos ultimos digitos como 0
 			System.arraycopy(v.toCharArray(), 0, digits, 10 - v.length(), v.length());
 			return new String(digits);
+		} else if (this == BINARY || this == LLBIN || this == LLLBIN) {
+			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format number as " + this);
 	}
@@ -158,6 +183,8 @@ public enum IsoType {
 			return format(value.longValue(), length);
 		} else if (this == ALPHA || this == LLVAR || this == LLLVAR) {
 			return format(value.toString(), length);
+		} else if (this == BINARY || this == LLBIN || this == LLLBIN) {
+			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format BigDecimal as " + this);
 	}
