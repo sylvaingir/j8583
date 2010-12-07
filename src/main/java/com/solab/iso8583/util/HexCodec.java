@@ -39,7 +39,7 @@ public class HexCodec {
 		int holder = 0;
 		int pos = 0;
 		for (int i = 0; i < buf.length; i++) {
-		    for (int z = 0; z < 2; z++) {
+		    for (int z = 0; z < 2 && pos<hex.length(); z++) {
 		        c = hex.charAt(pos++);
 		        if (c >= 'A' && c <= 'F') {
 		            c -= 55;

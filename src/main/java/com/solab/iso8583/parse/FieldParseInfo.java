@@ -27,6 +27,7 @@ import java.util.Date;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.util.HexCodec;
 
 /** This class contains the information needed to parse a field from a message buffer.
  * 
@@ -87,18 +88,20 @@ public class FieldParseInfo {
 			if (pos+2 > buf.length || length+pos+2 > buf.length) {
 				throw new ParseException(String.format("Insufficient data for LLVAR field, pos %d", pos), pos);
 			}
+			String _v = length == 0 ? "" : new String(buf, pos + 2, length);
 			if (custom == null) {
-				return new IsoValue<String>(type, new String(buf, pos + 2, length), length, null);
+				return new IsoValue<String>(type, _v, length, null);
 			} else {
-				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 2, length)), length, custom);
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(_v), length, custom);
 				if (v.getValue() == null) {
-					return new IsoValue<String>(type, new String(buf, pos + 2, length), length, null);
+					return new IsoValue<String>(type, _v, length, null);
 				}
 				return v;
 			}
 		} else if (type == IsoType.LLLVAR) {
 			if (!(Character.isDigit(buf[pos]) && Character.isDigit(buf[pos+1]) && Character.isDigit(buf[pos+2]))) {
-				throw new ParseException(String.format("Invalid LLLVAR length '%s' pos %d", new String(buf, pos, 3), pos), pos);
+				throw new ParseException(String.format("Invalid LLLVAR length '%s' pos %d",
+					new String(buf, pos, 3), pos), pos);
 			}
 			length = ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
 			if (length < 0) {
@@ -123,12 +126,9 @@ public class FieldParseInfo {
 				throw new ParseException(String.format("Insufficient data for AMOUNT field of length %d, pos %d",
 					length, pos), pos);
 			}
-			byte[] c = new byte[13];
-			System.arraycopy(buf, pos, c, 0, 10);
-			System.arraycopy(buf, pos + 10, c, 11, 2);
-			c[10] = '.';
+			String c = new String(buf, pos, 12);
 			try {
-				return new IsoValue<BigDecimal>(type, new BigDecimal(new String(c)), null);
+				return new IsoValue<BigDecimal>(type, new BigDecimal(c).movePointLeft(2), null);
 			} catch (NumberFormatException ex) {
 				throw new ParseException(String.format("Cannot read amount '%s' pos %d", new String(c), pos), pos);
 			}
@@ -183,6 +183,69 @@ public class FieldParseInfo {
 			cal.set(Calendar.MINUTE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
 			cal.set(Calendar.SECOND, ((buf[pos + 4] - 48) * 10) + buf[pos + 5] - 48);
 			return new IsoValue<Date>(type, cal.getTime(), null);
+
+		} else if (type == IsoType.BINARY) {
+
+			if (pos+(length*2) > buf.length) {
+				throw new ParseException(String.format("Insufficient data for BINARY field of length %d, pos %d",
+					length, pos), pos);
+			}
+			byte[] binval = HexCodec.hexDecode(new String(buf, pos, length*2));
+			if (custom == null) {
+				return new IsoValue<byte[]>(type, binval, binval.length, null);
+			} else {
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length*2)), length, custom);
+				if (v.getValue() == null) {
+					return new IsoValue<byte[]>(type, binval, binval.length, null);
+				}
+				return v;
+			}
+
+		} else if (type == IsoType.LLBIN) {
+
+			length = ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
+			if (length < 0) {
+				throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
+			}
+			if (pos+2 > buf.length || length+pos+2 > buf.length) {
+				throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d", pos), pos);
+			}
+			byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 2, length));
+			if (custom == null) {
+				return new IsoValue<byte[]>(type, binval, binval.length, null);
+			} else {
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(
+					new String(buf, pos + 2, length)), binval.length, custom);
+				if (v.getValue() == null) {
+					return new IsoValue<byte[]>(type, binval, binval.length, null);
+				}
+				return v;
+			}
+
+		} else if (type == IsoType.LLLBIN) {
+
+			if (!(Character.isDigit(buf[pos]) && Character.isDigit(buf[pos+1]) && Character.isDigit(buf[pos+2]))) {
+				throw new ParseException(String.format("Invalid LLLBIN length '%s' pos %d", new String(buf, pos, 3), pos), pos);
+			}
+			length = ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
+			if (length < 0) {
+				throw new ParseException(String.format("Invalid LLLBIN length %d pos %d", length, pos), pos);
+			}
+			if (length+pos+3 > buf.length) {
+				throw new ParseException(String.format("Insufficient data for LLLBIN field, pos %d", pos), pos);
+			}
+			byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 3, length));
+			if (custom == null) {
+				return new IsoValue<byte[]>(type, binval, binval.length, null);
+			} else {
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(
+					length == 0 ? "" : new String(buf, pos + 3, length)), length, custom);
+				if (v.getValue() == null) {
+					//problems decoding? return the string
+					return new IsoValue<byte[]>(type, binval, binval.length, null);
+				}
+				return v;
+			}
 		}
 		return null;
 	}
@@ -229,6 +292,12 @@ public class FieldParseInfo {
 		} else if (type == IsoType.LLVAR) {
 
 			length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
+			if (length < 0) {
+				throw new ParseException(String.format("Invalid LLVAR length %d pos %d", length, pos), pos);
+			}
+			if (pos+1 > buf.length || length+pos+1 > buf.length) {
+				throw new ParseException(String.format("Insufficient data for LLVAR field, pos %d", pos), pos);
+			}
 			if (custom == null) {
 				return new IsoValue<String>(type, new String(buf, pos + 1, length), null);
 			} else {
@@ -242,6 +311,12 @@ public class FieldParseInfo {
 		} else if (type == IsoType.LLLVAR) {
 
 			length = ((buf[pos] & 0x0f) * 100) + (((buf[pos + 1] & 0xf0) >> 4) * 10) + (buf[pos + 1] & 0x0f);
+			if (length < 0) {
+				throw new ParseException(String.format("Invalid LLLVAR length %d pos %d", length, pos), pos);
+			}
+			if (length+pos+2 > buf.length) {
+				throw new ParseException(String.format("Insufficient data for LLLVAR field, pos %d", pos), pos);
+			}
 			if (custom == null) {
 				return new IsoValue<String>(type, new String(buf, pos + 2, length), null);
 			} else {
@@ -264,7 +339,11 @@ public class FieldParseInfo {
 					start++;
 				}
 			}
-			return new IsoValue<BigDecimal>(IsoType.AMOUNT, new BigDecimal(new String(digits)), null);
+			try {
+				return new IsoValue<BigDecimal>(IsoType.AMOUNT, new BigDecimal(new String(digits)), null);
+			} catch (NumberFormatException ex) {
+				throw new ParseException(String.format("Cannot read amount '%s' pos %d", new String(digits), pos), pos);
+			}
 		} else if (type == IsoType.DATE10 || type == IsoType.DATE4 || type == IsoType.DATE_EXP
 				|| type == IsoType.TIME) {
 
@@ -315,6 +394,62 @@ public class FieldParseInfo {
 				return new IsoValue<Date>(type, cal.getTime(), null);
 			}
 			return new IsoValue<Date>(type, cal.getTime(), null);
+		} else if (type == IsoType.BINARY) {
+
+			byte[] _v = new byte[length];
+			System.arraycopy(buf, pos, _v, 0, length);
+			if (custom == null) {
+				return new IsoValue<byte[]>(type, _v, length, null);
+			} else {
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(HexCodec.hexEncode(_v)), length, custom);
+				if (v.getValue() == null) {
+					return new IsoValue<byte[]>(type, _v, length, null);
+				}
+				return v;
+			}
+
+		} else if (type == IsoType.LLBIN) {
+
+			length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
+			if (length < 0) {
+				throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
+			}
+			if (pos+1 > buf.length || length+pos+1 > buf.length) {
+				throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d", pos), pos);
+			}
+			byte[] _v = new byte[length];
+			System.arraycopy(buf, pos+1, _v, 0, length);
+			if (custom == null) {
+				return new IsoValue<byte[]>(type, _v, null);
+			} else {
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
+				if (v.getValue() == null) {
+					return new IsoValue<byte[]>(type, _v, null);
+				}
+				return v;
+			}
+
+		} else if (type == IsoType.LLLBIN) {
+
+			length = ((buf[pos] & 0x0f) * 100) + (((buf[pos + 1] & 0xf0) >> 4) * 10) + (buf[pos + 1] & 0x0f);
+			if (length < 0) {
+				throw new ParseException(String.format("Invalid LLLBIN length %d pos %d", length, pos), pos);
+			}
+			if (length+pos+2 > buf.length) {
+				throw new ParseException(String.format("Insufficient data for LLLBIN field, pos %d", pos), pos);
+			}
+			byte[] _v = new byte[length];
+			System.arraycopy(buf, pos+2, _v, 0, length);
+			if (custom == null) {
+				return new IsoValue<byte[]>(type, _v, null);
+			} else {
+				IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
+				if (v.getValue() == null) {
+					return new IsoValue<byte[]>(type, _v, null);
+				}
+				return v;
+			}
+
 		}
 		return null;
 	}

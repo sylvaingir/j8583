@@ -184,13 +184,14 @@ public class IsoValue<T> implements Cloneable {
 			if (value instanceof byte[]) {
 				return type.format(encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value), length * 2);
 			} else {
-				return type.format(encoder == null ? value.toString() : encoder.encodeField(value), length);
+				return type.format(encoder == null ? value.toString() : encoder.encodeField(value), length * 2);
 			}
 		} else if (type == IsoType.LLBIN || type == IsoType.LLLBIN) {
 			if (value instanceof byte[]) {
 				return encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value);
 			} else {
-				return encoder == null ? value.toString() : encoder.encodeField(value);
+				String _s = encoder == null ? value.toString() : encoder.encodeField(value);
+				return (_s.length() % 2 == 1) ? String.format("0%s", _s) : _s;
 			}
 		}
 		return encoder == null ? value.toString() : encoder.encodeField(value);
@@ -256,16 +257,17 @@ public class IsoValue<T> implements Cloneable {
 				//BCD encode the rest of the length
 				outs.write((((length % 100) / 10) << 4) | (length % 10));
 			} else {
+				int _l = length*2;
 				//write the length in ASCII
 				if (type == IsoType.LLLBIN) {
-					outs.write((length / 50) + 48);
+					outs.write((_l / 100) + 48);
 				}
-				if (length >= 10) {
-					outs.write((((length*2) % 100) / 10) + 48);
+				if (_l >= 10) {
+					outs.write(((_l % 100) / 10) + 48);
 				} else {
 					outs.write(48);
 				}
-				outs.write(((length*2) % 10) + 48);
+				outs.write((_l % 10) + 48);
 			}
 		} else if (binary) {
 			//numeric types in binary are coded like this
@@ -285,10 +287,19 @@ public class IsoValue<T> implements Cloneable {
 			}
 		}
 		if (binary && (type == IsoType.BINARY || type == IsoType.LLBIN || type == IsoType.LLLBIN)) {
+			int missing = 0;
 			if (value instanceof byte[]) {
 				outs.write((byte[])value);
+				missing = length - ((byte[])value).length;
 			} else {
-				outs.write(HexCodec.hexDecode(value.toString()));
+				byte[] binval = HexCodec.hexDecode(value.toString());
+				outs.write(binval);
+				missing = length - binval.length;
+			}
+			if (type == IsoType.BINARY && missing > 0) {
+				for (int i = 0; i < missing; i++) {
+					outs.write(0);
+				}
 			}
 		} else {
 			//Just write the value as text

@@ -323,16 +323,19 @@ public class MessageFactory {
 					} else {
 						IsoValue<?> val = fpi.parseBinary(buf, pos, getCustomField(i));
 						m.setField(i, val);
-						if (!(val.getType() == IsoType.ALPHA || val.getType() == IsoType.LLVAR
-								|| val.getType() == IsoType.LLLVAR)) {
-							pos += (val.getLength() / 2) + (val.getLength() % 2);
-						} else {
-							pos += val.getLength();
-						}
-						if (val.getType() == IsoType.LLVAR) {
-							pos++;
-						} else if (val.getType() == IsoType.LLLVAR) {
-							pos += 2;
+						if (val != null) {
+							if (val.getType() == IsoType.NUMERIC || val.getType() == IsoType.DATE10
+									|| val.getType() == IsoType.DATE4 || val.getType() == IsoType.DATE_EXP
+									|| val.getType() == IsoType.AMOUNT || val.getType() == IsoType.TIME) {
+								pos += (val.getLength() / 2) + (val.getLength() % 2);
+							} else {
+								pos += val.getLength();
+							}
+							if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN) {
+								pos++;
+							} else if (val.getType() == IsoType.LLLVAR || val.getType() == IsoType.LLLBIN) {
+								pos += 2;
+							}
 						}
 					}
 				}
@@ -348,9 +351,13 @@ public class MessageFactory {
 						IsoValue<?> val = fpi.parse(buf, pos, getCustomField(i));
 						m.setField(i, val);
 						pos += val.getLength();
-						if (val.getType() == IsoType.LLVAR) {
+						if (val.getType() == IsoType.LLBIN || val.getType() == IsoType.LLLBIN || val.getType() == IsoType.BINARY) {
+							//Binary types in ASCII are twice as long as they say they are (because of the hex encoding)
+							pos += val.getLength();
+						}
+						if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN) {
 							pos += 2;
-						} else if (val.getType() == IsoType.LLLVAR) {
+						} else if (val.getType() == IsoType.LLLVAR || val.getType() == IsoType.LLLBIN) {
 							pos += 3;
 						}
 					}

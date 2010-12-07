@@ -131,8 +131,15 @@ public enum IsoType {
 	            return value.substring(0, length);
 	        }
 	        char[] c = new char[length];
-	        System.arraycopy(value.toCharArray(), 0, c, 0, value.length());
-	        for (int i = value.length(); i < c.length; i++) {
+	        int end = value.length();
+	        if (value.length() % 2 == 1) {
+	        	c[0] = '0';
+		        System.arraycopy(value.toCharArray(), 0, c, 1, value.length());
+		        end++;
+	        } else {
+		        System.arraycopy(value.toCharArray(), 0, c, 0, value.length());
+	        }
+	        for (int i = end; i < c.length; i++) {
 	            c[i] = '0';
 	        }
 	        return new String(c);

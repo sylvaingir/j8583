@@ -35,6 +35,10 @@ public class TestHexCodec {
 		Assert.assertEquals(0xab, (buf[5] & 0xff));
 		Assert.assertEquals(0xcd, (buf[6] & 0xff));
 		Assert.assertEquals(0xef, (buf[7] & 0xff));
+		buf = HexCodec.hexDecode("ABC");
+		Assert.assertEquals(0x0a, (buf[0] & 0xff));
+		Assert.assertEquals(0xbc, (buf[1] & 0xff));
+		encodeDecode("ABC");
 	}
 
 }
