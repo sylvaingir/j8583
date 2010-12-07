@@ -37,6 +37,15 @@
 	<field num="126" type="LLLVAR">...and yet another fixed field.</field>
 </template>
 
+<template type="0600">
+	<field num="4" type="AMOUNT">000000123400</field>
+	<field num="11" type="NUMERIC" length="6">123</field>
+	<field num="41" type="BINARY" length="8">abcdef</field>
+	<field num="43" type="ALPHA" length="40">Field of length 40</field>
+	<field num="62" type="LLBIN">0123456789abcdef</field>
+	<field num="102" type="LLLVAR">Field of type LLLVAR</field>
+</template>
+
 <!-- The server example uses this to read the requests -->
 <parse type="0200">
 	<field num="3" type="NUMERIC" length="6" />
@@ -86,6 +95,17 @@
 	<field num="100" type="LLVAR" />
 	<field num="102" type="LLVAR" />
 	<field num="126" type="LLLVAR" />
+</parse>
+
+<!-- this is for binary tests (message encoding AND fields) -->
+<parse type="0600">
+	<field num="4" type="AMOUNT" />
+	<field num="7" type="DATE10" />
+	<field num="11" type="NUMERIC" length="6" />
+	<field num="41" type="BINARY" length="8" />
+	<field num="43" type="ALPHA" length="40" />
+	<field num="62" type="LLBIN" />
+	<field num="102" type="LLLVAR" />
 </parse>
 
 </j8583-config>

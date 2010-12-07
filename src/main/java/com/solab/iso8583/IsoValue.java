@@ -76,7 +76,11 @@ public class IsoValue<T> implements Cloneable {
 			}
 		} else if (type == IsoType.LLBIN || type == IsoType.LLLBIN) {
 			if (custom == null) {
-				length = ((byte[])value).length;
+				if (value instanceof byte[]) {
+					length = ((byte[])value).length;
+				} else {
+					length = value.toString().length() / 2 + (value.toString().length() % 2);
+				}
 			} else {
 				//TODO special encoder, NO strings
 				String enc = custom.encodeField(value);
@@ -177,9 +181,17 @@ public class IsoValue<T> implements Cloneable {
 		} else if (value instanceof Date) {
 			return type.format((Date)value);
 		} else if (type == IsoType.BINARY) {
-			return type.format(encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value), length * 2);
+			if (value instanceof byte[]) {
+				return type.format(encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value), length * 2);
+			} else {
+				return type.format(encoder == null ? value.toString() : encoder.encodeField(value), length);
+			}
 		} else if (type == IsoType.LLBIN || type == IsoType.LLLBIN) {
-			return encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value);
+			if (value instanceof byte[]) {
+				return encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value);
+			} else {
+				return encoder == null ? value.toString() : encoder.encodeField(value);
+			}
 		}
 		return encoder == null ? value.toString() : encoder.encodeField(value);
 	}
@@ -273,7 +285,11 @@ public class IsoValue<T> implements Cloneable {
 			}
 		}
 		if (binary && (type == IsoType.BINARY || type == IsoType.LLBIN || type == IsoType.LLLBIN)) {
-			outs.write((byte[])value);
+			if (value instanceof byte[]) {
+				outs.write((byte[])value);
+			} else {
+				outs.write(HexCodec.hexDecode(value.toString()));
+			}
 		} else {
 			//Just write the value as text
 			outs.write(toString().getBytes());
