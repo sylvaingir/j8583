@@ -244,6 +244,7 @@ public class MessageFactory {
 				pos = 10 + isoHeaderLength;
 			}
 		} else {
+			//ASCII parsing
 			try {
 				for (int i = isoHeaderLength + 4; i < isoHeaderLength + 20; i++) {
 					if (buf[i] >= '0' && buf[i] <= '9') {

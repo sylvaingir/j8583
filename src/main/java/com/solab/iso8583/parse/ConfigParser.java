@@ -172,7 +172,7 @@ public class ConfigParser {
 				if (f.getAttribute("length").length() > 0) {
 					length = Integer.parseInt(f.getAttribute("length"));
 				}
-				parseMap.put(num, new FieldParseInfo(itype, length));
+				parseMap.put(num, FieldParseInfo.getInstance(itype, length));
 			}
 			mfact.setParseMap(type, parseMap);
 		}
