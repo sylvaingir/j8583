@@ -19,8 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 package com.solab.iso8583;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /** Defines the possible values types that can be used in the fields.
@@ -80,13 +78,13 @@ public enum IsoType {
 	 * otherwise. */
 	public String format(Date value) {
 		if (this == DATE10) {
-			return new SimpleDateFormat("MMddHHmmss").format(value);
+			return String.format("%Tm%<Td%<TH%<TM%<TS", value);
 		} else if (this == DATE4) {
-			return new SimpleDateFormat("MMdd").format(value);
+			return String.format("%Tm%<Td", value);
 		} else if (this == DATE_EXP) {
-			return new SimpleDateFormat("yyMM").format(value);
+			return String.format("%Ty%<Tm", value);
 		} else if (this == TIME) {
-			return new SimpleDateFormat("HHmmss").format(value);
+			return String.format("%TH%<TM%<TS", value);
 		}
 		throw new IllegalArgumentException("Cannot format date as " + this);
 	}
@@ -99,13 +97,11 @@ public enum IsoType {
 	    	}
 	        if (value.length() > length) {
 	            return value.substring(0, length);
+	        } else if (value.length() == length) {
+	        	return value;
+	        } else {
+	        	return String.format(String.format("%%-%ds", length), value);
 	        }
-	        char[] c = new char[length];
-	        System.arraycopy(value.toCharArray(), 0, c, 0, value.length());
-	        for (int i = value.length(); i < c.length; i++) {
-	            c[i] = ' ';
-	        }
-	        return new String(c);
 		} else if (this == LLVAR || this == LLLVAR) {
 			return value;
 		} else if (this == NUMERIC) {
@@ -121,7 +117,7 @@ public enum IsoType {
 	        System.arraycopy(x, 0, c, lim, x.length);
 	        return new String(c);
 		} else if (this == AMOUNT) {
-			return IsoType.NUMERIC.format(new BigDecimal(value).movePointRight(2).intValue(), 12);
+			return IsoType.NUMERIC.format(new BigDecimal(value).movePointRight(2).longValue(), 12);
 		} else if (this == BINARY) {
 
 	    	if (value == null) {
@@ -153,28 +149,15 @@ public enum IsoType {
 	/** Formats the integer value as a NUMERIC, an AMOUNT, or a String. */
 	public String format(long value, int length) {
 		if (this == NUMERIC) {
-	        char[] c = new char[length];
-	        char[] x = Long.toString(value).toCharArray();
-	        if (x.length > length) {
+			String x = String.format(String.format("%%0%dd", length), value);
+	        if (x.length() > length) {
 	        	throw new IllegalArgumentException("Numeric value is larger than intended length: " + value + " LEN " + length);
 	        }
-	        int lim = c.length - x.length;
-	        for (int i = 0; i < lim; i++) {
-	            c[i] = '0';
-	        }
-	        System.arraycopy(x, 0, c, lim, x.length);
-	        return new String(c);
+	        return x;
 		} else if (this == ALPHA || this == LLVAR || this == LLLVAR) {
 			return format(Long.toString(value), length);
 		} else if (this == AMOUNT) {
-			String v = Long.toString(value);
-			char[] digits = new char[12];
-			for (int i = 0; i < 12; i++) {
-				digits[i] = '0';
-			}
-			//No hay decimales asi que dejamos los dos ultimos digitos como 0
-			System.arraycopy(v.toCharArray(), 0, digits, 10 - v.length(), v.length());
-			return new String(digits);
+			return String.format("%010d00", value);
 		} else if (this == BINARY || this == LLBIN || this == LLLBIN) {
 			//TODO
 		}
@@ -184,8 +167,7 @@ public enum IsoType {
 	/** Formats the BigDecimal as an AMOUNT, NUMERIC, or a String. */
 	public String format(BigDecimal value, int length) {
 		if (this == AMOUNT) {
-			String v = new DecimalFormat(value.signum() >= 0 ? "0000000000.00" : "000000000.00").format(value);
-			return String.format("%s%s", v.substring(0, 10), v.substring(11));
+			return String.format("%012d", value.movePointRight(2).longValue());
 		} else if (this == NUMERIC) {
 			return format(value.longValue(), length);
 		} else if (this == ALPHA || this == LLVAR || this == LLLVAR) {
