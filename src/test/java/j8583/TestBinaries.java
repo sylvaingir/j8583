@@ -1,6 +1,7 @@
 package j8583;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -22,9 +23,11 @@ public class TestBinaries {
 
 	@Before
 	public void setup() throws IOException {
+		mfactAscii.setCharacterEncoding("UTF-8");
 		mfactAscii.setConfigPath("config.xml");
-		mfactBin.setConfigPath("config.xml");
 		mfactAscii.setAssignDate(true);
+		mfactBin.setCharacterEncoding("UTF-8");
+		mfactBin.setConfigPath("config.xml");
 		mfactBin.setAssignDate(true);
 		mfactBin.setUseBinaryMessages(true);
 	}
@@ -61,19 +64,19 @@ public class TestBinaries {
 	}
 
 	@Test
-	public void testMessages() throws ParseException {
+	public void testMessages() throws ParseException, UnsupportedEncodingException {
 		//Create a message with both factories
 		IsoMessage ascii = mfactAscii.newMessage(0x600);
 		IsoMessage bin = mfactBin.newMessage(0x600);
 		//HEXencode the binary message, headers should be similar to the ASCII version
 		String hexBin = HexCodec.hexEncode(bin.writeData());
 		String hexAscii = new String(ascii.writeData()).toUpperCase();
-		System.out.printf("bin:   %s%nascii: %s%n", hexBin, hexAscii);
 		Assert.assertEquals("0600", hexBin.substring(0, 4));
 		//Should be the same up to the field 42 (first 80 chars)
 		Assert.assertEquals(hexAscii.substring(0, 88), hexBin.substring(0, 88));
 		//Parse both messages
-		IsoMessage ascii2 = mfactAscii.parseMessage(ascii.writeData(), 0);
+		byte[] asciiBuf = ascii.writeData();
+		IsoMessage ascii2 = mfactAscii.parseMessage(asciiBuf, 0);
 		testParsed(ascii2);
 		Assert.assertEquals(ascii.getObjectValue(7).toString(), ascii2.getObjectValue(7).toString());
 		IsoMessage bin2 = mfactBin.parseMessage(bin.writeData(), 0);

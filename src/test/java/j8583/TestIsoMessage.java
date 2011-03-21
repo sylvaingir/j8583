@@ -1,7 +1,9 @@
 package j8583;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import org.junit.Assert;
@@ -23,6 +25,7 @@ public class TestIsoMessage {
 	@Before
 	public void init() throws IOException {
 		mf = new MessageFactory();
+		mf.setCharacterEncoding("UTF-8");
 		mf.setCustomField(48, new CustomField48());
 		mf.setConfigPath("config.xml");
 	}
@@ -60,7 +63,7 @@ public class TestIsoMessage {
 	}
 
 	@Test
-	public void testEncoding() throws ParseException {
+	public void testEncoding() throws Exception {
 		IsoMessage m1 = mf.newMessage(0x200);
 		byte[] buf = m1.writeData();
 		IsoMessage m2 = mf.parseMessage(buf, mf.getIsoHeader(0x200).length());

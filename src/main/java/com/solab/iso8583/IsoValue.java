@@ -40,6 +40,7 @@ public class IsoValue<T> implements Cloneable {
 	private T value;
 	private CustomField<T> encoder;
 	private int length;
+	private String encoding;
 
 	public IsoValue(IsoType t, T value) {
 		this(t, value, null);
@@ -154,6 +155,13 @@ public class IsoValue<T> implements Cloneable {
 	/** Returns the stored value without any conversion or formatting. */
 	public T getValue() {
 		return value;
+	}
+
+	public void setCharacterEncoding(String value) {
+		encoding = value;
+	}
+	public String getCharacterEncoding() {
+		return encoding;
 	}
 
 	/** Returns the formatted value as a String. The formatting depends on the type of the
@@ -302,8 +310,7 @@ public class IsoValue<T> implements Cloneable {
 				}
 			}
 		} else {
-			//Just write the value as text
-			outs.write(toString().getBytes());
+			outs.write(encoding == null ? toString().getBytes() : toString().getBytes(encoding));
 		}
 	}
 

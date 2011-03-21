@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import com.solab.iso8583.CustomField;
@@ -34,7 +35,7 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 		super(t, len);
 	}
 
-	public <T extends Object> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom) throws ParseException {
+	public <T extends Object> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom) throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
 		}
@@ -42,12 +43,16 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format("Insufficient data for %s field of length %d, pos %d",
 				type, length, pos), pos);
 		}
+		String _v = new String(buf, pos, length, getCharacterEncoding());
+		if (_v.length() != length) {
+			_v = new String(buf, pos, buf.length-pos, getCharacterEncoding()).substring(0, length);
+		}
 		if (custom == null) {
-			return new IsoValue<String>(type, new String(buf, pos, length), length, null);
+			return new IsoValue<String>(type, _v, length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length)), length, custom);
+			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(_v), length, custom);
 			if (v.getValue() == null) {
-				return new IsoValue<String>(type, new String(buf, pos, length), length, null);
+				return new IsoValue<String>(type, _v, length, null);
 			}
 			return v;
 		}

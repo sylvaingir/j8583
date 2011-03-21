@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import com.solab.iso8583.CustomField;
@@ -34,13 +35,14 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
 		super(IsoType.ALPHA, len);
 	}
 
-	public <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom) throws ParseException {
+	public <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom)
+	throws ParseException, UnsupportedEncodingException {
 		if (custom == null) {
-			return new IsoValue<String>(type, new String(buf, pos, length), length, null);
+			return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length)), length, custom);
+			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length, getCharacterEncoding())), length, custom);
 			if (v.getValue() == null) {
-				return new IsoValue<String>(type, new String(buf, pos, length), length, null);
+				return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
 			}
 			return v;
 		}

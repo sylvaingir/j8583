@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import com.solab.iso8583.CustomField;
@@ -35,7 +36,8 @@ public class LllvarParseInfo extends FieldParseInfo {
 		super(IsoType.LLLVAR, 0);
 	}
 
-	public <T extends Object> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom) throws ParseException {
+	public <T extends Object> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom)
+	throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
 		}
@@ -50,7 +52,13 @@ public class LllvarParseInfo extends FieldParseInfo {
 		if (length+pos+3 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for LLLVAR field, pos %d", pos), pos);
 		}
-		String _v = length == 0 ? "" : new String(buf, pos + 3, length);
+		String _v = length == 0 ? "" : new String(buf, pos + 3, length, getCharacterEncoding());
+		//This is new: if the String's length is different from the specified length in the buffer,
+		//there are probably some extended characters. So we create a String from the rest of the buffer,
+		//and then cut it to the specified length.
+		if (_v.length() != length) {
+			_v = new String(buf, pos + 3, buf.length-pos-3, getCharacterEncoding()).substring(0, length);
+		}
 		if (custom == null) {
 			return new IsoValue<String>(type, _v, length, null);
 		} else {
@@ -63,7 +71,8 @@ public class LllvarParseInfo extends FieldParseInfo {
 		}
 	}
 
-	public <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom) throws ParseException {
+	public <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom)
+	throws ParseException, UnsupportedEncodingException {
 		length = ((buf[pos] & 0x0f) * 100) + (((buf[pos + 1] & 0xf0) >> 4) * 10) + (buf[pos + 1] & 0x0f);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLLVAR length %d pos %d", length, pos), pos);
@@ -72,11 +81,11 @@ public class LllvarParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format("Insufficient data for LLLVAR field, pos %d", pos), pos);
 		}
 		if (custom == null) {
-			return new IsoValue<String>(type, new String(buf, pos + 2, length), null);
+			return new IsoValue<String>(type, new String(buf, pos + 2, length, getCharacterEncoding()), null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 2, length)), custom);
+			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 2, length, getCharacterEncoding())), custom);
 			if (v.getValue() == null) {
-				return new IsoValue<String>(type, new String(buf, pos + 2, length), null);
+				return new IsoValue<String>(type, new String(buf, pos + 2, length, getCharacterEncoding()), null);
 			}
 			return v;
 		}

@@ -139,6 +139,7 @@ public class ConfigParser {
 			NodeList fields = elem.getElementsByTagName("field");
 			IsoMessage m = new IsoMessage();
 			m.setType(type);
+			m.setCharacterEncoding(mfact.getCharacterEncoding());
 			for (int j = 0; j < fields.getLength(); j++) {
 				Element f = (Element)fields.item(j);
 				int num = Integer.parseInt(f.getAttribute("num"));
@@ -172,7 +173,7 @@ public class ConfigParser {
 				if (f.getAttribute("length").length() > 0) {
 					length = Integer.parseInt(f.getAttribute("length"));
 				}
-				parseMap.put(num, FieldParseInfo.getInstance(itype, length));
+				parseMap.put(num, FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding()));
 			}
 			mfact.setParseMap(type, parseMap);
 		}
@@ -186,6 +187,17 @@ public class ConfigParser {
 			log.warn("ISO8583 config file j8583.xml not found!");
 		} else {
 			configureFromClasspathConfig(mfact, "j8583.xml");
+		}
+	}
+
+	/** This method attempts to open a stream from the XML configuration in the specified URL and
+	 * configure the message factory from that config. */
+	public static void configureFromUrl(MessageFactory mfact, URL url) throws IOException {
+		InputStream stream = url.openStream();
+		try {
+			parse(mfact, stream);
+		} finally {
+			stream.close();
 		}
 	}
 

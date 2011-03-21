@@ -47,7 +47,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
 		}
 		if (pos+2 > buf.length || length+pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d", pos), pos);
+			throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d (LEN states '%s')", pos, new String(buf, pos, 2)), pos);
 		}
 		byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 2, length));
 		if (custom == null) {

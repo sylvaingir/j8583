@@ -21,7 +21,7 @@
 	<field num="48" type="LLLVAR">Life, the Universe, and Everything|42</field>
 	<field num="49" type="ALPHA" length="3">484</field>
 	<field num="60" type="LLLVAR">B456PRO1+000</field>
-	<field num="61" type="LLLVAR">        1234P vamos a meter mas de 90 caracteres en este campo para comprobar si hay algun error en el parseo del mismo. Esta definido como un LLLVAR aqui por lo tanto esto debe caber sin problemas; las guias de parseo de 200 y 210 tienen LLLVAR en campo 61 tambien.</field>
+	<field num="61" type="LLLVAR">        1234P vamos a meter más de 90 caracteres en este campo para comprobar si hay algun error en el parseo del mismo. Esta definido como un LLLVAR aqui por lo tanto esto debe caber sin problemas; las guias de parseo de 200 y 210 tienen LLLVAR en campo 61 tambien.</field>
 	<field num="100" type="LLVAR">999</field>
 	<field num="102" type="LLVAR">ABCD</field>
 </template>

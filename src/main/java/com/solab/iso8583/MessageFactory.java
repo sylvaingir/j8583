@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 package com.solab.iso8583;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -72,6 +73,25 @@ public class MessageFactory {
 	/** Flag to specify if missing fields should be ignored as long as they're at the end of the message. */
 	private boolean ignoreLast;
 	private boolean forceb2;
+	private String encoding = System.getProperty("file.encoding");
+
+	/** Sets the character encoding used for parsing ALPHA, LLVAR and LLLVAR fields. */
+	public void setCharacterEncoding(String value) {
+		encoding = value;
+		if (parseMap.size() > 0) {
+			for (Map<Integer, FieldParseInfo> pt : parseMap.values()) {
+				for (FieldParseInfo fpi : pt.values()) {
+					fpi.setCharacterEncoding(encoding);
+				}
+			}
+		}
+	}
+
+	/** Returns the encoding used to parse ALPHA, LLVAR and LLLVAR fields. The default is the file.encoding
+	 * system property. */
+	public String getCharacterEncoding() {
+		return encoding;
+	}
 
 	/** Sets or clears the flag to pass to new messages, to include a secondary bitmap even if it's not needed. */
 	public void setForceSecondaryBitmap(boolean flag) {
@@ -151,6 +171,7 @@ public class MessageFactory {
 		m.setEtx(etx);
 		m.setBinary(useBinary);
 		m.setForceSecondaryBitmap(forceb2);
+		m.setCharacterEncoding(encoding);
 
 		//Copy the values from the template
 		IsoMessage templ = typeTemplates.get(type);
@@ -176,6 +197,7 @@ public class MessageFactory {
 	 * @param request An ISO8583 message with a request type (ending in 00). */
 	public IsoMessage createResponse(IsoMessage request) {
 		IsoMessage resp = new IsoMessage(isoHeaders.get(request.getType() + 16));
+		resp.setCharacterEncoding(request.getCharacterEncoding());
 		resp.setBinary(request.isBinary());
 		resp.setType(request.getType() + 16);
 		resp.setEtx(etx);
@@ -206,9 +228,10 @@ public class MessageFactory {
 	 * @param buf The byte buffer containing the message. Must not include the length header.
 	 * @param isoHeaderLength The expected length of the ISO header, after which the message type
 	 * and the rest of the message must come. */
-	public IsoMessage parseMessage(byte[] buf, int isoHeaderLength) throws ParseException {
+	public IsoMessage parseMessage(byte[] buf, int isoHeaderLength)
+	throws ParseException, UnsupportedEncodingException {
 		IsoMessage m = new IsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
-		//TODO Not really sure if binary support really works, unit tests pending...
+		m.setCharacterEncoding(encoding);
 		int type = 0;
 		if (useBinary) {
 			type = ((buf[isoHeaderLength] & 0xff) << 8) | (buf[isoHeaderLength + 1] & 0xff);
@@ -351,11 +374,8 @@ public class MessageFactory {
 					} else {
 						IsoValue<?> val = fpi.parse(buf, pos, getCustomField(i));
 						m.setField(i, val);
-						pos += val.getLength();
-						if (val.getType() == IsoType.LLBIN || val.getType() == IsoType.LLLBIN || val.getType() == IsoType.BINARY) {
-							//Binary types in ASCII are twice as long as they say they are (because of the hex encoding)
-							pos += val.getLength();
-						}
+						//To get the correct next position, we need to get the number of bytes, not chars
+						pos += val.toString().getBytes(fpi.getCharacterEncoding()).length;
 						if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN) {
 							pos += 2;
 						} else if (val.getType() == IsoType.LLLVAR || val.getType() == IsoType.LLLBIN) {

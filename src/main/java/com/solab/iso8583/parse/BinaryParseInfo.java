@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import com.solab.iso8583.CustomField;
@@ -38,7 +39,7 @@ public class BinaryParseInfo extends FieldParseInfo {
 
 	@Override
 	public <T> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom)
-			throws ParseException {
+			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
 		}
@@ -50,7 +51,7 @@ public class BinaryParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length*2)), length, custom);
+			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length*2, getCharacterEncoding())), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, binval, binval.length, null);
 			}

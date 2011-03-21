@@ -48,6 +48,7 @@ public class IsoMessage {
     private int etx = -1;
     /** Flag to enforce secondary bitmap even if empty. */
     private boolean forceb2;
+    private String encoding = System.getProperty("file.encoding");
 
     /** Creates a new empty message with no values set. */
     public IsoMessage() {
@@ -64,6 +65,13 @@ public class IsoMessage {
     }
     public boolean getForceSecondaryBitmap() {
     	return forceb2;
+    }
+
+    public void setCharacterEncoding(String value) {
+    	encoding = value;
+    }
+    public String getCharacterEncoding() {
+    	return encoding;
     }
 
     /** Sets the string to be sent as ISO header, that is, after the length header but before the message type. 
@@ -119,6 +127,7 @@ public class IsoMessage {
     	if (index < 2 || index > 128) {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
+    	field.setCharacterEncoding(encoding);
     	fields[index] = field;
     }
 
@@ -153,6 +162,7 @@ public class IsoMessage {
     		} else {
     			v = new IsoValue(t, value, encoder);
     		}
+    		v.setCharacterEncoding(encoding);
     		fields[index] = v;
     	}
     }
