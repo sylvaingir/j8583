@@ -1,9 +1,7 @@
 package j8583;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import org.junit.Assert;

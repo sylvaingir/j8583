@@ -127,7 +127,9 @@ public class IsoMessage {
     	if (index < 2 || index > 128) {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
-    	field.setCharacterEncoding(encoding);
+    	if (field != null) {
+        	field.setCharacterEncoding(encoding);
+    	}
     	fields[index] = field;
     }
 
