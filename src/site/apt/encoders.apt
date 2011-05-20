@@ -45,7 +45,8 @@ public class ListEncoder implements CustomField<List<String>> {
   IsoMessage parsed = messageFactory.parse(someBytes, 0);
   assert parsed.getObjectValue(62) instanceof List
   IsoMessage nm = messageFactory.newMessage(0x200);
-  nm.setValue(62, Arrays.asList("a", "b", "c", "d", "e"), IsoType.LLLVAR, 0);
+  //you need to pass the CustomField
+  nm.setValue(62, Arrays.asList("a", "b", "c", "d", "e"), messageFactory.getCustomField(126), IsoType.LLLVAR, 0);
   //when nm gets written, field 62 will be "009a,b,c,d,e"
 +-----
 
@@ -67,7 +68,7 @@ IsoMessage myIso = messageFactory.newMessage(0x200);
 MyCustomClass customField = ((MyCustomClass)myIso.getObjectValue(126)).copy();
 //Now you can modify this instance
 customField.setSomeValue("blabla");
-myIso.setValue(126, customField, IsoType.LLLVAR, 0);
+myIso.setValue(126, customField, messageFactory.getCustomField(126), IsoType.LLLVAR, 0);
 +-----
 
   Currently j8583 cannot perform this copy operation for you; even if the MessageFactory can detect if your custom

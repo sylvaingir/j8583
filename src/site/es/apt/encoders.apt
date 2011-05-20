@@ -16,7 +16,7 @@ Uso de los codificadores de campos personalizados
 +-----
 public class ListEncoder implements CustomField<List<String>> {
 
-  //Transforma una lista de caadenas en una sola cadena separada por comas
+  //Transforma una lista de cadenas en una sola cadena separada por comas
   public String encodeField(List<String> value) {
     StringBuilder sb = new StringBuilder();
     for (String s: value) {
@@ -45,7 +45,8 @@ public class ListEncoder implements CustomField<List<String>> {
   IsoMessage parsed = messageFactory.parse(unosBytes, 0);
   assert parsed.getObjectValue(62) instanceof List
   IsoMessage nm = messageFactory.newMessage(0x200);
-  nm.setValue(62, Arrays.asList("a", "b", "c", "d", "e"), IsoType.LLLVAR, 0);
+  //Hay que pasar el CustomField como parámetro
+  nm.setValue(62, Arrays.asList("a", "b", "c", "d", "e"), messageFactory.getCustomField(126), IsoType.LLLVAR, 0);
   //cuando se genere la trama de nm, el campo 62 será "009a,b,c,d,e"
 +-----
 
@@ -69,7 +70,7 @@ IsoMessage myIso = messageFactory.newMessage(0x200);
 MiClase customField = ((MiClase)myIso.getObjectValue(126)).copy();
 //Ahora se puede modificar esta instancia sin afectar otros mensajes
 customField.setSomeValue("blabla");
-myIso.setValue(126, customField, IsoType.LLLVAR, 0);
+myIso.setValue(126, customField, messageFactory.getCustomField(126), IsoType.LLLVAR, 0);
 +-----
 
   Por el momento, j8583 no puede realizar esta operación internamente; aunque la MessageFactory pueda detectar
