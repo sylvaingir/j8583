@@ -178,6 +178,8 @@ public class MessageFactory {
 		if (templ != null) {
 			for (int i = 2; i <= 128; i++) {
 				if (templ.hasField(i)) {
+					//We could detect here if there's a custom object with a CustomField,
+					//but we can't copy the value so there's no point.
 					m.setField(i, templ.getField(i).clone());
 				}
 			}

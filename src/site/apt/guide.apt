@@ -76,6 +76,7 @@ Usage Guide
   CustomField for every field where you want to store custom values, so that parsed messages will return the
   objects decoded by the CustomFields instead of just strings; and when you set a value in an IsoMessage, you
   can specify the CustomField to be used to encode the value as a String.
+  {{{encoders.html}Learn more about custom field encoders}}.
 
 * XML configuration
 

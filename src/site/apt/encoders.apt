@@ -1,0 +1,75 @@
+	-----
+	Custom Field Encoders
+	-----
+
+Using Custom Field Encoders
+
+  Sometimes there are fields that contain several sub-fields or separate pieces of data. j8583 will only parse
+  the field for you, but you still have to parse those pieces of data from the field when you parse a message,
+  and/or encode several pieces of data into a field when creating a message.
+
+  j8583 can help with this process, by means of the custom field encoders. To use this feature, first you need
+  to implement the <<<CustomField>>> interface. Let's say for example that you want to handle a list of strings
+  inside a LLLVAR field. So you need to implement an encoder that will transform a list into a string and decode
+  a List from a string:
+
++-----
+public class ListEncoder implements CustomField<List<String>> {
+
+  //Transform a List of Strings into a String
+  public String encodeField(List<String> value) {
+    StringBuilder sb = new StringBuilder();
+    for (String s: value) {
+      sb.append(s).append(',');
+    }
+    sb.deleteCharAt(sb.length()-1);
+    return sb.toString();
+  }
+
+  //Transform a String into a List of Strings
+  public List<String> decodeField(String value) {
+    return Arrays.asList(value.split(","));
+  }
+
+}
++-----
+
+  Now that you have your field encoder, you need to pass it to your MessageFactory, indicating the field in which
+  you want to use it, for example field 62. After this, when your message factory parses a message, the resulting
+  IsoMessage will contain a list of strings in field 62, and you can pass new messages directly a list into that
+  field, and it will be encoded into a String when writing the message to a stream or creating the byte array with
+  the ISO8583 data.
+
++-----
+  messageFactory.setCustomField(62, new ListEncoder());
+  IsoMessage parsed = messageFactory.parse(someBytes, 0);
+  assert parsed.getObjectValue(62) instanceof List
+  IsoMessage nm = messageFactory.newMessage(0x200);
+  nm.setValue(62, Arrays.asList("a", "b", "c", "d", "e"), IsoType.LLLVAR, 0);
+  //when nm gets written, field 62 will be "009a,b,c,d,e"
++-----
+
+  If you setup CustomField encoders in a MessageFactory and then you configure it using the XML configuration file,
+  the values for fields that have CustomField encoders defined will be decoded with them. In this example, if you
+  use configure the MessageFactory after setting up the ListEncoder for field 62, then a message template containing
+  a value for field 62 will have the field decoded as a List of Strings.
+
+  <<IMPORTANT:>> If you use a CustomField to handle a custom value object which you have in a message template,
+  you should make your custom object <<<Cloneable>>>, and then manually replace the value in your message obtained from
+  the factory with a new copy. Otherwise, all the messages that the factory creates from that template will have
+  a references to <the same value object>, and that means trouble if the object's values are modified (basically
+  you have several IsoMessages sharing state in that field). So you should do something like this:
+
++-----
+IsoMessage myIso = messageFactory.newMessage(0x200);
+//Let's suppose we have some custom object with its CustomField encoder for field 126
+//Our class will have a copy() method or something similar
+MyCustomClass customField = ((MyCustomClass)myIso.getObjectValue(126)).copy();
+//Now you can modify this instance
+customField.setSomeValue("blabla");
+myIso.setValue(126, customField, IsoType.LLLVAR, 0);
++-----
+
+  Currently j8583 cannot perform this copy operation for you; even if the MessageFactory can detect if your custom
+  class implements Cloneable, it can't invoke the <<<clone()>>> method because it's protected and it's not guaranteed
+  that your implementation will only have made it public.

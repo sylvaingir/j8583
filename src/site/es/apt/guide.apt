@@ -85,7 +85,7 @@ Guía del usuario
   CustomField a la fábrica de mensajes por cada campo en el cual se necesitan manejar valores especiales, para
   que los mensajes leídos de tramas ya contengan el valor convertido en el campo. Y cuando se fija un valor
   en un IsoMessage, se le puede pasar el CustomField para que sepa codificar dicho valor al momento de generar
-  su trama.
+  su trama. {{{encoders.html}Más información acerca de los codificadores de campos}}.
 
 * Configuración por XML
 

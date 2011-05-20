@@ -64,9 +64,7 @@ public class ConfigParser {
 		InputStream ins = MessageFactory.class.getClassLoader().getResourceAsStream(path);
 		MessageFactory mfact = new MessageFactory();
 		if (ins != null) {
-			if (log.isDebugEnabled()) {
-				log.debug("ISO8583 Parsing config from classpath file {}", path);
-			}
+			log.debug("ISO8583 Parsing config from classpath file {}", path);
 			try {
 				parse(mfact, ins);
 			} finally {
@@ -207,9 +205,7 @@ public class ConfigParser {
 	public static void configureFromClasspathConfig(MessageFactory mfact, String path) throws IOException {
 		InputStream ins = MessageFactory.class.getClassLoader().getResourceAsStream(path);
 		if (ins != null) {
-			if (log.isDebugEnabled()) {
-				log.debug("ISO8583 Parsing config from classpath file {}", path);
-			}
+			log.debug("ISO8583 Parsing config from classpath file {}", path);
 			try {
 				parse(mfact, ins);
 			} finally {

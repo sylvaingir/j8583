@@ -1,0 +1,77 @@
+	-----
+	Codificadores de campos personalizados
+	-----
+
+Uso de los codificadores de campos personalizados
+
+  En ocasiones hay campos que contienen varios sub-campos, o al menos varios datos distintos codificados en uno solo.
+  j8583 solamente maneja el campo completo, pero todavía falta separar esos datos al leer un mensaje, y/o codificarlos
+  al generar mensajes nuevos.
+
+  j8583 puede ayudar con este proceso, por medio de los codificadores de campos personalizados. Para usar esta
+  característica, lo primero que hay que hacer es implementar la interfaz <<<CustomField>>>. Digamos por ejemplo
+  que se tiene que manejar una lista de cadenas dentro de un campo LLLVAR; entonces hay que implementar un
+  codificador que haga la transformación de lista a cadena y también la inversa, de cadena a lista:
+
++-----
+public class ListEncoder implements CustomField<List<String>> {
+
+  //Transforma una lista de caadenas en una sola cadena separada por comas
+  public String encodeField(List<String> value) {
+    StringBuilder sb = new StringBuilder();
+    for (String s: value) {
+      sb.append(s).append(',');
+    }
+    sb.deleteCharAt(sb.length()-1);
+    return sb.toString();
+  }
+
+  //Separa la cadena por las comas y devuelve una lista
+  public List<String> decodeField(String value) {
+    return Arrays.asList(value.split(","));
+  }
+
+}
++-----
+
+  Una vez que se tiene el codificador, hay que pasárselo a la fábrica de mensajes, indicando el campo en donde se
+  tiene que usar. Pongámoslo para este ejemplo en el campo 62; después de esto, cuando la fábrica de mensajes
+  genere mensajes a partir de arreglos de bytes, el IsoMessage resultante tendrá una lista de cadenas en el campo
+  62, y al crear nuevos mensajes se pueden pasar listas de cadenas directamente al campo 62 y serán codificadas
+  como una cadena al generarse la trama ISO8583.
+
++-----
+  messageFactory.setCustomField(62, new ListEncoder());
+  IsoMessage parsed = messageFactory.parse(unosBytes, 0);
+  assert parsed.getObjectValue(62) instanceof List
+  IsoMessage nm = messageFactory.newMessage(0x200);
+  nm.setValue(62, Arrays.asList("a", "b", "c", "d", "e"), IsoType.LLLVAR, 0);
+  //cuando se genere la trama de nm, el campo 62 será "009a,b,c,d,e"
++-----
+
+  Si se configuran objetos CustomField en una fábrica de mensajes y después se configura con un archivo XML,
+  los CustomField se usarán para decodificar los campos de las plantillas de mensaje que contengan valores en esas
+  posiciones. Siguiendo el ejemplo, si se configura esta fábrica de mensajes después de haberle pasado el ListEncoder,
+  entonces las plantillas de mensaje que tengan valor para el campo 62 contendrán una lista de cadenas en vez
+  de una simple cadena.
+
+  <<IMPORTANTE:>> Si se usa un CustomField para manejar objetos de valor propios, en plantillas de mensajes,
+  es necesario que dichos objetos implementen <<<Cloneable>>> y tengan un método para poder obtener una copia;
+  esto para reemplazar manualmente los valores en los mensajes nuevos, con copias frescas que se puedan modificar
+  con valores distintos en cada mensaje. De otra forma, todos los mensajes creados por la fábrica tendrán referencia
+  al mismo objeto en ese campo, lo cual causará problemas cuando se modifiquen los valores del objeto, ya que
+  básicamente se trata de varios IsoMessages compartiendo estado en ese campo. Por lo tanto hay que hacer algo así: 
+
++-----
+IsoMessage myIso = messageFactory.newMessage(0x200);
+//Supongamos que tenemos un objeto con su CustomField para el campo 126
+//La clase que se usa ahí debe tener un método copy() o algo similar
+MiClase customField = ((MiClase)myIso.getObjectValue(126)).copy();
+//Ahora se puede modificar esta instancia sin afectar otros mensajes
+customField.setSomeValue("blabla");
+myIso.setValue(126, customField, IsoType.LLLVAR, 0);
++-----
+
+  Por el momento, j8583 no puede realizar esta operación internamente; aunque la MessageFactory pueda detectar
+  que la clase contenida en el campo implementa la interfaz <<<Cloneable>>>, no puede invocar el método <<<clone()>>>
+  porque es protegido, y no hay garantía de que la clase lo haya reimplementado como público.
