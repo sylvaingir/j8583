@@ -97,4 +97,20 @@ public class TestIsoMessage {
 		Assert.assertArrayEquals(b3, b2);
 	}
 
+	@Test
+	public void testTemplating() {
+		IsoMessage iso1 = mf.newMessage(0x200);
+		IsoMessage iso2 = mf.newMessage(0x200);
+		assert iso1 != iso2;
+		assert iso1.getObjectValue(3) == iso1.getObjectValue(3);
+		assert iso1.getField(3) != iso2.getField(3);
+		assert iso1.getField(48) != iso2.getField(48);
+		CustomField48 cf48_1 = (CustomField48)iso1.getObjectValue(48);
+		int origv = cf48_1.getValue2();
+		cf48_1.setValue2(origv + 1000);
+		CustomField48 cf48_2 = (CustomField48)iso2.getObjectValue(48);
+		assert cf48_1 == cf48_2;
+		assert cf48_2.getValue2() == origv + 1000;
+	}
+
 }
