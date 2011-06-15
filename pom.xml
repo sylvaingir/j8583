@@ -1,9 +1,14 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.solab</groupId>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+	<groupId>net.sf.j8583</groupId>
 	<artifactId>j8583</artifactId>
-	<version>1.5.1</version>
+	<version>1.5.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>j8583</name>
 	<description>Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.</description>
@@ -16,9 +21,9 @@
 		</license>
 	</licenses>
 	<scm>
-		<connection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583</connection>
-		<developerConnection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583</developerConnection>
-		<url>http://j8583.svn.sourceforge.net/viewvc/j8583/</url>
+		<connection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583</connection>
+		<developerConnection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583</developerConnection>
+		<url>http://j8583.svn.sourceforge.net/viewvc/j8583/j8583</url>
 	</scm>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -110,10 +115,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<distributionManagement>
-		<site>
-			<id>j8583.sf.net</id>
-			<url>scp://chochos,j8583@shell.sourceforge.net:/home/groups/j/j8/j8583/htdocs</url>
-		</site>
-	</distributionManagement>
 </project>

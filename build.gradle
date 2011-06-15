@@ -1,0 +1,31 @@
+apply plugin:'java'
+defaultTasks 'build'
+version='1.5.1'
+description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+	compile 'org.slf4j:slf4j-api:1.6.1'
+	testCompile 'junit:junit:4.8.2', 'org.slf4j:slf4j-simple:1.6.1'
+}
+
+tasks.javadoc.options.use=true
+tasks.javadoc.options.links=['http://download.oracle.com/javase/6/docs/api/', 'http://slf4j.org/apidocs/' ]
+
+task javadocJar(type:Jar, dependsOn:'javadoc') {
+	from javadoc.destinationDir
+	classifier='javadoc'
+}
+task sourcesJar(type:Jar) {
+	from sourceSets.main.allSource
+	classifier='sources'
+}
+
+artifacts {
+	archives javadocJar
+	archives sourcesJar
+}
