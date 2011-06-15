@@ -8,7 +8,7 @@
 	</parent>
 	<groupId>net.sf.j8583</groupId>
 	<artifactId>j8583</artifactId>
-	<version>1.5.1-SNAPSHOT</version>
+	<version>1.5.1</version>
 	<packaging>jar</packaging>
 	<name>j8583</name>
 	<description>Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.</description>
@@ -21,9 +21,9 @@
 		</license>
 	</licenses>
 	<scm>
-		<connection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583/tags/j8583-1.5.1</connection>
-		<developerConnection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583/tags/j8583-1.5.1</developerConnection>
-		<url>http://j8583.svn.sourceforge.net/viewvc/j8583/j8583/tags/j8583-1.5.1</url>
+		<connection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/tags/j8583-1.5.1</connection>
+		<developerConnection>scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/tags/j8583-1.5.1</developerConnection>
+		<url>http://j8583.svn.sourceforge.net/viewvc/j8583/tags/j8583-1.5.1</url>
 	</scm>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
