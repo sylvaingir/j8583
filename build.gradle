@@ -1,17 +1,38 @@
 apply plugin:'java'
+apply plugin: 'maven'
 defaultTasks 'build'
 version='1.5.2'
 description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
+sourceCompatibility='1.6'
+targetCompatibility='1.6'
+group='net.sf.j8583'
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		mavenRepo name: "Gradle", urls: "http://repo.gradle.org/gradle/plugins-snapshots/"
+	}
+	dependencies {
+		classpath 'org.gradle.plugins:gradle-signing-plugin:0.0.1-SNAPSHOT'
+	}
+}
 
 repositories {
 	mavenLocal()
 	mavenCentral()
 }
 
+configurations {
+	deployerJars
+	published.extendsFrom archives, signatures
+}
+
 dependencies {
 	compile 'org.slf4j:slf4j-api:1.6.1'
 	testCompile 'junit:junit:4.8.2'
 	testRuntime 'org.slf4j:slf4j-simple:1.6.1'
+	deployerJars 'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6'
 }
 
 tasks.javadoc.options.use=true
@@ -30,3 +51,64 @@ artifacts {
 	archives javadocJar
 	archives sourcesJar
 }
+
+apply plugin:'signing'
+signing {
+	sign configurations.archives
+}
+deployUsernameProperty = "nexusUsername"
+deployPasswordProperty = "nexusPassword"
+
+uploadPublished {
+	repositories {
+		project.deployer=repositories.mavenDeployer {
+			beforeDeployment { MavenDeployment deployment ->
+				def signedPomArtifact=sign(deployment.pomArtifact).singleArtifact
+				signedPomArtifact.type="pom."+signing.type.extension
+				deployment.addArtifact(signedPomArtifact)
+			}
+			repository(url:'http://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+				authentication(userName:nexusUsername, password:nexusPassword)
+			}
+			pom.project {
+				name 'j8583 - Java implementation of the ISO 8583 protocol'
+				packaging 'jar'
+				description project.description
+				url 'http://j8583.sourceforge.net/'
+				inceptionYear '2007'
+				scm {
+					url 'http://j8583.svn.sourceforge.net/viewvc/j8583/j8583'
+						connection 'scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583'
+						developerConnection 'scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583'
+				}
+				licenses {
+					license {
+						name 'GNU Lesser General Public License, version 2.1'
+						url 'http://www.gnu.org/licenses/lgpl-2.1.html'
+						distribution 'repo'
+					}
+				}
+				developers {
+					developer {
+						id 'chochos'
+						name 'Enrique Zamudio Lopez'
+						email 'chochos@users.sourceforge.net'
+						url 'http://javamexico.org/blogs/ezamudio'
+						roles {
+							role 'Architect'
+							role 'Developer'
+						}
+						properties {
+							twitter 'chochosmx'
+						}
+						timezone 'America/Mexico_City'
+					}
+				}
+			}
+		}
+	}
+}
+
+task generateRelease(dependsOn:uploadPublished, group: "Release artifact",
+  description: "Generates and uploads a final release to Sonatype Nexus")
+
