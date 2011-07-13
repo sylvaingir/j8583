@@ -35,12 +35,13 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
 		super(IsoType.ALPHA, len);
 	}
 
-	public <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom)
+	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
 	throws ParseException, UnsupportedEncodingException {
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length, getCharacterEncoding())), length, custom);
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length, getCharacterEncoding())), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
 			}

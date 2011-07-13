@@ -35,8 +35,8 @@ public class LlvarParseInfo extends FieldParseInfo {
 		super(IsoType.LLVAR, 0);
 	}
 
-	public <T extends Object> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom)
-	throws ParseException, UnsupportedEncodingException {
+	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
+			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
 		}
@@ -57,7 +57,8 @@ public class LlvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, _v, length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(_v), length, custom);
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, _v, length, null);
 			}
@@ -65,8 +66,8 @@ public class LlvarParseInfo extends FieldParseInfo {
 		}
 	}
 
-	public <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom)
-	throws ParseException, UnsupportedEncodingException {
+	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
+			throws ParseException, UnsupportedEncodingException {
 		
 		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
 		if (length < 0) {
@@ -78,7 +79,8 @@ public class LlvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 1, length, getCharacterEncoding())), custom);
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos + 1, length, getCharacterEncoding())), custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);
 			}

@@ -37,8 +37,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public <T> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom)
-			throws ParseException {
+	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
 		}
@@ -53,7 +52,8 @@ public class LlbinParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(
 				new String(buf, pos + 2, length)), binval.length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, binval, binval.length, null);
@@ -63,8 +63,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public <T> IsoValue<?> parseBinary(byte[] buf, int pos,
-			CustomField<T> custom) throws ParseException {
+	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
@@ -77,7 +76,8 @@ public class LlbinParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, _v, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, _v, null);
 			}

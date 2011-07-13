@@ -66,12 +66,12 @@ public abstract class FieldParseInfo {
 
 	/** Parses the character data from the buffer and returns the
 	 * IsoValue with the correct data type in it. */
-	public abstract <T extends Object> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom)
+	public abstract IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
 	throws ParseException, UnsupportedEncodingException;
 
 	/** Parses binary data from the buffer, creating and returning an IsoValue of the configured
 	 * type and length. */
-	public abstract <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom)
+	public abstract IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
 	throws ParseException, UnsupportedEncodingException;
 
 	/** Returns a new FieldParseInfo instance that can parse the specified type. */

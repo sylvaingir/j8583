@@ -35,7 +35,7 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 		super(t, len);
 	}
 
-	public <T extends Object> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom) throws ParseException, UnsupportedEncodingException {
+	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
 		}
@@ -50,7 +50,8 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, _v, length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(_v), length, custom);
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, _v, length, null);
 			}

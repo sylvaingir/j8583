@@ -38,7 +38,7 @@ public class BinaryParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public <T> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom)
+	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
@@ -51,7 +51,8 @@ public class BinaryParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos, length*2, getCharacterEncoding())), length, custom);
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length*2, getCharacterEncoding())), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, binval, binval.length, null);
 			}
@@ -60,14 +61,14 @@ public class BinaryParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public <T> IsoValue<?> parseBinary(byte[] buf, int pos,
-			CustomField<T> custom) throws ParseException {
+	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		byte[] _v = new byte[length];
 		System.arraycopy(buf, pos, _v, 0, length);
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, _v, length, null);
 		} else {
-			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(HexCodec.hexEncode(_v)), length, custom);
+			@SuppressWarnings("unchecked")
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, _v, length, null);
 			}

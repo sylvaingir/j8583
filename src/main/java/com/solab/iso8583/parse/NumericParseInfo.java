@@ -35,7 +35,7 @@ public class NumericParseInfo extends AlphaNumericFieldParseInfo {
 		super(IsoType.NUMERIC, len);
 	}
 
-	public <T extends Object> IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<T> custom) throws ParseException {
+	public IsoValue<Number> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		//A long covers up to 18 digits
 		if (length < 19) {
 			long l = 0;

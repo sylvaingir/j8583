@@ -37,8 +37,7 @@ public class Date4ParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public <T> IsoValue<?> parse(byte[] buf, int pos, CustomField<T> custom)
-			throws ParseException {
+	public IsoValue<Date> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid position %d", pos), pos);
 		}
@@ -52,15 +51,12 @@ public class Date4ParseInfo extends FieldParseInfo {
 		//Set the month in the date
 		cal.set(Calendar.MONTH, ((buf[pos] - 48) * 10) + buf[pos + 1] - 49);
 		cal.set(Calendar.DATE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
-		if (cal.getTime().after(new Date())) {
-			cal.add(Calendar.YEAR, -1);
-		}
+		Date10ParseInfo.adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
 
 	@Override
-	public <T> IsoValue<?> parseBinary(byte[] buf, int pos,
-			CustomField<T> custom) throws ParseException {
+	public IsoValue<Date> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		int[] tens = new int[2];
 		int start = 0;
 		for (int i = pos; i < pos + tens.length; i++) {
@@ -73,9 +69,7 @@ public class Date4ParseInfo extends FieldParseInfo {
 		//Set the month in the date
 		cal.set(Calendar.MONTH, tens[0] - 1);
 		cal.set(Calendar.DATE, tens[1]);
-		if (cal.getTime().after(new Date())) {
-			cal.add(Calendar.YEAR, -1);
-		}
+		Date10ParseInfo.adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
 
