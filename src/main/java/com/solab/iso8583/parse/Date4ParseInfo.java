@@ -51,6 +51,7 @@ public class Date4ParseInfo extends FieldParseInfo {
 		//Set the month in the date
 		cal.set(Calendar.MONTH, ((buf[pos] - 48) * 10) + buf[pos + 1] - 49);
 		cal.set(Calendar.DATE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
+		cal.set(Calendar.MILLISECOND,0);
 		Date10ParseInfo.adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
@@ -69,6 +70,7 @@ public class Date4ParseInfo extends FieldParseInfo {
 		//Set the month in the date
 		cal.set(Calendar.MONTH, tens[0] - 1);
 		cal.set(Calendar.DATE, tens[1]);
+		cal.set(Calendar.MILLISECOND,0);
 		Date10ParseInfo.adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}

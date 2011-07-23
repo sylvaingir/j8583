@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import org.junit.*;
 
@@ -31,12 +32,15 @@ public class TestDates {
 
 	@Test
 	public void testDate4FutureTolerance() throws ParseException, IOException {
-		long now = System.currentTimeMillis();
-		long today = now - (now % 86400000l);
-		Date soon = new Date(now + 50000);
+		GregorianCalendar today = new GregorianCalendar();
+		Date soon = new Date(today.getTime().getTime() + 50000);
+		today.set(GregorianCalendar.HOUR,0);
+		today.set(GregorianCalendar.MINUTE,0);
+		today.set(GregorianCalendar.SECOND,0);
+		today.set(GregorianCalendar.MILLISECOND,0);
 		byte[] buf = IsoType.DATE4.format(soon).getBytes();
 		IsoValue<Date> comp = new Date4ParseInfo().parse(buf, 0, null);
-		assert comp.getValue().after(new Date(today));
+		Assert.assertEquals(comp.getValue(), today.getTime());
 		//Now with the binary
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		comp.write(bout, true);
