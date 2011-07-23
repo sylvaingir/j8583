@@ -59,6 +59,7 @@ public class Date10ParseInfo extends FieldParseInfo {
 		cal.set(Calendar.HOUR_OF_DAY, ((buf[pos + 4] - 48) * 10) + buf[pos + 5] - 48);
 		cal.set(Calendar.MINUTE, ((buf[pos + 6] - 48) * 10) + buf[pos + 7] - 48);
 		cal.set(Calendar.SECOND, ((buf[pos + 8] - 48) * 10) + buf[pos + 9] - 48);
+		cal.set(Calendar.MILLISECOND,0);
 		adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
@@ -79,6 +80,7 @@ public class Date10ParseInfo extends FieldParseInfo {
 		cal.set(Calendar.HOUR_OF_DAY, tens[2]);
 		cal.set(Calendar.MINUTE, tens[3]);
 		cal.set(Calendar.SECOND, tens[4]);
+		cal.set(Calendar.MILLISECOND,0);
 		adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
