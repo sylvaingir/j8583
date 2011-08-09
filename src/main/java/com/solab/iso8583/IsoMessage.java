@@ -361,6 +361,14 @@ public class IsoMessage {
     	return getField(i);
     }
 
+	//These are for Scala compat
+	public void update(int i, IsoValue<?> v) {
+		setField(i, v);
+	}
+	public IsoValue<?> apply(int i) {
+		return getField(i);
+	}
+
     /** Copies the specified fields from the other message into the recipient. If a specified field is
      * not present in the source message it is simply ignored. */
     public void copyFieldsFrom(IsoMessage src, int...idx) {
