@@ -194,4 +194,11 @@ public enum IsoType {
 		return new IsoValue<Object>(this, val);
 	}
 
+	public IsoValue<Object> apply(Object val, int len) {
+		return new IsoValue<Object>(this, val, len);
+	}
+	public IsoValue<Object> apply(Object val) {
+		return new IsoValue<Object>(this, val);
+	}
+
 }
