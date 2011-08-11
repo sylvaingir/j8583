@@ -147,7 +147,7 @@ public class ConfigParser {
 					length = Integer.parseInt(f.getAttribute("length"));
 				}
 				String v = f.getChildNodes().item(0).getNodeValue();
-				CustomField<?> _cf = mfact.getCustomField(num);
+				CustomField<Object> _cf = mfact.getCustomField(num);
 				m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
 			}
 			mfact.addMessageTemplate(m);

@@ -152,8 +152,7 @@ public class IsoMessage {
      * @param t The ISO type.
      * @param length The length of the field, used for ALPHA and NUMERIC values only, ignored
      * with any other type. */
-	@SuppressWarnings("unchecked")
-    public void setValue(int index, Object value, CustomField<?> encoder, IsoType t, int length) {
+    public <T> void setValue(int index, T value, CustomField<T> encoder, IsoType t, int length) {
     	if (index < 2 || index > 128) {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
@@ -162,9 +161,9 @@ public class IsoMessage {
     	} else {
     		IsoValue v = null;
     		if (t.needsLength()) {
-    			v = new IsoValue(t, value, length, encoder);
+    			v = new IsoValue<T>(t, value, length, encoder);
     		} else {
-    			v = new IsoValue(t, value, encoder);
+    			v = new IsoValue<T>(t, value, encoder);
     		}
     		v.setCharacterEncoding(encoding);
     		fields[index] = v;
@@ -375,7 +374,7 @@ public class IsoMessage {
      * not present in the source message it is simply ignored. */
     public void copyFieldsFrom(IsoMessage src, int...idx) {
     	for (int i : idx) {
-    		IsoValue<?> v = src.getField(i);
+    		IsoValue<Object> v = src.getField(i);
     		if (v == null) {
     			setField(i, null);
     		} else {

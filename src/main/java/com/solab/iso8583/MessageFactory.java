@@ -64,7 +64,7 @@ public class MessageFactory {
 	/** The ISO header to be included in each message type. */
 	private Map<Integer, String> isoHeaders = new HashMap<Integer, String>();
 	/** A map for the custom field encoder/decoders, keyed by field number. */
-	private Map<Integer, CustomField<?>> customFields = new HashMap<Integer, CustomField<?>>();
+	private Map<Integer, CustomField> customFields = new HashMap<Integer, CustomField>();
 	/** Indicates if the current date should be set on new messages (field 7). */
 	private boolean setDate;
 	/** Indicates if the factory should create binary messages and also parse binary messages. */
@@ -116,7 +116,7 @@ public class MessageFactory {
 	}
 
 	/** Specifies a map for custom field encoder/decoders. The keys are the field numbers. */
-	public void setCustomFields(Map<Integer, CustomField<?>> value) {
+	public void setCustomFields(Map<Integer, CustomField> value) {
 		customFields = value;
 	}
 
@@ -125,11 +125,13 @@ public class MessageFactory {
 		customFields.put(index, value);
 	}
 	/** Returns a custom field encoder/decoder for the specified field number, if one is available. */
-	public CustomField<?> getCustomField(int index) {
+	@SuppressWarnings("unchecked")
+	public <T> CustomField<T> getCustomField(int index) {
 		return customFields.get(index);
 	}
 	/** Returns a custom field encoder/decoder for the specified field number, if one is available. */
-	public CustomField<?> getCustomField(Integer index) {
+	@SuppressWarnings("unchecked")
+	public <T> CustomField<T> getCustomField(Integer index) {
 		return customFields.get(index);
 	}
 
