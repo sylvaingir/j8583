@@ -42,7 +42,7 @@ public class IsoMessage {
     /** Indicates if the message is binary-coded. */
     private boolean binary;
     /** This is where the values are stored. */
-    private IsoValue<?>[] fields = new IsoValue<?>[129];
+    private IsoValue[] fields = new IsoValue[129];
     /** Stores the optional ISO header. */
     private String isoHeader;
     private int etx = -1;
@@ -111,13 +111,15 @@ public class IsoMessage {
     /** Returns the stored value in the field, without converting or formatting it.
      * @param field The field number. 1 is the secondary bitmap and is not returned as such;
      * real fields go from 2 to 128. */
-    public Object getObjectValue(int field) {
-    	IsoValue<?> v = fields[field];
+    public <T> T getObjectValue(int field) {
+    	@SuppressWarnings("unchecked")
+    	IsoValue<T> v = fields[field];
     	return v == null ? null : v.getValue();
     }
 
     /** Returns the IsoValue for the specified field. First real field is 2. */
-    public IsoValue<?> getField(int field) {
+	@SuppressWarnings("unchecked")
+    public <T> IsoValue<T> getField(int field) {
     	return fields[field];
     }
 
@@ -357,7 +359,7 @@ public class IsoMessage {
     	setField(i, v);
     }
     /** Returns the IsoValue in the specified field, just like {@link #getField(int)}. */
-    public IsoValue<?> getAt(int i) {
+    public <T> IsoValue<T> getAt(int i) {
     	return getField(i);
     }
 
@@ -365,7 +367,7 @@ public class IsoMessage {
 	public void update(int i, IsoValue<?> v) {
 		setField(i, v);
 	}
-	public IsoValue<?> apply(int i) {
+	public <T> IsoValue<T> apply(int i) {
 		return getField(i);
 	}
 
@@ -374,7 +376,9 @@ public class IsoMessage {
     public void copyFieldsFrom(IsoMessage src, int...idx) {
     	for (int i : idx) {
     		IsoValue<?> v = src.getField(i);
-    		if (v != null) {
+    		if (v == null) {
+    			setField(i, null);
+    		} else {
         		setValue(i, v.getValue(), v.getEncoder(), v.getType(), v.getLength());
     		}
     	}
