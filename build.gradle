@@ -7,17 +7,6 @@ sourceCompatibility='1.6'
 targetCompatibility='1.6'
 group='net.sf.j8583'
 
-/*buildscript {
-	repositories {
-		mavenLocal()
-		mavenCentral()
-		mavenRepo name: "Gradle", urls: "http://repo.gradle.org/gradle/plugins-snapshots/"
-	}
-	dependencies {
-		classpath 'org.gradle.plugins:gradle-signing-plugin:0.0.1-SNAPSHOT'
-	}
-}*/
-
 repositories {
 	mavenLocal()
 	mavenCentral()
@@ -63,8 +52,7 @@ uploadPublished {
 	repositories {
 		project.deployer=repositories.mavenDeployer {
 			beforeDeployment { MavenDeployment deployment ->
-				def signedPomArtifact=sign(deployment.pomArtifact).singleArtifact
-				signedPomArtifact.type="pom."+signing.type.extension
+				def signedPomArtifact=signPom(deployment)
 				deployment.addArtifact(signedPomArtifact)
 			}
 			repository(url:'http://oss.sonatype.org/service/local/staging/deploy/maven2/') {
