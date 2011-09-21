@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.solab.iso8583.CustomField;
@@ -97,6 +99,21 @@ public class ConfigParser {
 		Document doc = null;
 		try {
 			docb = docfact.newDocumentBuilder();
+			docb.setEntityResolver(new EntityResolver() {
+				@Override
+				public InputSource resolveEntity(String publicId, String systemId)
+						throws SAXException, IOException {
+					if (systemId.indexOf("j8583.dtd") >= 0) {
+						URL dtd = getClass().getResource("j8583.dtd");
+						if (dtd == null) {
+							log.warn("Cannot find j8583.dtd in classpath. j8583 config files will not be validated.");
+						} else {
+							return new InputSource(dtd.toString());
+						}
+					}
+					return null;
+				}
+			});
 			doc = docb.parse(stream);
 		} catch (ParserConfigurationException ex) {
 			log.error("ISO8583 Cannot parse XML configuration", ex);
