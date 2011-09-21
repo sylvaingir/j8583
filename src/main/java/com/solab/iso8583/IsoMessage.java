@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
+import java.util.Map;
 
 /** Represents an ISO8583 message. This is the core class of the framework.
  * Contains the bitmap which is modified as fields are added/removed.
@@ -124,8 +125,9 @@ public class IsoMessage {
     }
 
     /** Stored the field in the specified index. The first field is the secondary bitmap and has index 1,
-     * so the first valid value for index must be 2. */
-    public void setField(int index, IsoValue<?> field) {
+     * so the first valid value for index must be 2.
+     * @return The receiver (useful for setting several fields in sequence). */
+    public IsoMessage setField(int index, IsoValue<?> field) {
     	if (index < 2 || index > 128) {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
@@ -133,6 +135,15 @@ public class IsoMessage {
         	field.setCharacterEncoding(encoding);
     	}
     	fields[index] = field;
+    	return this;
+    }
+
+    /** Convenience method for setting several fields in one call. */
+    public IsoMessage setFields(Map<Integer, IsoValue<?>> values) {
+    	for (Map.Entry<Integer, IsoValue<?>> e : values.entrySet()) {
+    		setField(e.getKey(), e.getValue());
+    	}
+    	return this;
     }
 
     /** Sets the specified value in the specified field, creating an IsoValue internally.
@@ -140,9 +151,10 @@ public class IsoMessage {
      * @param value The value to be stored.
      * @param t The ISO type.
      * @param length The length of the field, used for ALPHA and NUMERIC values only, ignored
-     * with any other type. */
-    public void setValue(int index, Object value, IsoType t, int length) {
-    	setValue(index, value, null, t, length);
+     * with any other type.
+     * @return The receiver (useful for setting several values in sequence). */
+    public IsoMessage setValue(int index, Object value, IsoType t, int length) {
+    	return setValue(index, value, null, t, length);
     }
 
     /** Sets the specified value in the specified field, creating an IsoValue internally.
@@ -151,8 +163,9 @@ public class IsoMessage {
      * @param encoder An optional CustomField to encode/decode the value.
      * @param t The ISO type.
      * @param length The length of the field, used for ALPHA and NUMERIC values only, ignored
-     * with any other type. */
-    public <T> void setValue(int index, T value, CustomField<T> encoder, IsoType t, int length) {
+     * with any other type.
+     * @return The receiver (useful for setting several values in sequence). */
+    public <T> IsoMessage setValue(int index, T value, CustomField<T> encoder, IsoType t, int length) {
     	if (index < 2 || index > 128) {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
@@ -168,6 +181,7 @@ public class IsoMessage {
     		v.setCharacterEncoding(encoding);
     		fields[index] = v;
     	}
+    	return this;
     }
 
     /** Returns true is the message has a value in the specified field.
@@ -189,7 +203,7 @@ public class IsoMessage {
     	if (lengthBytes > 4) {
     		throw new IllegalArgumentException("The length header can have at most 4 bytes");
     	}
-    	byte[] data = writeInternal();
+    	byte[] data = writeData();
 
     	if (lengthBytes > 0) {
     		int l = data.length;
@@ -228,7 +242,7 @@ public class IsoMessage {
     		throw new IllegalArgumentException("The length header can have at most 4 bytes");
     	}
 
-    	byte[] data = writeInternal();
+    	byte[] data = writeData();
     	ByteBuffer buf = ByteBuffer.allocate(lengthBytes + data.length + (etx > -1 ? 1 : 0));
     	if (lengthBytes > 0) {
     		int l = data.length;
@@ -264,12 +278,6 @@ public class IsoMessage {
     /** This calls writeInternal(), allowing applications to get the byte buffer containing the
      * message data, without the length header. */
     public byte[] writeData() {
-    	return writeInternal();
-    }
-
-    /** Writes the message to a memory buffer and returns it. The message does not include
-     * the ETX character or the header length. */
-    protected byte[] writeInternal() {
     	ByteArrayOutputStream bout = new ByteArrayOutputStream();
     	if (isoHeader != null) {
     		try {
@@ -363,9 +371,11 @@ public class IsoMessage {
     }
 
 	//These are for Scala compat
+    /** Sets the specified value in the specified field, just like {@link #setField(int, IsoValue)}. */
 	public void update(int i, IsoValue<?> v) {
 		setField(i, v);
 	}
+    /** Returns the IsoValue in the specified field, just like {@link #getField(int)}. */
 	public <T> IsoValue<T> apply(int i) {
 		return getField(i);
 	}
