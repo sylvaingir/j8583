@@ -43,7 +43,8 @@ public class IsoMessage {
     /** Indicates if the message is binary-coded. */
     private boolean binary;
     /** This is where the values are stored. */
-    private IsoValue[] fields = new IsoValue[129];
+    @SuppressWarnings("rawtypes")
+	private IsoValue[] fields = new IsoValue[129];
     /** Stores the optional ISO header. */
     private String isoHeader;
     private int etx = -1;
@@ -172,7 +173,7 @@ public class IsoMessage {
     	if (value == null) {
     		fields[index] = null;
     	} else {
-    		IsoValue v = null;
+    		IsoValue<T> v = null;
     		if (t.needsLength()) {
     			v = new IsoValue<T>(t, value, length, encoder);
     		} else {
