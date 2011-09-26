@@ -64,6 +64,7 @@ public class MessageFactory {
 	/** The ISO header to be included in each message type. */
 	private Map<Integer, String> isoHeaders = new HashMap<Integer, String>();
 	/** A map for the custom field encoder/decoders, keyed by field number. */
+	@SuppressWarnings("rawtypes")
 	private Map<Integer, CustomField> customFields = new HashMap<Integer, CustomField>();
 	/** Indicates if the current date should be set on new messages (field 7). */
 	private boolean setDate;
@@ -116,6 +117,7 @@ public class MessageFactory {
 	}
 
 	/** Specifies a map for custom field encoder/decoders. The keys are the field numbers. */
+	@SuppressWarnings("rawtypes")
 	public void setCustomFields(Map<Integer, CustomField> value) {
 		customFields = value;
 	}

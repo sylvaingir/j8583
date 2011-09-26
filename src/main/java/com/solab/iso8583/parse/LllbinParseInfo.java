@@ -55,7 +55,7 @@ public class LllbinParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			IsoValue<?> v = new IsoValue(type, custom.decodeField(
 				length == 0 ? "" : new String(buf, pos + 3, length)), length, custom);
 			if (v.getValue() == null) {
@@ -80,7 +80,7 @@ public class LllbinParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, _v, null);
 		} else {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, _v, null);

@@ -51,7 +51,7 @@ public class BinaryParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length*2, getCharacterEncoding())), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, binval, binval.length, null);
@@ -67,7 +67,7 @@ public class BinaryParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, _v, length, null);
 		} else {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, _v, length, null);

@@ -40,7 +40,7 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
 		} else {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length, getCharacterEncoding())), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);

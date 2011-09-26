@@ -57,7 +57,7 @@ public class LlvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, _v, length, null);
 		} else {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, _v, length, null);
@@ -79,7 +79,7 @@ public class LlvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);
 		} else {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos + 1, length, getCharacterEncoding())), custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);
