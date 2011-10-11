@@ -1,0 +1,71 @@
+	-----
+	Compatibilidad Políglota
+	-----
+
+Compatibilidad con Groovy
+
+* ¿Qué no cualquier biblioteca de Java es compatible con Groovy?
+
+  Por supuesto. Se puede utilizar j8583 en Groovy al igual que cualquier otra biblioteca de Java. Sin embargo,
+  algunas clases de j8583 tienen algunos métodos con el expreso propósito de ser utilizados desde Groovy.
+
+* Atajos de j8583 en Groovy
+
+  En Java, se pueden manejar los valores de un IsoMessage en alguna de las siguientes formas:
+
++-----
+message.setValue(32, "Algun valor", IsoType.LLVAR, 0);
+IsoValue isoValue = message.getField(32);
+String value = (String)message.getObjectValue(32);
+Object value2 = message.getField(32).getValue();
++-----
+
+  En Groovy se puede hacer lo mismo de esta forma:
+
++-----
+message[32] = IsoType.LLVAR("Algun valor")
+message[7] = IsoType.DATE10(new Date())
+message[41] = IsoType.ALPHA("Term", 16)
+message[11] = IsoType.NUMERIC(123, 6)
+IsoValue isoValue = message[32]
+def value = message[32]?.value
++-----
+
+  Esto es posible gracias a que la clase IsoMessage implementa los métodos <<<getAt()>>> y <<<putAt()>>>, que
+  funcionan de manera similar a <<<getField()>>> y <<<setField()>>>; la clase IsoType tiene dos variantes del
+  método <<<call()>>>, una con longitud y otra sin longitud, los cuales devuelven instancias de IsoValue con
+  el valor y longitud apropiados. La variante con longitud debe ser utiliza para crear valores tipo
+  NUMERIC y ALPHA, mientras que los demás tipos pueden utilizar la variante sin longitud.
+
+Compatibilidad con Scala
+
+  De manera similar, se puede usar una notación más breve en Scala para fijar y obtener valores de un mensaje:
+
++-----
+message(32) = IsoType.LLVAR("Some value")
+message(7) = IsoType.DATE10(new Date())
+message(41) = IsoType.ALPHA("Term", 16)
+message(11) = IsoType.NUMERIC(123, 6)
+val v1:String = message(32).getValue
+val v2:String = message.getObjectValue(32)
++-----
+
+  Esto es posible gracias a que IsoMessage también ya implementa los métodos <<<apply()>>> y <<<update()>>>, que invocan internamente a <<<setField()>>> y <<<getField()>>>. Asimismo, IsoType implementa <<<apply()>>> para que se puedan crear IsoValues a partir de IsoTypes.
+
+Patrón Constructor
+
+  En cualquier lenguaje, se puede utilizar el patrón constructor, gracias a que ahora los métodos <<<setField()>>> y <<<setValue()>>> devuelven el mensaje sobre el que se invocan, lo que permite encadenar varias llamadas:
+
++-----
+message.setValue(4, amount, IsoType.AMOUNT, 12)
+  .setValue(7, new Date(), IsoType.DATE, 10)
+  .setValue(11, trace, IsoType.NUMERIC, 6);
++-----
+
+  Por supuesto, en Groovy y Scala puede ser más breve todavía:
+
++-----
+message.setField(4, IsoType.AMOUNT(amount))
+  .setField(7, IsoType.DATE(new Date()))
+  .setField(11, IsoType.NUMERIC(trace, 6))
++-----

@@ -15,14 +15,14 @@
 		<item name="Download" href="http://sourceforge.net/projects/j8583/files/j8583/"/>
 	</links>
 
-	<menu name="j8583 1.5.1">
+	<menu name="j8583 1.5.4">
 		<item name="Introduction" href="index.html"/>
-		<item name="API docs" href="apidocs/index.html" />
+		<item name="API docs" href="javadoc/index.html" />
 		<item name="Beginner's Guide" href="guide.html"/>
 		<item name="ISO8583" href="iso8583.html" />
 		<item name="XML config" href="xmlconf.html" />
 		<item name="Spring Example" href="spring.html"/>
-		<item name="Groovy Compatibility" href="groovy.html" />
+		<item name="Polyglot Compat" href="polyglot.html" />
 		<item name="Download" href="http://sourceforge.net/projects/j8583/files/j8583/" />
 		<item name="Español" href="/es/index.html" />
 	</menu>

@@ -1,8 +1,10 @@
 	-----
-	Groovy compatibility
+	Polyglot compatibility
 	-----
 
-Isn't ANY Java library compatible with Groovy?
+Groovy compatibility
+
+* Isn't ANY Java library compatible with Groovy?
 
   Yes, of course. You can use j8583 in Groovy just as you would use any other Java library. However,
   some j8583 classes have certain methods in them written specifically for usage within Groovy.
@@ -33,3 +35,36 @@ def value = message[32]?.value
   to <<<getField()>>> and <<<setField>>>, and the IsoType class has two <<<call()>>> methods, with and without
   length, which return IsoValue instances with the proper type and length. The variant that has a length parameter
   must be used with NUMERIC and ALPHA types, and the other types can use the variant without length.
+
+Scala compatibility
+
+  In a similar fashion, you can use a shorter notation in Scala to set and get fields:
+
++-----
+message(32) = IsoType.LLVAR("Some value")
+message(7) = IsoType.DATE10(new Date())
+message(41) = IsoType.ALPHA("Term", 16)
+message(11) = IsoType.NUMERIC(123, 6)
+val v1:String = message(32).getValue
+val v2:String = message.getObjectValue(32)
++-----
+
+  This is because IsoMessage also implements the <<<apply()>>> and <<<update()>>> methods that work similarly to <<<getField()>>> and <<<setField()>>>. Also, IsoType now implements <<<apply()>>> so that you can create IsoValues from IsoTypes.
+
+Builder Pattern
+
+  In any language, you can use the builder pattern, since now the <<<setValue>>> and <<<setField>>> methods return the message itself:
+
++-----
+message.setValue(4, amount, IsoType.AMOUNT, 12)
+  .setValue(7, new Date(), IsoType.DATE, 10)
+  .setValue(11, trace, IsoType.NUMERIC, 6);
++-----
+
+  Of course it can be more succing in Groovy or Scala:
+
++-----
+message.setField(4, IsoType.AMOUNT(amount))
+  .setField(7, IsoType.DATE(new Date()))
+  .setField(11, IsoType.NUMERIC(trace, 6))
++-----
