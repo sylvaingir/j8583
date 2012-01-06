@@ -3,12 +3,11 @@ apply plugin: 'maven'
 defaultTasks 'build'
 version='1.5.4'
 description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
-sourceCompatibility='1.6'
-targetCompatibility='1.6'
+sourceCompatibility=6
+targetCompatibility=6
 group='net.sf.j8583'
 
 repositories {
-	mavenLocal()
 	mavenCentral()
 }
 
@@ -18,10 +17,10 @@ configurations {
 }
 
 dependencies {
-	compile 'org.slf4j:slf4j-api:1.6.1'
-	testCompile 'junit:junit:4.8.2'
-	testRuntime 'org.slf4j:slf4j-simple:1.6.1'
-	deployerJars 'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6'
+	compile 'org.slf4j:slf4j-api:1.6.3'
+	testCompile 'junit:junit:4.10'
+	testRuntime 'org.slf4j:slf4j-simple:1.6.3'
+	//deployerJars 'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6'
 }
 
 tasks.javadoc.options.use=true
@@ -59,7 +58,7 @@ uploadPublished {
 				authentication(userName:nexusUsername, password:nexusPassword)
 			}
 			pom.project {
-				name 'j8583 - Java implementation of the ISO 8583 protocol'
+				name 'j8583'
 				packaging 'jar'
 				description project.description
 				url 'http://j8583.sourceforge.net/'
