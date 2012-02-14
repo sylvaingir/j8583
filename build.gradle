@@ -43,6 +43,7 @@ artifacts {
 apply plugin:'signing'
 signing {
 	sign configurations.archives
+	required = { gradle.taskGraph.hasTask('generateRelease') }
 }
 deployUsernameProperty = "nexusUsername"
 deployPasswordProperty = "nexusPassword"
@@ -51,7 +52,7 @@ uploadPublished {
 	repositories {
 		project.deployer=repositories.mavenDeployer {
 			beforeDeployment { MavenDeployment deployment ->
-				def signedPomArtifact=signPom(deployment)
+				def signedPomArtifact=signing.signPom(deployment)
 				deployment.addArtifact(signedPomArtifact)
 			}
 			repository(url:'http://oss.sonatype.org/service/local/staging/deploy/maven2/') {
