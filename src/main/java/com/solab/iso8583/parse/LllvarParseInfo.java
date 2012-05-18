@@ -62,13 +62,9 @@ public class LllvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, _v, length, null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
-			if (v.getValue() == null) {
-				//problems decoding? return the string
-				return new IsoValue<String>(type, _v, length, null);
-			}
-			return v;
+			Object decoded = custom.decodeField(_v);
+			//If decode fails, return string; otherwise use the decoded object and its codec
+			return new IsoValue(type, decoded == null ? _v : decoded, length, decoded == null ? null : custom);
 		}
 	}
 
