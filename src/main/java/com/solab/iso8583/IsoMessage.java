@@ -386,9 +386,7 @@ public class IsoMessage {
     public void copyFieldsFrom(IsoMessage src, int...idx) {
     	for (int i : idx) {
     		IsoValue<Object> v = src.getField(i);
-    		if (v == null) {
-    			setField(i, null);
-    		} else {
+    		if (v != null) {
         		setValue(i, v.getValue(), v.getEncoder(), v.getType(), v.getLength());
     		}
     	}
