@@ -88,7 +88,7 @@ public class TestIsoMessage {
 		}
 		ins.close();
 		IsoMessage iso = mf.parseMessage(buf, mf.getIsoHeader(0x210).length());
-		assert iso.getType() == 0x210;
+		Assert.assertEquals(0x210, iso.getType());
 		byte[] b2 = iso.writeData();
 		
 		//Remove leftover newline and stuff from the original buffer
