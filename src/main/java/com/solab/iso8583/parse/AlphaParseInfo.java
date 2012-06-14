@@ -37,6 +37,12 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
 
 	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
 	throws ParseException, UnsupportedEncodingException {
+		if (pos < 0) {
+			throw new ParseException(String.format("Invalid bin ALPHA position %d", pos), pos);
+		} else if (pos+length > buf.length) {
+			throw new ParseException(String.format("Insufficient data for bin %s field of length %d, pos %d",
+				type, length, pos), pos);
+		}
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
 		} else {

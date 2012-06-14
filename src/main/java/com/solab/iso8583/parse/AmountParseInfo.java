@@ -38,7 +38,7 @@ public class AmountParseInfo extends FieldParseInfo {
 
 	public IsoValue<BigDecimal> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid position %d", pos), pos);
+			throw new ParseException(String.format("Invalid AMOUNT position %d", pos), pos);
 		}
 		if (pos+12 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for AMOUNT field, pos %d", pos), pos);

@@ -39,13 +39,15 @@ public class LlbinParseInfo extends FieldParseInfo {
 	@Override
 	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLBIN position %d", pos), pos);
+		} else if (pos+2 > buf.length) {
+			throw new ParseException("Insufficient LLBIN header", pos);
 		}
 		length = ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
 		}
-		if (pos+2 > buf.length || length+pos+2 > buf.length) {
+		if (length+pos+2 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d (LEN states '%s')", pos, new String(buf, pos, 2)), pos);
 		}
 		byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 2, length));
@@ -64,12 +66,17 @@ public class LlbinParseInfo extends FieldParseInfo {
 
 	@Override
 	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+		if (pos < 0) {
+			throw new ParseException(String.format("Invalid bin LLBIN position %d", pos), pos);
+		} else if (pos+1 > buf.length) {
+			throw new ParseException("Insufficient bin LLBIN header", pos);
+		}
 		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format("Invalid bin LLBIN length %d pos %d", length, pos), pos);
 		}
-		if (pos+1 > buf.length || length+pos+1 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d", pos), pos);
+		if (length+pos+1 > buf.length) {
+			throw new ParseException(String.format("Insufficient data for bin LLBIN field, pos %d", pos), pos);
 		}
 		byte[] _v = new byte[length];
 		System.arraycopy(buf, pos+1, _v, 0, length);

@@ -38,13 +38,14 @@ public class LlvarParseInfo extends FieldParseInfo {
 	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLVAR position %d", pos), pos);
+		} else if (pos+2 > buf.length) {
+			throw new ParseException(String.format("Insufficient data for LLVAR header, pos %d", pos), pos);
 		}
 		length = ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLVAR length %d pos %d", length, pos), pos);
-		}
-		if (pos+2 > buf.length || length+pos+2 > buf.length) {
+		} else if (length+pos+2 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for LLVAR field, pos %d", pos), pos);
 		}
 		String _v = length == 0 ? "" : new String(buf, pos + 2, length, getCharacterEncoding());
@@ -68,13 +69,17 @@ public class LlvarParseInfo extends FieldParseInfo {
 
 	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
 			throws ParseException, UnsupportedEncodingException {
-		
+		if (pos < 0) {
+			throw new ParseException(String.format("Invalid bin LLVAR position %d", pos), pos);
+		} else if (pos+1 > buf.length) {
+			throw new ParseException(String.format("Insufficient data for bin LLVAR header, pos %d", pos), pos);
+		}
 		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLVAR length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format("Invalid bin LLVAR length %d pos %d", length, pos), pos);
 		}
-		if (pos+1 > buf.length || length+pos+1 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLVAR field, pos %d", pos), pos);
+		if (length+pos+1 > buf.length) {
+			throw new ParseException(String.format("Insufficient data for bin LLVAR field, pos %d", pos), pos);
 		}
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);

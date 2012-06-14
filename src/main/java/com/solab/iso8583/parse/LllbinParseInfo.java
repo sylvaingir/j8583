@@ -39,7 +39,9 @@ public class LllbinParseInfo extends FieldParseInfo {
 	@Override
 	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLLBIN position %d", pos), pos);
+		} else if (pos+3 > buf.length) {
+			throw new ParseException("Insufficient LLLBIN header", pos);
 		}
 		if (!(Character.isDigit(buf[pos]) && Character.isDigit(buf[pos+1]) && Character.isDigit(buf[pos+2]))) {
 			throw new ParseException(String.format("Invalid LLLBIN length '%s' pos %d", new String(buf, pos, 3), pos), pos);
@@ -47,8 +49,7 @@ public class LllbinParseInfo extends FieldParseInfo {
 		length = ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLLBIN length %d pos %d", length, pos), pos);
-		}
-		if (length+pos+3 > buf.length) {
+		} else if (length+pos+3 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for LLLBIN field, pos %d", pos), pos);
 		}
 		byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 3, length));
@@ -68,12 +69,17 @@ public class LllbinParseInfo extends FieldParseInfo {
 
 	@Override
 	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+		if (pos < 0) {
+			throw new ParseException(String.format("Invalid bin LLLBIN position %d", pos), pos);
+		} else if (pos+3 > buf.length) {
+			throw new ParseException("Insufficient bin LLLBIN header", pos);
+		}
 		length = ((buf[pos] & 0x0f) * 100) + (((buf[pos + 1] & 0xf0) >> 4) * 10) + (buf[pos + 1] & 0x0f);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLLBIN length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format("Invalid bin LLLBIN length %d pos %d", length, pos), pos);
 		}
 		if (length+pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLLBIN field, pos %d", pos), pos);
+			throw new ParseException(String.format("Insufficient data for bin LLLBIN field, pos %d", pos), pos);
 		}
 		byte[] _v = new byte[length];
 		System.arraycopy(buf, pos+2, _v, 0, length);

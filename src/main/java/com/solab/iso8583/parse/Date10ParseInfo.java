@@ -45,7 +45,7 @@ public class Date10ParseInfo extends FieldParseInfo {
 	public IsoValue<Date> parse(byte[] buf, int pos, CustomField<?> custom)
 			throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid position %d", pos), pos);
+			throw new ParseException(String.format("Invalid DATE10 position %d", pos), pos);
 		}
 		if (pos+10 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for DATE10 field, pos %d", pos), pos);

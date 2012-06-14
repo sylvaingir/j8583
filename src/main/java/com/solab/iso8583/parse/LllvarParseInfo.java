@@ -39,7 +39,9 @@ public class LllvarParseInfo extends FieldParseInfo {
 	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
 	throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLLVAR position %d", pos), pos);
+		} else if (pos+3 > buf.length) {
+			throw new ParseException(String.format("Insufficient data for LLLVAR header, pos %d", pos), pos);
 		}
 		if (!(Character.isDigit(buf[pos]) && Character.isDigit(buf[pos+1]) && Character.isDigit(buf[pos+2]))) {
 			throw new ParseException(String.format("Invalid LLLVAR length '%s' pos %d",
@@ -48,8 +50,7 @@ public class LllvarParseInfo extends FieldParseInfo {
 		length = ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLLVAR length %d pos %d", length, pos), pos);
-		}
-		if (length+pos+3 > buf.length) {
+		} else if (length+pos+3 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for LLLVAR field, pos %d", pos), pos);
 		}
 		String _v = length == 0 ? "" : new String(buf, pos + 3, length, getCharacterEncoding());
@@ -70,12 +71,16 @@ public class LllvarParseInfo extends FieldParseInfo {
 
 	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
 			throws ParseException, UnsupportedEncodingException {
+		if (pos < 0) {
+			throw new ParseException(String.format("Invalid bin LLLVAR position %d", pos), pos);
+		} else if (pos+3 > buf.length) {
+			throw new ParseException(String.format("Insufficient data for bin LLLVAR header, pos %d", pos), pos);
+		}
 		length = ((buf[pos] & 0x0f) * 100) + (((buf[pos + 1] & 0xf0) >> 4) * 10) + (buf[pos + 1] & 0x0f);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLLVAR length %d pos %d", length, pos), pos);
-		}
-		if (length+pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLLVAR field, pos %d", pos), pos);
+			throw new ParseException(String.format("Invalid bin LLLVAR length %d pos %d", length, pos), pos);
+		} else if (length+pos+2 > buf.length) {
+			throw new ParseException(String.format("Insufficient data for bin LLLVAR field, pos %d", pos), pos);
 		}
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos + 2, length, getCharacterEncoding()), null);
