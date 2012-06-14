@@ -236,7 +236,11 @@ public class MessageFactory {
 	 * and the rest of the message must come. */
 	public IsoMessage parseMessage(byte[] buf, int isoHeaderLength)
 	throws ParseException, UnsupportedEncodingException {
-		IsoMessage m = new IsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
+		final int minlength = isoHeaderLength+(useBinary ? 10 : 20);
+		if (buf.length < minlength) {
+			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
+		}
+		final IsoMessage m = new IsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
 		m.setCharacterEncoding(encoding);
 		int type = 0;
 		if (useBinary) {
@@ -249,7 +253,7 @@ public class MessageFactory {
 		}
 		m.setType(type);
 		//Parse the bitmap (primary first)
-		BitSet bs = new BitSet(64);
+		final BitSet bs = new BitSet(64);
 		int pos = 0;
 		if (useBinary) {
 			for (int i = isoHeaderLength + 2; i < isoHeaderLength + 10; i++) {
@@ -261,6 +265,9 @@ public class MessageFactory {
 			}
 			//Check for secondary bitmap and parse if necessary
 			if (bs.get(0)) {
+				if (buf.length < minlength + 8) {
+					throw new ParseException("Insufficient length for secondary bitmap", minlength);
+				}
 				for (int i = isoHeaderLength + 10; i < isoHeaderLength + 18; i++) {
 					int bit = 128;
 					for (int b = 0; b < 8; b++) {
@@ -268,9 +275,9 @@ public class MessageFactory {
 						bit >>= 1;
 					}
 				}
-				pos = 18 + isoHeaderLength;
+				pos = minlength + 8;
 			} else {
-				pos = 10 + isoHeaderLength;
+				pos = minlength;
 			}
 		} else {
 			//ASCII parsing
@@ -295,6 +302,9 @@ public class MessageFactory {
 				}
 				//Check for secondary bitmap and parse it if necessary
 				if (bs.get(0)) {
+					if (buf.length < minlength + 16) {
+						throw new ParseException("Insufficient length for secondary bitmap", minlength);
+					}
 					for (int i = isoHeaderLength + 20; i < isoHeaderLength + 36; i++) {
 						if (buf[i] >= '0' && buf[i] <= '9') {
 							bs.set(pos++, ((buf[i] - 48) & 8) > 0);
@@ -313,9 +323,9 @@ public class MessageFactory {
 							bs.set(pos++, ((buf[i] - 87) & 1) > 0);
 						}
 					}
-					pos = 36 + isoHeaderLength;
+					pos = 16 + minlength;
 				} else {
-					pos = 20 + isoHeaderLength;
+					pos = minlength;
 				}
 			} catch (NumberFormatException ex) {
 				ParseException _e = new ParseException("Invalid ISO8583 bitmap", pos);
