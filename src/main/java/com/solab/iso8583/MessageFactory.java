@@ -49,12 +49,12 @@ import com.solab.iso8583.parse.FieldParseInfo;
  * 
  * @author Enrique Zamudio
  */
-public class MessageFactory {
+public class MessageFactory<T extends IsoMessage> {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	/** This map stores the message template for each message type. */
-	private Map<Integer, IsoMessage> typeTemplates = new HashMap<Integer, IsoMessage>();
+	private Map<Integer, T> typeTemplates = new HashMap<Integer, T>();
 	/** Stores the information needed to parse messages sorted by type. */
 	private Map<Integer, Map<Integer, FieldParseInfo>> parseMap = new HashMap<Integer, Map<Integer, FieldParseInfo>>();
 	/** Stores the field numbers to be parsed, in order of appearance. */
@@ -169,8 +169,8 @@ public class MessageFactory {
 	 * as any other values specified in a message template. If the factory is set to use binary
 	 * messages, then the returned message will be written using binary coding.
 	 * @param type The message type, for example 0x200, 0x400, etc. */
-	public IsoMessage newMessage(int type) {
-		IsoMessage m = new IsoMessage(isoHeaders.get(type));
+	public T newMessage(int type) {
+		T m = createIsoMessage(isoHeaders.get(type));
 		m.setType(type);
 		m.setEtx(etx);
 		m.setBinary(useBinary);
@@ -201,8 +201,8 @@ public class MessageFactory {
 	 * sets all fields from the template if there is one, and copies all values from the request,
 	 * overwriting fields from the template if they overlap.
 	 * @param request An ISO8583 message with a request type (ending in 00). */
-	public IsoMessage createResponse(IsoMessage request) {
-		IsoMessage resp = new IsoMessage(isoHeaders.get(request.getType() + 16));
+	public T createResponse(T request) {
+		T resp = createIsoMessage(isoHeaders.get(request.getType() + 16));
 		resp.setCharacterEncoding(request.getCharacterEncoding());
 		resp.setBinary(request.isBinary());
 		resp.setType(request.getType() + 16);
@@ -234,13 +234,13 @@ public class MessageFactory {
 	 * @param buf The byte buffer containing the message. Must not include the length header.
 	 * @param isoHeaderLength The expected length of the ISO header, after which the message type
 	 * and the rest of the message must come. */
-	public IsoMessage parseMessage(byte[] buf, int isoHeaderLength)
+	public T parseMessage(byte[] buf, int isoHeaderLength)
 	throws ParseException, UnsupportedEncodingException {
 		final int minlength = isoHeaderLength+(useBinary ? 10 : 20);
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
-		final IsoMessage m = new IsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
+		final T m = createIsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
 		m.setCharacterEncoding(encoding);
 		int type = 0;
 		if (useBinary) {
@@ -405,7 +405,16 @@ public class MessageFactory {
 		return m;
 	}
 
-	/** Sets whether the factory should set the current date on newly created messages,
+	/** Creates a Iso message, override this method in the subclass to provide your 
+	 * own implementations of IsoMessage.
+	 * @param header
+	 * @return IsoMessage
+	 */
+	protected T createIsoMessage(String header) {
+                return (T) new IsoMessage(header);
+	}
+
+        /** Sets whether the factory should set the current date on newly created messages,
 	 * in field 7. Default is false. */
 	public void setAssignDate(boolean flag) {
 		setDate = flag;
@@ -452,7 +461,7 @@ public class MessageFactory {
 
 	/** Adds a message template to the factory. If there was a template for the same
 	 * message type as the new one, it is overwritten. */
-	public void addMessageTemplate(IsoMessage templ) {
+	public void addMessageTemplate(T templ) {
 		if (templ != null) {
 			typeTemplates.put(templ.getType(), templ);
 		}
@@ -465,7 +474,7 @@ public class MessageFactory {
 
 	/** Returns the template for the specified message type. This allows templates to be modified
 	 * programatically. */
-	public IsoMessage getMessageTemplate(int type) {
+	public T getMessageTemplate(int type) {
 		return typeTemplates.get(type);
 	}
 
