@@ -2,7 +2,7 @@
 	Introduction to j8583
 	-----
 
-What it j8583?
+What is j8583?
 
   Simply put, j8583 is a Java library to generate and read ISO8583 messages. It does not handle sending or
   reading them over a network connection, but it does parse the data you have read and can generate the
