@@ -1,0 +1,19 @@
+	-----
+	Procesador simple de mensajes ISO8583
+	-----
+
+Procesador simple de mensajes ISO8583
+
+  El jar de j8583 contiene un programa muy simple para poder leer mensajes
+  ISO8583, basado en un archivo de configuración que se le indique en la línea de comando.
+
+  Para usar este programa, se debe incluir en el classpath j8583 y SLF4J, invocar la clase
+  <<com.solab.iso8583.util.SimpleParser>> y pasarle la ruta completa al archivo de
+  configuración de j8583. Por ejemplo:
+
++-----
+java -cp lib/slf4j-api-1.7.1.jar:lib/slf4j-simple-1.7.1.jar:lib/j8583-1.5.6.jar com.solab.iso8583.util.SimpleParser /tmp/j8583-config.xml
++-----
+
+  Una vez que arranca, se puede pegar un mensaje ISO8583 codificado en texto y el programa
+  mostrará el tipo de mensaje, el bitmap y el valor de cada campo.
