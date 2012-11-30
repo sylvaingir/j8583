@@ -50,6 +50,7 @@ public class IsoMessage {
     private int etx = -1;
     /** Flag to enforce secondary bitmap even if empty. */
     private boolean forceb2;
+    private boolean binBitmap;
     private String encoding = System.getProperty("file.encoding");
 
     /** Creates a new empty message with no values set. */
@@ -61,17 +62,36 @@ public class IsoMessage {
     	isoHeader = header;
     }
 
+    /** Tells the message to encode its bitmap in binary format, even if the message
+     * itself is encoded as text. */
+    public void setBinaryBitmap(boolean flag) {
+        binBitmap = flag;
+    }
+    /** Returns true if the message's bitmap is encoded in binary format, when the message
+     * is encoded as text. Default is false. */
+    public boolean isBinaryBitmap() {
+        return binBitmap;
+    }
+
     /** If set, this flag will cause the secondary bitmap to be written even if it's not needed. */
     public void setForceSecondaryBitmap(boolean flag) {
     	forceb2 = flag;
     }
+    /** Returns true if the secondary bitmap is always included in the message, even
+     * if it's not needed. Default is false. */
     public boolean getForceSecondaryBitmap() {
     	return forceb2;
     }
 
+    /** Sets the encoding to use. */
     public void setCharacterEncoding(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Cannot set null encoding.");
+        }
     	encoding = value;
     }
+    /** Returns the character encoding for Strings inside the message. Default
+     * is taken from the file.encoding system property. */
     public String getCharacterEncoding() {
     	return encoding;
     }
@@ -282,7 +302,7 @@ public class IsoMessage {
     	ByteArrayOutputStream bout = new ByteArrayOutputStream();
     	if (isoHeader != null) {
     		try {
-    			bout.write(isoHeader.getBytes());
+    			bout.write(isoHeader.getBytes(encoding));
     		} catch (IOException ex) {
     			//should never happen, writing to a ByteArrayOutputStream
     		}
@@ -293,7 +313,7 @@ public class IsoMessage {
         	bout.write(type & 0xff);
     	} else {
     		try {
-    			bout.write(String.format("%04x", type).getBytes());
+    			bout.write(String.format("%04x", type).getBytes(encoding));
     		} catch (IOException ex) {
     			//should never happen, writing to a ByteArrayOutputStream
     		}
@@ -316,7 +336,7 @@ public class IsoMessage {
     		bs.set(0);
     	}
     	//Write bitmap to stream
-    	if (binary) {
+    	if (binary || binBitmap) {
     		int pos = 128;
     		int b = 0;
     		for (int i = 0; i < bs.size(); i++) {

@@ -184,7 +184,7 @@ public class IsoValue<T> implements Cloneable {
 			}
 		} else if (type == IsoType.ALPHA) {
 			return type.format(encoder == null ? value.toString() : encoder.encodeField(value), length);
-		} else if (type == IsoType.LLLVAR || type == IsoType.LLLVAR) {
+		} else if (type == IsoType.LLVAR || type == IsoType.LLLVAR) {
 			return encoder == null ? value.toString() : encoder.encodeField(value);
 		} else if (value instanceof Date) {
 			return type.format((Date)value);
