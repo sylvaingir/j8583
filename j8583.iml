@@ -12,10 +12,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="hamcrest-core-1.1" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="slf4j-simple-1.6.3" level="project" />
-    <orderEntry type="library" exported="" name="slf4j-api-1.6.3" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit-4.10" level="project" />
+    <orderEntry type="library" name="slf4j" level="application" />
+    <orderEntry type="library" scope="TEST" name="jUnit" level="application" />
+    <orderEntry type="library" scope="RUNTIME" name="slf4j-runtime" level="application" />
   </component>
 </module>
 
