@@ -23,6 +23,7 @@
 		<item name="XML config" href="xmlconf.html" />
 		<item name="Ejemplo con Spring" href="spring.html"/>
 		<item name="Compatibilidad Políglota" href="polyglot.html" />
+		<item name="Parser simple" href="simpleparser.html" />
 		<item name="Descargar" href="http://sourceforge.net/projects/j8583/files/j8583/" />
 		<item name="English" href="../index.html" />
 	</menu>
