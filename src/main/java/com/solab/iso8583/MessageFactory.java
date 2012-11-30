@@ -74,10 +74,25 @@ public class MessageFactory<T extends IsoMessage> {
 	/** Flag to specify if missing fields should be ignored as long as they're at the end of the message. */
 	private boolean ignoreLast;
 	private boolean forceb2;
+    private boolean binBitmap;
 	private String encoding = System.getProperty("file.encoding");
+
+    /** Tells the factory to create messages that encode their bitmaps in binary format
+     * even when they're encoded as text. Has no effect on binary messages. */
+    public void setUseBinaryBitmap(boolean flag) {
+        binBitmap = flag;
+    }
+    /** Returns true if the factory is set to create and parse bitmaps in binary format
+     * when the messages are encoded as text. */
+    public boolean isUseBinaryBitmap() {
+        return binBitmap;
+    }
 
 	/** Sets the character encoding used for parsing ALPHA, LLVAR and LLLVAR fields. */
 	public void setCharacterEncoding(String value) {
+        if (encoding == null) {
+            throw new IllegalArgumentException("Cannot set null encoding.");
+        }
 		encoding = value;
 		if (parseMap.size() > 0) {
 			for (Map<Integer, FieldParseInfo> pt : parseMap.values()) {
@@ -175,6 +190,7 @@ public class MessageFactory<T extends IsoMessage> {
 		m.setEtx(etx);
 		m.setBinary(useBinary);
 		m.setForceSecondaryBitmap(forceb2);
+        m.setBinaryBitmap(binBitmap);
 		m.setCharacterEncoding(encoding);
 
 		//Copy the values from the template
@@ -205,6 +221,7 @@ public class MessageFactory<T extends IsoMessage> {
 		T resp = createIsoMessage(isoHeaders.get(request.getType() + 16));
 		resp.setCharacterEncoding(request.getCharacterEncoding());
 		resp.setBinary(request.isBinary());
+        resp.setBinaryBitmap(request.isBinaryBitmap());
 		resp.setType(request.getType() + 16);
 		resp.setEtx(etx);
 		resp.setForceSecondaryBitmap(forceb2);
@@ -236,7 +253,7 @@ public class MessageFactory<T extends IsoMessage> {
 	 * and the rest of the message must come. */
 	public T parseMessage(byte[] buf, int isoHeaderLength)
 	throws ParseException, UnsupportedEncodingException {
-		final int minlength = isoHeaderLength+(useBinary ? 10 : 20);
+		final int minlength = isoHeaderLength+(useBinary||binBitmap ? 10 : 20);
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
@@ -255,7 +272,7 @@ public class MessageFactory<T extends IsoMessage> {
 		//Parse the bitmap (primary first)
 		final BitSet bs = new BitSet(64);
 		int pos = 0;
-		if (useBinary) {
+		if (useBinary || binBitmap) {
 			for (int i = isoHeaderLength + 2; i < isoHeaderLength + 10; i++) {
 				int bit = 128;
 				for (int b = 0; b < 8; b++) {
@@ -357,7 +374,7 @@ public class MessageFactory<T extends IsoMessage> {
 			for (Integer i : index) {
 				FieldParseInfo fpi = parseGuide.get(i);
 				if (bs.get(i - 1)) {
-					if (ignoreLast && pos >= buf.length && i == index.get(index.size() -1)) {
+					if (ignoreLast && pos >= buf.length && i.intValue() == index.get(index.size() -1)) {
 						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
 						bs.clear(i - 1);
 					} else {
@@ -384,7 +401,7 @@ public class MessageFactory<T extends IsoMessage> {
 			for (Integer i : index) {
 				FieldParseInfo fpi = parseGuide.get(i);
 				if (bs.get(i - 1)) {
-					if (ignoreLast && pos >= buf.length && i == index.get(index.size() -1)) {
+					if (ignoreLast && pos >= buf.length && i.intValue() == index.get(index.size() -1)) {
 						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
 						bs.clear(i - 1);
 					} else {
