@@ -85,4 +85,20 @@ public class TestBinaries {
 		Assert.assertEquals(bin.getObjectValue(7).toString(), bin2.getObjectValue(7).toString());
 	}
 
+    @Test
+    public void testBinaryBitmap() throws UnsupportedEncodingException {
+        IsoMessage iso1 = mfactAscii.newMessage(0x200);
+        IsoMessage iso2 = mfactAscii.newMessage(0x200);
+        iso1.setBinaryBitmap(true);
+        byte[] data1 = iso1.writeData();
+        byte[] data2 = iso2.writeData();
+        //First message should be shorter by exactly 16 bytes
+        Assert.assertEquals(data2.length-16, data1.length);
+        //compare hex-encoded bitmap from one against the other
+        byte[] sub1 = new byte[8];
+        System.arraycopy(data1, 16, sub1, 0, 8);
+        String sub2 = new String(data2, 16, 16, iso2.getCharacterEncoding());
+        Assert.assertEquals(sub2, HexCodec.hexEncode(sub1));
+    }
+
 }
