@@ -20,7 +20,6 @@ dependencies {
 	compile 'org.slf4j:slf4j-api:1.7.1'
 	testCompile 'junit:junit:4.10'
 	testRuntime 'org.slf4j:slf4j-simple:1.7.1'
-	//deployerJars 'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6'
 }
 
 tasks.javadoc.options.use=true
@@ -43,17 +42,14 @@ artifacts {
 apply plugin:'signing'
 signing {
 	sign configurations.archives
-	required = { gradle.taskGraph.hasTask('generateRelease') }
+	required { gradle.taskGraph.hasTask('generateRelease') }
 }
-ext.deployUsernameProperty = "nexusUsername"
-ext.deployPasswordProperty = "nexusPassword"
 
-uploadPublished {
+uploadArchives {
 	repositories {
 		project.ext.deployer=repositories.mavenDeployer {
 			beforeDeployment { MavenDeployment deployment ->
-				def signedPomArtifact=signing.signPom(deployment)
-				deployment.addArtifact(signedPomArtifact)
+				signing.signPom(deployment)
 			}
 			repository(url:'http://oss.sonatype.org/service/local/staging/deploy/maven2/') {
 				authentication(userName:nexusUsername, password:nexusPassword)
@@ -65,9 +61,9 @@ uploadPublished {
 				url 'http://j8583.sourceforge.net/'
 				inceptionYear '2007'
 				scm {
-					url 'http://j8583.svn.sourceforge.net/viewvc/j8583/j8583'
-						connection 'scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583'
-						developerConnection 'scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583'
+					url 'https://github.com/chochos/j8583'
+					connection 'scm:git://github.com/chochos/j8583.git'
+					developerConnection 'scm:git@github.com:chochos/j8583.git'
 				}
 				licenses {
 					license {
@@ -97,6 +93,6 @@ uploadPublished {
 	}
 }
 
-task generateRelease(dependsOn:uploadPublished, group: "Release artifact",
+task generateRelease(dependsOn:uploadArchives, group: "Release artifact",
   description: "Generates and uploads a final release to Sonatype Nexus")
 
