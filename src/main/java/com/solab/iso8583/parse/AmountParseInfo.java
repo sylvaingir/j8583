@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 
@@ -36,18 +37,19 @@ public class AmountParseInfo extends FieldParseInfo {
 		super(IsoType.AMOUNT, 12);
 	}
 
-	public IsoValue<BigDecimal> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<BigDecimal> parse(byte[] buf, int pos, CustomField<?> custom)
+            throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid AMOUNT position %d", pos), pos);
 		}
 		if (pos+12 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for AMOUNT field, pos %d", pos), pos);
 		}
-		String c = new String(buf, pos, 12);
+		String c = new String(buf, pos, 12, getCharacterEncoding());
 		try {
 			return new IsoValue<BigDecimal>(type, new BigDecimal(c).movePointLeft(2), null);
 		} catch (NumberFormatException ex) {
-			throw new ParseException(String.format("Cannot read amount '%s' pos %d", new String(c), pos), pos);
+			throw new ParseException(String.format("Cannot read amount '%s' pos %d", c, pos), pos);
 		}
 	}
 
