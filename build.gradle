@@ -1,7 +1,7 @@
 apply plugin:'java'
 apply plugin: 'maven'
 defaultTasks 'build'
-version='1.5.6'
+version='1.5.7'
 description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
 sourceCompatibility=6
 targetCompatibility=6
@@ -17,9 +17,9 @@ configurations {
 }
 
 dependencies {
-	compile 'org.slf4j:slf4j-api:1.6.3'
+	compile 'org.slf4j:slf4j-api:1.7.1'
 	testCompile 'junit:junit:4.10'
-	testRuntime 'org.slf4j:slf4j-simple:1.6.3'
+	testRuntime 'org.slf4j:slf4j-simple:1.7.1'
 	//deployerJars 'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6'
 }
 
@@ -45,12 +45,12 @@ signing {
 	sign configurations.archives
 	required = { gradle.taskGraph.hasTask('generateRelease') }
 }
-deployUsernameProperty = "nexusUsername"
-deployPasswordProperty = "nexusPassword"
+ext.deployUsernameProperty = "nexusUsername"
+ext.deployPasswordProperty = "nexusPassword"
 
 uploadPublished {
 	repositories {
-		project.deployer=repositories.mavenDeployer {
+		project.ext.deployer=repositories.mavenDeployer {
 			beforeDeployment { MavenDeployment deployment ->
 				def signedPomArtifact=signing.signPom(deployment)
 				deployment.addArtifact(signedPomArtifact)
