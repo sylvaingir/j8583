@@ -57,7 +57,7 @@ public class IsoMessage {
     }
 
     /** Creates a new message with the specified ISO header. This will be prepended to the message. */
-    IsoMessage(String header) {
+    protected IsoMessage(String header) {
     	isoHeader = header;
     }
 
