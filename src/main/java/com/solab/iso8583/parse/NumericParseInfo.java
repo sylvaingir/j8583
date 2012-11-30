@@ -38,7 +38,7 @@ public class NumericParseInfo extends AlphaNumericFieldParseInfo {
 	public IsoValue<Number> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin NUMERIC position %d", pos), pos);
-		} else if (pos+length > buf.length) {
+		} else if (pos+(length/2) > buf.length) {
 			throw new ParseException(String.format("Insufficient data for bin %s field of length %d, pos %d",
 				type, length, pos), pos);
 		}
