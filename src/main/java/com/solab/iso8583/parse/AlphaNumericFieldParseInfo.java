@@ -42,20 +42,24 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format("Insufficient data for %s field of length %d, pos %d",
 				type, length, pos), pos);
 		}
-		String _v = new String(buf, pos, length, getCharacterEncoding());
-		if (_v.length() != length) {
-			_v = new String(buf, pos, buf.length-pos, getCharacterEncoding()).substring(0, length);
-		}
-		if (custom == null) {
-			return new IsoValue<String>(type, _v, length, null);
-		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
-			if (v.getValue() == null) {
-				return new IsoValue<String>(type, _v, length, null);
-			}
-			return v;
-		}
+        try {
+            String _v = new String(buf, pos, length, getCharacterEncoding());
+            if (_v.length() != length) {
+                _v = new String(buf, pos, buf.length-pos, getCharacterEncoding()).substring(0, length);
+            }
+            if (custom == null) {
+                return new IsoValue<String>(type, _v, length, null);
+            } else {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
+                if (v.getValue() == null) {
+                    return new IsoValue<String>(type, _v, length, null);
+                }
+                return v;
+            }
+        } catch (StringIndexOutOfBoundsException ex) {
+            throw new ParseException(String.format("Insufficient data for %s field of length %d, pos %d", type, length, pos), pos);
+        }
 	}
 
 }
