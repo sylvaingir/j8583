@@ -50,6 +50,8 @@ public class AmountParseInfo extends FieldParseInfo {
 			return new IsoValue<BigDecimal>(type, new BigDecimal(c).movePointLeft(2), null);
 		} catch (NumberFormatException ex) {
 			throw new ParseException(String.format("Cannot read amount '%s' pos %d", c, pos), pos);
+        } catch (IndexOutOfBoundsException ex) {
+            throw new ParseException(String.format("Insufficient data for AMOUNT field, pos %d", pos), pos);
 		}
 	}
 
@@ -68,6 +70,8 @@ public class AmountParseInfo extends FieldParseInfo {
 			return new IsoValue<BigDecimal>(IsoType.AMOUNT, new BigDecimal(new String(digits)), null);
 		} catch (NumberFormatException ex) {
 			throw new ParseException(String.format("Cannot read amount '%s' pos %d", new String(digits), pos), pos);
+        } catch (IndexOutOfBoundsException ex) {
+            throw new ParseException(String.format("Insufficient data for AMOUNT field, pos %d", pos), pos);
 		}
 	}
 

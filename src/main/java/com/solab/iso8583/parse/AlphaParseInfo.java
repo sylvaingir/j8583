@@ -43,16 +43,21 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
 			throw new ParseException(String.format("Insufficient data for bin %s field of length %d, pos %d",
 				type, length, pos), pos);
 		}
-		if (custom == null) {
-			return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
-		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length, getCharacterEncoding())), length, custom);
-			if (v.getValue() == null) {
-				return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
-			}
-			return v;
-		}
+        try {
+            if (custom == null) {
+                return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
+            } else {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length, getCharacterEncoding())), length, custom);
+                if (v.getValue() == null) {
+                    return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
+                }
+                return v;
+            }
+        } catch (IndexOutOfBoundsException ex) {
+            throw new ParseException(String.format("Insufficient data for bin %s field of length %d, pos %d",
+         				type, length, pos), pos);
+        }
 	}
 
 }

@@ -56,14 +56,18 @@ public class LllbinParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(
-				length == 0 ? "" : new String(buf, pos + 3, length)), length, custom);
-			if (v.getValue() == null) {
-				//problems decoding? return the string
-				return new IsoValue<byte[]>(type, binval, binval.length, null);
-			}
-			return v;
+            try {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                IsoValue<?> v = new IsoValue(type, custom.decodeField(
+                    length == 0 ? "" : new String(buf, pos + 3, length)), length, custom);
+                if (v.getValue() == null) {
+                    //problems decoding? return the string
+                    return new IsoValue<byte[]>(type, binval, binval.length, null);
+                }
+                return v;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ParseException(String.format("Insufficient data for LLLBIN field, pos %d", pos), pos);
+            }
 		}
 	}
 

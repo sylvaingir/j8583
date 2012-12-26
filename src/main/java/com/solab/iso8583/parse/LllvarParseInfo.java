@@ -53,7 +53,12 @@ public class LllvarParseInfo extends FieldParseInfo {
 		} else if (length+pos+3 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for LLLVAR field, pos %d", pos), pos);
 		}
-		String _v = length == 0 ? "" : new String(buf, pos + 3, length, getCharacterEncoding());
+		String _v;
+        try {
+            _v = length == 0 ? "" : new String(buf, pos + 3, length, getCharacterEncoding());
+        } catch (IndexOutOfBoundsException ex) {
+            throw new ParseException(String.format("Insufficient data for LLLVAR header, pos %d", pos), pos);
+        }
 		//This is new: if the String's length is different from the specified length in the buffer,
 		//there are probably some extended characters. So we create a String from the rest of the buffer,
 		//and then cut it to the specified length.
