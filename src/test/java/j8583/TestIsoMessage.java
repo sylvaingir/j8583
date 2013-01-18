@@ -18,11 +18,11 @@ import com.solab.iso8583.MessageFactory;
  */
 public class TestIsoMessage {
 
-	private MessageFactory mf;
+	private MessageFactory<IsoMessage> mf;
 
 	@Before
 	public void init() throws IOException {
-		mf = new MessageFactory();
+		mf = new MessageFactory<IsoMessage>();
 		mf.setCharacterEncoding("UTF-8");
 		mf.setCustomField(48, new CustomField48());
 		mf.setConfigPath("config.xml");

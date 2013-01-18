@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
+import com.solab.iso8583.IsoMessage;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.parse.NumericParseInfo;
 import junit.framework.Assert;
@@ -18,11 +19,11 @@ import com.solab.iso8583.MessageFactory;
  */
 public class TestParsing {
 
-	private MessageFactory mf;
+	private MessageFactory<IsoMessage> mf;
 
 	@Before
 	public void init() throws IOException {
-		mf = new MessageFactory();
+		mf = new MessageFactory<IsoMessage>();
 		mf.setCharacterEncoding("UTF-8");
 		mf.setCustomField(48, new CustomField48());
 		mf.setConfigPath("config.xml");
@@ -102,7 +103,7 @@ public class TestParsing {
     @Test
     public void testBinaryNumberParsing() throws ParseException {
         NumericParseInfo npi = new NumericParseInfo(6);
-        IsoValue<Number> val = npi.parseBinary(new byte[]{0x12, 0x34, 0x56}, 0, null);
+        IsoValue<Number> val = npi.parseBinary(0, new byte[]{0x12, 0x34, 0x56}, 0, null);
         Assert.assertEquals(123456, val.getValue().intValue());
     }
 

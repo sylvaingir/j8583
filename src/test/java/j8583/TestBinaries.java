@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.ParseException;
-import java.util.Arrays;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,27 +38,25 @@ public class TestBinaries {
 		byte[] buf = (byte[])m.getObjectValue(41);
 		byte[] exp = new byte[]{ (byte)0xab, (byte)0xcd, (byte)0xef, 0, 0, 0, 0, 0};
 		Assert.assertEquals("Field 41 wrong length", 8, buf.length);
-		Assert.assertTrue("Field 41 wrong value", Arrays.equals(exp, buf));
+		Assert.assertArrayEquals("Field 41 wrong value", exp, buf);
 		buf = (byte[])m.getObjectValue(42);
 		exp = new byte[]{ (byte)0x0a, (byte)0xbc, (byte)0xde, 0 };
 		Assert.assertEquals("field 42 wrong length", 4, buf.length);
-		Assert.assertTrue("Field 42 wrong value", Arrays.equals(exp, buf));
+		Assert.assertArrayEquals("Field 42 wrong value", exp, buf);
 		Assert.assertTrue(((String)m.getObjectValue(43)).startsWith("Field of length 40"));
 		buf = (byte[])m.getObjectValue(62);
 		exp = new byte[]{ 1, (byte)0x23, (byte)0x45, (byte)0x67, (byte)0x89, (byte)0xab, (byte)0xcd, (byte)0xef,
-				1, (byte)0x23, (byte)0x45, (byte)0x67, (byte)0x89, (byte)0xab, (byte)0xcd, (byte)0xef };
-		Assert.assertEquals(16, buf.length);
-		Assert.assertTrue(Arrays.equals(exp, buf));
+				0x62, 1, (byte)0x23, (byte)0x45, (byte)0x67, (byte)0x89, (byte)0xab, (byte)0xcd };
+		Assert.assertArrayEquals(exp, buf);
 		buf = (byte[])m.getObjectValue(64);
-		Assert.assertEquals(16, buf.length);
-		Assert.assertTrue(Arrays.equals(exp, buf));
+        exp[8] = 0x64;
+		Assert.assertArrayEquals(exp, buf);
 		buf = (byte[])m.getObjectValue(63);
-		exp = new byte[]{ 0, (byte)0x12, (byte)0x34, (byte)0x56, (byte)0x78, (byte)0x9a };
-		Assert.assertEquals(6, buf.length);
-		Assert.assertTrue(Arrays.equals(exp, buf));
+		exp = new byte[]{ 0, (byte)0x12, (byte)0x34, (byte)0x56, (byte)0x78, (byte)0x63 };
+		Assert.assertArrayEquals(exp, buf);
 		buf = (byte[])m.getObjectValue(65);
-		Assert.assertEquals(6, buf.length);
-		Assert.assertTrue(Arrays.equals(exp, buf));
+        exp[5] = 0x65;
+		Assert.assertArrayEquals(exp, buf);
 	}
 
 	@Test
@@ -68,12 +64,16 @@ public class TestBinaries {
 		//Create a message with both factories
 		IsoMessage ascii = mfactAscii.newMessage(0x600);
 		IsoMessage bin = mfactBin.newMessage(0x600);
+        Assert.assertFalse(ascii.isBinary() || ascii.isBinaryBitmap());
+        Assert.assertTrue(bin.isBinary());
 		//HEXencode the binary message, headers should be similar to the ASCII version
-		String hexBin = HexCodec.hexEncode(bin.writeData());
+        final byte[] _v = bin.writeData();
+		String hexBin = HexCodec.hexEncode(_v, 0, _v.length);
 		String hexAscii = new String(ascii.writeData()).toUpperCase();
 		Assert.assertEquals("0600", hexBin.substring(0, 4));
 		//Should be the same up to the field 42 (first 80 chars)
 		Assert.assertEquals(hexAscii.substring(0, 88), hexBin.substring(0, 88));
+        Assert.assertEquals(ascii.getObjectValue(43), new String(_v, 44, 40).trim());
 		//Parse both messages
 		byte[] asciiBuf = ascii.writeData();
 		IsoMessage ascii2 = mfactAscii.parseMessage(asciiBuf, 0);
@@ -98,7 +98,7 @@ public class TestBinaries {
         byte[] sub1 = new byte[8];
         System.arraycopy(data1, 16, sub1, 0, 8);
         String sub2 = new String(data2, 16, 16, iso2.getCharacterEncoding());
-        Assert.assertEquals(sub2, HexCodec.hexEncode(sub1));
+        Assert.assertEquals(sub2, HexCodec.hexEncode(sub1, 0, sub1.length));
     }
 
 }

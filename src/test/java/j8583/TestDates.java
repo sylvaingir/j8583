@@ -6,6 +6,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import com.solab.iso8583.IsoMessage;
 import org.junit.*;
 
 import com.solab.iso8583.IsoType;
@@ -20,11 +21,11 @@ import com.solab.iso8583.parse.Date4ParseInfo;
  */
 public class TestDates {
 
-	private MessageFactory mf;
+	private MessageFactory<IsoMessage> mf;
 
 	@Before
 	public void init() throws IOException {
-		mf = new MessageFactory();
+		mf = new MessageFactory<IsoMessage>();
 		mf.setCharacterEncoding("UTF-8");
 		mf.setCustomField(48, new CustomField48());
 		mf.setConfigPath("config.xml");
@@ -39,12 +40,12 @@ public class TestDates {
 		today.set(GregorianCalendar.SECOND,0);
 		today.set(GregorianCalendar.MILLISECOND,0);
 		byte[] buf = IsoType.DATE4.format(soon).getBytes();
-		IsoValue<Date> comp = new Date4ParseInfo().parse(buf, 0, null);
+		IsoValue<Date> comp = new Date4ParseInfo().parse(0, buf, 0, null);
 		Assert.assertEquals(comp.getValue(), today.getTime());
 		//Now with the binary
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		comp.write(bout, true);
-		IsoValue<Date> bin = new Date4ParseInfo().parseBinary(bout.toByteArray(), 0, null);
+		IsoValue<Date> bin = new Date4ParseInfo().parseBinary(0, bout.toByteArray(), 0, null);
 		Assert.assertEquals(comp.getValue().getTime(), bin.getValue().getTime());
 	}
 
@@ -52,12 +53,12 @@ public class TestDates {
 	public void testDate10FutureTolerance() throws ParseException, IOException {
 		Date soon = new Date(System.currentTimeMillis() + 50000);
 		byte[] buf = IsoType.DATE10.format(soon).getBytes();
-		IsoValue<Date> comp = new Date10ParseInfo().parse(buf, 0, null);
+		IsoValue<Date> comp = new Date10ParseInfo().parse(0, buf, 0, null);
 		assert comp.getValue().after(new Date());
 		//Now with the binary
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		comp.write(bout, true);
-		IsoValue<Date> bin = new Date10ParseInfo().parseBinary(bout.toByteArray(), 0, null);
+		IsoValue<Date> bin = new Date10ParseInfo().parseBinary(0, bout.toByteArray(), 0, null);
 		Assert.assertEquals(comp.getValue().getTime(), bin.getValue().getTime());
 	}
 
