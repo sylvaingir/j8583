@@ -5,17 +5,18 @@ public class HexCodec {
 
 	static final char[] HEX = new char[]{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-	public static String hexEncode(byte[] buffer) {
+	public static String hexEncode(byte[] buffer, int start, int length) {
 		if (buffer.length == 0) {
 			return "";
 		}
 		int holder = 0;
-		char[] chars = new char[buffer.length * 2];
-		for (int i = 0; i < buffer.length; i++) {
+		char[] chars = new char[length * 2];
+        int pos = -1;
+		for (int i = start; i < start+length; i++) {
 			holder = (buffer[i] & 0xf0) >> 4;
-			chars[i * 2] = HEX[holder];
+			chars[++pos * 2] = HEX[holder];
 			holder = buffer[i] & 0x0f;
-			chars[(i * 2) + 1] = HEX[holder];
+			chars[(pos * 2) + 1] = HEX[holder];
 		}
 		return new String(chars);
 	}
