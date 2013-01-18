@@ -270,22 +270,16 @@ public class IsoMessage {
     		if (etx > -1) {
     			l++;
     		}
-    		byte[] bbuf = new byte[lengthBytes];
-    		int pos = 0;
     		if (lengthBytes == 4) {
-    			bbuf[0] = (byte)((l & 0xff000000) >> 24);
-    			pos++;
+                buf.put((byte)((l & 0xff000000) >> 24));
     		}
     		if (lengthBytes > 2) {
-    			bbuf[pos] = (byte)((l & 0xff0000) >> 16);
-    			pos++;
+                buf.put((byte)((l & 0xff0000) >> 16));
     		}
     		if (lengthBytes > 1) {
-    			bbuf[pos] = (byte)((l & 0xff00) >> 8);
-    			pos++;
+                buf.put((byte)((l & 0xff00) >> 8));
     		}
-    		bbuf[pos] = (byte)(l & 0xff);
-    		buf.put(bbuf);
+            buf.put((byte)(l & 0xff));
     	}
     	buf.put(data);
     	//ETX
