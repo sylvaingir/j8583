@@ -190,15 +190,17 @@ public class IsoValue<T> implements Cloneable {
 			return type.format((Date)value);
 		} else if (type == IsoType.BINARY) {
 			if (value instanceof byte[]) {
-				return type.format(encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value), length * 2);
+                final byte[] _v = (byte[])value;
+				return type.format(encoder == null ? HexCodec.hexEncode(_v, 0, _v.length) : encoder.encodeField(value), length * 2);
 			} else {
 				return type.format(encoder == null ? value.toString() : encoder.encodeField(value), length * 2);
 			}
 		} else if (type == IsoType.LLBIN || type == IsoType.LLLBIN) {
 			if (value instanceof byte[]) {
-				return encoder == null ? HexCodec.hexEncode((byte[])value) : encoder.encodeField(value);
+                final byte[] _v = (byte[])value;
+				return encoder == null ? HexCodec.hexEncode(_v, 0, _v.length) : encoder.encodeField(value);
 			} else {
-				String _s = encoder == null ? value.toString() : encoder.encodeField(value);
+				final String _s = encoder == null ? value.toString() : encoder.encodeField(value);
 				return (_s.length() % 2 == 1) ? String.format("0%s", _s) : _s;
 			}
 		}
