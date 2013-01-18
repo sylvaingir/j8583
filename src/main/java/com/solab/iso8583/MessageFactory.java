@@ -253,7 +253,7 @@ public class MessageFactory<T extends IsoMessage> {
 	 * and the rest of the message must come. */
 	public T parseMessage(byte[] buf, int isoHeaderLength)
 	throws ParseException, UnsupportedEncodingException {
-		final int minlength = isoHeaderLength+(useBinary?2:4)+(binBitmap ? 8:16);
+		final int minlength = isoHeaderLength+(useBinary?2:4)+(binBitmap||useBinary ? 8:16);
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
@@ -379,7 +379,7 @@ public class MessageFactory<T extends IsoMessage> {
 						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
 						bs.clear(i - 1);
 					} else {
-						IsoValue<?> val = fpi.parseBinary(buf, pos, getCustomField(i));
+						IsoValue<?> val = fpi.parseBinary(i, buf, pos, getCustomField(i));
 						m.setField(i, val);
 						if (val != null) {
 							if (val.getType() == IsoType.NUMERIC || val.getType() == IsoType.DATE10
@@ -406,7 +406,7 @@ public class MessageFactory<T extends IsoMessage> {
 						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
 						bs.clear(i - 1);
 					} else {
-						IsoValue<?> val = fpi.parse(buf, pos, getCustomField(i));
+						IsoValue<?> val = fpi.parse(i, buf, pos, getCustomField(i));
 						m.setField(i, val);
 						//To get the correct next position, we need to get the number of bytes, not chars
 						pos += val.toString().getBytes(fpi.getCharacterEncoding()).length;
