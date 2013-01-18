@@ -52,19 +52,19 @@ public class ConfigParser {
 
 	/** Creates a message factory configured from the default file, which is j8583.xml
 	 * located in the root of the classpath. */
-	public static MessageFactory createDefault() throws IOException {
+	public static <T extends IsoMessage> MessageFactory<T> createDefault() throws IOException {
 		if (MessageFactory.class.getClassLoader().getResource("j8583.xml") == null) {
 			log.warn("ISO8583 ConfigParser cannot find j8583.xml, returning empty message factory");
-			return new MessageFactory();
+			return new MessageFactory<T>();
 		} else {
 			return createFromClasspathConfig("j8583.xml");
 		}
 	}
 
 	/** Creates a message factory from the specified path inside the classpath. */
-	public static MessageFactory createFromClasspathConfig(String path) throws IOException {
+	public static <T extends IsoMessage> MessageFactory<T> createFromClasspathConfig(String path) throws IOException {
 		InputStream ins = MessageFactory.class.getClassLoader().getResourceAsStream(path);
-		MessageFactory mfact = new MessageFactory();
+		MessageFactory<T> mfact = new MessageFactory<T>();
 		if (ins != null) {
 			log.debug("ISO8583 Parsing config from classpath file {}", path);
 			try {
@@ -79,8 +79,8 @@ public class ConfigParser {
 	}
 
 	/** Creates a message factory from the file located at the specified URL. */
-	public static MessageFactory createFromUrl(URL url) throws IOException {
-		MessageFactory mfact = new MessageFactory();
+	public static <T extends IsoMessage> MessageFactory<T> createFromUrl(URL url) throws IOException {
+		MessageFactory<T> mfact = new MessageFactory<T>();
 		InputStream stream = url.openStream();
 		try {
 			parse(mfact, stream);
@@ -93,7 +93,8 @@ public class ConfigParser {
 	/** Reads the XML from the stream and configures the message factory with its values.
 	 * @param mfact The message factory to be configured with the values read from the XML.
 	 * @param stream The InputStream containing the XML configuration. */
-	protected static void parse(MessageFactory mfact, InputStream stream) throws IOException {
+	protected static <T extends IsoMessage> void parse(
+            MessageFactory<T> mfact, InputStream stream) throws IOException {
 		final DocumentBuilderFactory docfact = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docb = null;
 		Document doc = null;
@@ -167,7 +168,7 @@ public class ConfigParser {
 				CustomField<Object> _cf = mfact.getCustomField(num);
 				m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
 			}
-			mfact.addMessageTemplate(m);
+			mfact.addMessageTemplate((T)m);
 		}
 
 		//Read the parsing guides
@@ -197,7 +198,8 @@ public class ConfigParser {
 
 	/** Configures a MessageFactory using the default configuration file j8583.xml. This is useful
 	 * if you have a MessageFactory created using Spring for example. */
-	public static void configureFromDefault(MessageFactory mfact) throws IOException {
+	public static <T extends IsoMessage> void configureFromDefault(
+            MessageFactory<T> mfact) throws IOException {
 		if (MessageFactory.class.getClassLoader().getResource("j8583.xml") == null) {
 			log.warn("ISO8583 config file j8583.xml not found!");
 		} else {
@@ -207,7 +209,8 @@ public class ConfigParser {
 
 	/** This method attempts to open a stream from the XML configuration in the specified URL and
 	 * configure the message factory from that config. */
-	public static void configureFromUrl(MessageFactory mfact, URL url) throws IOException {
+	public static <T extends IsoMessage> void configureFromUrl(
+            MessageFactory<T> mfact, URL url) throws IOException {
 		InputStream stream = url.openStream();
 		try {
 			parse(mfact, stream);
@@ -219,7 +222,8 @@ public class ConfigParser {
 	/** Configures a MessageFactory using the configuration file at the path specified (will be searched
 	 * within the classpath using the MessageFactory's ClassLoader). This is useful for configuring
 	 * Spring-bound instances of MessageFactory for example. */
-	public static void configureFromClasspathConfig(MessageFactory mfact, String path) throws IOException {
+	public static <T extends IsoMessage> void configureFromClasspathConfig(
+            MessageFactory<T> mfact, String path) throws IOException {
 		InputStream ins = MessageFactory.class.getClassLoader().getResourceAsStream(path);
 		if (ins != null) {
 			log.debug("ISO8583 Parsing config from classpath file {}", path);

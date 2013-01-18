@@ -42,13 +42,16 @@ public class Date10ParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parse(byte[] buf, int pos, CustomField<?> custom)
+	public IsoValue<Date> parse(final int field, final byte[] buf,
+                                final int pos, final CustomField<?> custom)
 			throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid DATE10 position %d", pos), pos);
+			throw new ParseException(String.format("Invalid DATE10 field %d position %d",
+                    field, pos), pos);
 		}
 		if (pos+10 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for DATE10 field, pos %d", pos), pos);
+			throw new ParseException(String.format("Insufficient data for DATE10 field %d, pos %d",
+                    field, pos), pos);
 		}
 		//A SimpleDateFormat in the case of dates won't help because of the missing data
 		//we have to use the current date for reference and change what comes in the buffer
@@ -65,7 +68,17 @@ public class Date10ParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Date> parseBinary(final int field, final byte[] buf,
+                                      final int pos, final CustomField<?> custom)
+            throws ParseException {
+        if (pos < 0) {
+            throw new ParseException(String.format("Invalid DATE10 field %d position %d",
+                      field, pos), pos);
+        }
+        if (pos+5 > buf.length) {
+            throw new ParseException(String.format("Insufficient data for DATE10 field %d, pos %d",
+                      field, pos), pos);
+        }
 		int[] tens = new int[5];
 		int start = 0;
 		for (int i = pos; i < pos + tens.length; i++) {

@@ -35,12 +35,16 @@ public class NumericParseInfo extends AlphaNumericFieldParseInfo {
 		super(IsoType.NUMERIC, len);
 	}
 
-	public IsoValue<Number> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Number> parseBinary(final int field, final byte[] buf,
+                                        final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid bin NUMERIC position %d", pos), pos);
+			throw new ParseException(String.format("Invalid bin NUMERIC field %d pos %d",
+                    field, pos), pos);
 		} else if (pos+(length/2) > buf.length) {
-			throw new ParseException(String.format("Insufficient data for bin %s field of length %d, pos %d",
-				type, length, pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for bin %s field %d of length %d, pos %d",
+				type, field, length, pos), pos);
 		}
 		//A long covers up to 18 digits
 		if (length < 19) {
@@ -63,8 +67,9 @@ public class NumericParseInfo extends AlphaNumericFieldParseInfo {
                     digits[start++] = (char)((buf[i] & 0x0f) + 48);
                 }
             } catch (IndexOutOfBoundsException ex) {
-                throw new ParseException(String.format("Insufficient data for bin %s field of length %d, pos %d",
-             				type, length, pos), pos);
+                throw new ParseException(String.format(
+                        "Insufficient data for bin %s field %d of length %d, pos %d",
+             				type, field, length, pos), pos);
             }
 			return new IsoValue<Number>(IsoType.NUMERIC, new BigInteger(new String(digits)), length, null);
 		}

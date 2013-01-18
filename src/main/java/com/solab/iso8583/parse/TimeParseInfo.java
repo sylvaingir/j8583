@@ -38,11 +38,15 @@ public class TimeParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Date> parse(final int field, final byte[] buf,
+                                final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid TIME position %d", pos), pos);
+			throw new ParseException(String.format("Invalid TIME field %d pos %d",
+                    field, pos), pos);
 		} else if (pos+6 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for TIME field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for TIME field %d, pos %d", field, pos), pos);
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR_OF_DAY, ((buf[pos] - 48) * 10) + buf[pos + 1] - 48);
@@ -52,11 +56,15 @@ public class TimeParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Date> parseBinary(final int field, final byte[] buf,
+                                      final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid bin TIME position %d", pos), pos);
+			throw new ParseException(String.format("Invalid bin TIME field %d pos %d",
+                    field, pos), pos);
 		} else if (pos+3 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for bin TIME field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for bin TIME field %d, pos %d", field, pos), pos);
 		}
 		int[] tens = new int[3];
 		int start = 0;

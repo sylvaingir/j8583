@@ -37,18 +37,25 @@ public class LlbinParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<?> parse(final int field, final byte[] buf,
+                             final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid LLBIN position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLBIN field %d position %d",
+                    field, pos), pos);
 		} else if (pos+2 > buf.length) {
-			throw new ParseException("Insufficient LLBIN header", pos);
+			throw new ParseException(String.format("Insufficient LLBIN header field %d",
+                    field), pos);
 		}
 		length = ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format("Invalid LLBIN field %d length %d pos %d",
+                    field, length, pos), pos);
 		}
 		if (length+pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d (LEN states '%s')", pos, new String(buf, pos, 2)), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for LLBIN field %d, pos %d (LEN states '%s')",
+                    field, pos, new String(buf, pos, 2)), pos);
 		}
 		byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 2, length));
 		if (custom == null) {
@@ -63,24 +70,31 @@ public class LlbinParseInfo extends FieldParseInfo {
                 }
                 return v;
             } catch (IndexOutOfBoundsException ex) {
-                throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d (LEN states '%s')", pos, new String(buf, pos, 2)), pos);
+                throw new ParseException(String.format(
+                        "Insufficient data for LLBIN field %d, pos %d (LEN states '%s')",
+                        field, pos, new String(buf, pos, 2)), pos);
             }
 		}
 	}
 
 	@Override
-	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<?> parseBinary(final int field, final byte[] buf,
+                                   final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid bin LLBIN position %d", pos), pos);
+			throw new ParseException(String.format("Invalid bin LLBIN field %d position %d",
+                    field, pos), pos);
 		} else if (pos+1 > buf.length) {
-			throw new ParseException("Insufficient bin LLBIN header", pos);
+			throw new ParseException(String.format("Insufficient bin LLBIN header field %d",
+                    field), pos);
 		}
 		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid bin LLBIN length %d pos %d", length, pos), pos);
 		}
 		if (length+pos+1 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for bin LLBIN field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for bin LLBIN field %d, pos %d", field, pos), pos);
 		}
 		byte[] _v = new byte[length];
 		System.arraycopy(buf, pos+1, _v, 0, length);
@@ -88,7 +102,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 			return new IsoValue<byte[]>(type, _v, null);
 		} else {
 			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length)), custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, _v, null);
 			}

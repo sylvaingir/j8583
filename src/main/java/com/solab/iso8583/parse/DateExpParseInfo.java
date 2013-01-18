@@ -37,12 +37,16 @@ public class DateExpParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Date> parse(final int field, final byte[] buf,
+                                final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid DATE_EXP position %d", pos), pos);
+			throw new ParseException(String.format("Invalid DATE_EXP field %d position %d",
+                    field, pos), pos);
 		}
 		if (pos+4 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for DATE_EXP field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for DATE_EXP field %d pos %d", field, pos), pos);
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -57,7 +61,17 @@ public class DateExpParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Date> parseBinary(final int field, final byte[] buf,
+                                      final int pos, final CustomField<?> custom)
+            throws ParseException {
+        if (pos < 0) {
+            throw new ParseException(String.format("Invalid DATE_EXP field %d position %d",
+                      field, pos), pos);
+        }
+        if (pos+2 > buf.length) {
+            throw new ParseException(String.format(
+                      "Insufficient data for DATE_EXP field %d pos %d", field, pos), pos);
+        }
 		int[] tens = new int[2];
 		int start = 0;
 		for (int i = pos; i < pos + tens.length; i++) {

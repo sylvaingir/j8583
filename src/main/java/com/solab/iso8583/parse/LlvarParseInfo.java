@@ -35,24 +35,28 @@ public class LlvarParseInfo extends FieldParseInfo {
 		super(IsoType.LLVAR, 0);
 	}
 
-	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
+	public IsoValue<?> parse(final int field, final byte[] buf,
+                             final int pos, final CustomField<?> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid LLVAR position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLVAR field %d %d", field, pos), pos);
 		} else if (pos+2 > buf.length) {
 			throw new ParseException(String.format("Insufficient data for LLVAR header, pos %d", pos), pos);
 		}
 		length = ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLVAR length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format(
+                    "Invalid LLVAR length %d, field %d pos %d", length, field, pos), pos);
 		} else if (length+pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLVAR field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for LLVAR field %d, pos %d", field, pos), pos);
 		}
 		String _v;
         try {
             _v = length == 0 ? "" : new String(buf, pos + 2, length, getCharacterEncoding());
         } catch (IndexOutOfBoundsException ex) {
-            throw new ParseException(String.format("Insufficient data for LLVAR header, pos %d", pos), pos);
+            throw new ParseException(String.format(
+                    "Insufficient data for LLVAR header, field %d pos %d", field, pos), pos);
         }
 		//This is new: if the String's length is different from the specified length in the buffer,
 		//there are probably some extended characters. So we create a String from the rest of the buffer,
@@ -72,19 +76,24 @@ public class LlvarParseInfo extends FieldParseInfo {
 		}
 	}
 
-	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
+	public IsoValue<?> parseBinary(final int field, final byte[] buf,
+                                   final int pos, final CustomField<?> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid bin LLVAR position %d", pos), pos);
+			throw new ParseException(String.format("Invalid bin LLVAR field %d pos %d",
+                    field, pos), pos);
 		} else if (pos+1 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for bin LLVAR header, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for bin LLVAR header, field %d pos %d", field, pos), pos);
 		}
 		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid bin LLVAR length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format(
+                    "Invalid bin LLVAR length %d, field %d pos %d", length, field, pos), pos);
 		}
 		if (length+pos+1 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for bin LLVAR field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for bin LLVAR field %d, pos %d", field, pos), pos);
 		}
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);

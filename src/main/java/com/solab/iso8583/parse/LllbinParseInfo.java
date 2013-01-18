@@ -37,20 +37,27 @@ public class LllbinParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<?> parse(final int field, final byte[] buf,
+                             final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid LLLBIN position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLLBIN field %d pos %d",
+                    field, pos), pos);
 		} else if (pos+3 > buf.length) {
-			throw new ParseException("Insufficient LLLBIN header", pos);
+			throw new ParseException(String.format("Insufficient LLLBIN header field %d",
+                    field), pos);
 		}
 		if (!(Character.isDigit(buf[pos]) && Character.isDigit(buf[pos+1]) && Character.isDigit(buf[pos+2]))) {
-			throw new ParseException(String.format("Invalid LLLBIN length '%s' pos %d", new String(buf, pos, 3), pos), pos);
+			throw new ParseException(String.format("Invalid LLLBIN length '%s' field %d pos %d",
+                    new String(buf, pos, 3), field, pos), pos);
 		}
 		length = ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLLBIN length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format("Invalid LLLBIN length %d field %d pos %d",
+                    length, field, pos), pos);
 		} else if (length+pos+3 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLLBIN field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for LLLBIN field %d, pos %d", field, pos), pos);
 		}
 		byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 3, length));
 		if (custom == null) {
@@ -66,24 +73,31 @@ public class LllbinParseInfo extends FieldParseInfo {
                 }
                 return v;
             } catch (IndexOutOfBoundsException ex) {
-                throw new ParseException(String.format("Insufficient data for LLLBIN field, pos %d", pos), pos);
+                throw new ParseException(String.format(
+                        "Insufficient data for LLLBIN field %d, pos %d", field, pos), pos);
             }
 		}
 	}
 
 	@Override
-	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<?> parseBinary(final int field, final byte[] buf,
+                                   final int pos, final CustomField<?> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid bin LLLBIN position %d", pos), pos);
+			throw new ParseException(String.format("Invalid bin LLLBIN field %d pos %d",
+                    field, pos), pos);
 		} else if (pos+3 > buf.length) {
-			throw new ParseException("Insufficient bin LLLBIN header", pos);
+            throw new ParseException(String.format("Insufficient LLLBIN header field %d",
+                             field), pos);
 		}
 		length = ((buf[pos] & 0x0f) * 100) + (((buf[pos + 1] & 0xf0) >> 4) * 10) + (buf[pos + 1] & 0x0f);
 		if (length < 0) {
-			throw new ParseException(String.format("Invalid bin LLLBIN length %d pos %d", length, pos), pos);
+            throw new ParseException(String.format("Invalid LLLBIN length %d field %d pos %d",
+                             length, field, pos), pos);
 		}
 		if (length+pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for bin LLLBIN field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for bin LLLBIN field %d, pos %d", field, pos), pos);
 		}
 		byte[] _v = new byte[length];
 		System.arraycopy(buf, pos+2, _v, 0, length);
@@ -91,7 +105,7 @@ public class LllbinParseInfo extends FieldParseInfo {
 			return new IsoValue<byte[]>(type, _v, null);
 		} else {
 			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length)), custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, _v, null);
 			}

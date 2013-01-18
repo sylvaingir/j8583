@@ -37,25 +37,32 @@ public class AmountParseInfo extends FieldParseInfo {
 		super(IsoType.AMOUNT, 12);
 	}
 
-	public IsoValue<BigDecimal> parse(byte[] buf, int pos, CustomField<?> custom)
+	public IsoValue<BigDecimal> parse(final int field, final byte[] buf,
+                                      final int pos, final CustomField<?> custom)
             throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid AMOUNT position %d", pos), pos);
+			throw new ParseException(String.format("Invalid AMOUNT field %d position %d",
+                    field, pos), pos);
 		}
 		if (pos+12 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for AMOUNT field, pos %d", pos), pos);
+			throw new ParseException(String.format("Insufficient data for AMOUNT field %d, pos %d",
+                    field, pos), pos);
 		}
 		String c = new String(buf, pos, 12, getCharacterEncoding());
 		try {
 			return new IsoValue<BigDecimal>(type, new BigDecimal(c).movePointLeft(2), null);
 		} catch (NumberFormatException ex) {
-			throw new ParseException(String.format("Cannot read amount '%s' pos %d", c, pos), pos);
+			throw new ParseException(String.format("Cannot read amount '%s' field %d pos %d",
+                    c, field, pos), pos);
         } catch (IndexOutOfBoundsException ex) {
-            throw new ParseException(String.format("Insufficient data for AMOUNT field, pos %d", pos), pos);
+            throw new ParseException(String.format(
+                    "Insufficient data for AMOUNT field %d, pos %d", field, pos), pos);
 		}
 	}
 
-	public IsoValue<BigDecimal> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<BigDecimal> parseBinary(final int field, final byte[] buf,
+                                            final int pos, final CustomField<?> custom)
+            throws ParseException {
 		char[] digits = new char[13];
 		digits[10] = '.';
 		int start = 0;
@@ -69,9 +76,11 @@ public class AmountParseInfo extends FieldParseInfo {
 		try {
 			return new IsoValue<BigDecimal>(IsoType.AMOUNT, new BigDecimal(new String(digits)), null);
 		} catch (NumberFormatException ex) {
-			throw new ParseException(String.format("Cannot read amount '%s' pos %d", new String(digits), pos), pos);
+			throw new ParseException(String.format("Cannot read amount '%s' field %d pos %d",
+                    new String(digits), field, pos), pos);
         } catch (IndexOutOfBoundsException ex) {
-            throw new ParseException(String.format("Insufficient data for AMOUNT field, pos %d", pos), pos);
+            throw new ParseException(String.format(
+                    "Insufficient data for AMOUNT field %d, pos %d", field, pos), pos);
 		}
 	}
 

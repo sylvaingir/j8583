@@ -37,12 +37,15 @@ public class Date4ParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Date> parse(final int field, final byte[] buf, final int pos,
+                                final CustomField<?> custom) throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid DATE4 position %d", pos), pos);
+			throw new ParseException(String.format("Invalid DATE4 field %d position %d",
+                    field, pos), pos);
 		}
 		if (pos+4 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for DATE4 field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for DATE4 field %d, pos %d", field, pos), pos);
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -57,9 +60,15 @@ public class Date4ParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<Date> parseBinary(final int field, final byte[] buf, final int pos,
+                                      final CustomField<?> custom) throws ParseException {
 		int[] tens = new int[2];
 		int start = 0;
+        if (buf.length-pos < 2) {
+            throw new ParseException(String.format(
+                    "Insufficient data to parse binary DATE4 field %d pos %d",
+                    field, pos), pos);
+        }
 		for (int i = pos; i < pos + tens.length; i++) {
 			tens[start++] = (((buf[i] & 0xf0) >> 4) * 10) + (buf[i] & 0x0f);
 		}

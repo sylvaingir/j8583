@@ -38,14 +38,17 @@ public class BinaryParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
+	public IsoValue<?> parse(final int field, final byte[] buf, final int pos,
+                             final CustomField<?> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid BINARY position %d", pos), pos);
+			throw new ParseException(String.format("Invalid BINARY field %d position %d",
+                    field, pos), pos);
 		}
 		if (pos+(length*2) > buf.length) {
-			throw new ParseException(String.format("Insufficient data for BINARY field of length %d, pos %d",
-				length, pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for BINARY field %d of length %d, pos %d",
+				field, length, pos), pos);
 		}
 		byte[] binval = HexCodec.hexDecode(new String(buf, pos, length*2));
 		if (custom == null) {
@@ -61,14 +64,24 @@ public class BinaryParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public IsoValue<?> parseBinary(final int field, final byte[] buf, final int pos,
+                                   final CustomField<?> custom) throws ParseException {
+        if (pos < 0) {
+            throw new ParseException(String.format("Invalid BINARY field %d position %d",
+                      field, pos), pos);
+        }
+        if (pos+length > buf.length) {
+            throw new ParseException(String.format(
+                      "Insufficient data for BINARY field %d of length %d, pos %d",
+                field, length, pos), pos);
+        }
 		byte[] _v = new byte[length];
 		System.arraycopy(buf, pos, _v, 0, length);
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, _v, length, null);
 		} else {
 			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), length, custom);
+			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length)), length, custom);
 			if (v.getValue() == null) {
 				return new IsoValue<byte[]>(type, _v, length, null);
 			}

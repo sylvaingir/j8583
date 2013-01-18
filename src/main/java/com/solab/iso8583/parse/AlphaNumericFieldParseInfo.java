@@ -35,12 +35,15 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 		super(t, len);
 	}
 
-	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException, UnsupportedEncodingException {
+	public IsoValue<?> parse(final int field, final byte[] buf, final int pos,
+                             final CustomField<?> custom)
+            throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid ALPHA/NUM position %d", pos), pos);
+			throw new ParseException(String.format("Invalid ALPHA/NUM field %d position %d",
+                    field, pos), pos);
 		} else if (pos+length > buf.length) {
-			throw new ParseException(String.format("Insufficient data for %s field of length %d, pos %d",
-				type, length, pos), pos);
+			throw new ParseException(String.format("Insufficient data for %s field %d of length %d, pos %d",
+				type, field, length, pos), pos);
 		}
         try {
             String _v = new String(buf, pos, length, getCharacterEncoding());
@@ -58,7 +61,9 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
                 return v;
             }
         } catch (StringIndexOutOfBoundsException ex) {
-            throw new ParseException(String.format("Insufficient data for %s field of length %d, pos %d", type, length, pos), pos);
+            throw new ParseException(String.format(
+                    "Insufficient data for %s field %d of length %d, pos %d",
+                    type, field, length, pos), pos);
         }
 	}
 
