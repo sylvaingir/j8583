@@ -253,13 +253,13 @@ public class MessageFactory<T extends IsoMessage> {
 	 * and the rest of the message must come. */
 	public T parseMessage(byte[] buf, int isoHeaderLength)
 	throws ParseException, UnsupportedEncodingException {
-		final int minlength = isoHeaderLength+(useBinary||binBitmap ? 10 : 20);
+		final int minlength = isoHeaderLength+(useBinary?2:4)+(binBitmap ? 8:16);
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
 		final T m = createIsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
 		m.setCharacterEncoding(encoding);
-		int type = 0;
+		final int type;
 		if (useBinary) {
 			type = ((buf[isoHeaderLength] & 0xff) << 8) | (buf[isoHeaderLength + 1] & 0xff);
 		} else {
@@ -273,7 +273,8 @@ public class MessageFactory<T extends IsoMessage> {
 		final BitSet bs = new BitSet(64);
 		int pos = 0;
 		if (useBinary || binBitmap) {
-			for (int i = isoHeaderLength + 2; i < isoHeaderLength + 10; i++) {
+            final int bitmapStart = isoHeaderLength + (useBinary ? 2 : 4);
+			for (int i = bitmapStart; i < 8+bitmapStart; i++) {
 				int bit = 128;
 				for (int b = 0; b < 8; b++) {
 					bs.set(pos++, (buf[i] & bit) != 0);
@@ -285,7 +286,7 @@ public class MessageFactory<T extends IsoMessage> {
 				if (buf.length < minlength + 8) {
 					throw new ParseException("Insufficient length for secondary bitmap", minlength);
 				}
-				for (int i = isoHeaderLength + 10; i < isoHeaderLength + 18; i++) {
+				for (int i = 8+bitmapStart; i < 16+bitmapStart; i++) {
 					int bit = 128;
 					for (int b = 0; b < 8; b++) {
 						bs.set(pos++, (buf[i] & bit) != 0);
@@ -419,6 +420,7 @@ public class MessageFactory<T extends IsoMessage> {
 			}
 		}
 		m.setBinary(useBinary);
+        m.setBinaryBitmap(binBitmap);
 		return m;
 	}
 
