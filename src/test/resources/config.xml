@@ -43,10 +43,10 @@
 	<field num="41" type="BINARY" length="8">abcdef</field>
 	<field num="42" type="BINARY" length="4">abcde</field>
 	<field num="43" type="ALPHA" length="40">Field of length 40</field>
-	<field num="62" type="LLBIN">0123456789abcdef0123456789abcdef</field>
-	<field num="63" type="LLBIN">0123456789a</field>
-	<field num="64" type="LLLBIN">0123456789abcdef0123456789abcdef</field>
-	<field num="65" type="LLLBIN">0123456789a</field>
+	<field num="62"  type="LLBIN">0123456789abcdef620123456789abcd</field>
+	<field num="63"  type="LLBIN">01234567863</field>
+	<field num="64" type="LLLBIN">0123456789abcdef640123456789abcd</field>
+	<field num="65" type="LLLBIN">01234567865</field>
 	<field num="102" type="LLLVAR">Field of type LLLVAR</field>
 </template>
 
