@@ -50,21 +50,37 @@ public class ConfigParser {
 
 	private final static Logger log = LoggerFactory.getLogger(ConfigParser.class);
 
+    /** Creates a message factory configured from the default file, which is j8583.xml
+   	 * located in the root of the classpath, using the specified ClassLoader. */
+   	public static MessageFactory<IsoMessage> createDefault(
+               ClassLoader loader) throws IOException {
+   		if (loader.getResource("j8583.xml") == null) {
+   			log.warn("ISO8583 ConfigParser cannot find j8583.xml, returning empty message factory");
+   			return new MessageFactory<IsoMessage>();
+   		} else {
+   			return createFromClasspathConfig(loader, "j8583.xml");
+   		}
+   	}
+
 	/** Creates a message factory configured from the default file, which is j8583.xml
-	 * located in the root of the classpath. */
-	public static <T extends IsoMessage> MessageFactory<T> createDefault() throws IOException {
-		if (MessageFactory.class.getClassLoader().getResource("j8583.xml") == null) {
-			log.warn("ISO8583 ConfigParser cannot find j8583.xml, returning empty message factory");
-			return new MessageFactory<T>();
-		} else {
-			return createFromClasspathConfig("j8583.xml");
-		}
+	 * located in the root of the classpath, using the MessageFactory's
+     * ClassLoader. */
+	public static MessageFactory<IsoMessage> createDefault() throws IOException {
+        return createDefault(MessageFactory.class.getClassLoader());
 	}
 
-	/** Creates a message factory from the specified path inside the classpath. */
-	public static <T extends IsoMessage> MessageFactory<T> createFromClasspathConfig(String path) throws IOException {
-		InputStream ins = MessageFactory.class.getClassLoader().getResourceAsStream(path);
-		MessageFactory<T> mfact = new MessageFactory<T>();
+	/** Creates a message factory from the specified path inside the classpath,
+     * using the specified ClassLoader. */
+	public static MessageFactory<IsoMessage> createFromClasspathConfig(
+            String path) throws IOException {
+        return createFromClasspathConfig(MessageFactory.class.getClassLoader(), path);
+    }
+    /** Creates a message factory from the specified path inside the classpath,
+     * using MessageFactory's ClassLoader. */
+   	public static MessageFactory<IsoMessage> createFromClasspathConfig(
+               ClassLoader loader, String path) throws IOException {
+		InputStream ins = loader.getResourceAsStream(path);
+		MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
 		if (ins != null) {
 			log.debug("ISO8583 Parsing config from classpath file {}", path);
 			try {
@@ -79,8 +95,8 @@ public class ConfigParser {
 	}
 
 	/** Creates a message factory from the file located at the specified URL. */
-	public static <T extends IsoMessage> MessageFactory<T> createFromUrl(URL url) throws IOException {
-		MessageFactory<T> mfact = new MessageFactory<T>();
+	public static MessageFactory<IsoMessage> createFromUrl(URL url) throws IOException {
+		MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
 		InputStream stream = url.openStream();
 		try {
 			parse(mfact, stream);
@@ -200,7 +216,7 @@ public class ConfigParser {
 	 * if you have a MessageFactory created using Spring for example. */
 	public static <T extends IsoMessage> void configureFromDefault(
             MessageFactory<T> mfact) throws IOException {
-		if (MessageFactory.class.getClassLoader().getResource("j8583.xml") == null) {
+		if (mfact.getClass().getClassLoader().getResource("j8583.xml") == null) {
 			log.warn("ISO8583 config file j8583.xml not found!");
 		} else {
 			configureFromClasspathConfig(mfact, "j8583.xml");
@@ -224,7 +240,7 @@ public class ConfigParser {
 	 * Spring-bound instances of MessageFactory for example. */
 	public static <T extends IsoMessage> void configureFromClasspathConfig(
             MessageFactory<T> mfact, String path) throws IOException {
-		InputStream ins = MessageFactory.class.getClassLoader().getResourceAsStream(path);
+		InputStream ins = mfact.getClass().getClassLoader().getResourceAsStream(path);
 		if (ins != null) {
 			log.debug("ISO8583 Parsing config from classpath file {}", path);
 			try {
