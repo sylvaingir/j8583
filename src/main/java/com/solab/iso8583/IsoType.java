@@ -178,27 +178,27 @@ public enum IsoType {
 		throw new IllegalArgumentException("Cannot format BigDecimal as " + this);
 	}
 
-	public IsoValue<Object> value(Object val, int len) {
-		return new IsoValue<Object>(this, val, len);
+	public <T> IsoValue<T> value(T val, int len) {
+		return new IsoValue<T>(this, val, len);
 	}
 
-	public IsoValue<Object> value(Object val) {
-		return new IsoValue<Object>(this, val);
+	public <T> IsoValue<T> value(T val) {
+		return new IsoValue<T>(this, val);
 	}
 
-	public IsoValue<Object> call(Object val, int len) {
-		return new IsoValue<Object>(this, val, len);
+	public <T> IsoValue<T> call(T val, int len) {
+		return new IsoValue<T>(this, val, len);
 	}
 
-	public IsoValue<Object> call(Object val) {
-		return new IsoValue<Object>(this, val);
+	public <T> IsoValue<T> call(T val) {
+		return new IsoValue<T>(this, val);
 	}
 
-	public IsoValue<Object> apply(Object val, int len) {
-		return new IsoValue<Object>(this, val, len);
+	public <T> IsoValue<T> apply(T val, int len) {
+		return new IsoValue<T>(this, val, len);
 	}
-	public IsoValue<Object> apply(Object val) {
-		return new IsoValue<Object>(this, val);
+	public <T> IsoValue<T> apply(T val) {
+		return new IsoValue<T>(this, val);
 	}
 
 }
