@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 
+import com.solab.iso8583.IsoValue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,15 +103,30 @@ public class TestIsoMessage {
 		IsoMessage iso1 = mf.newMessage(0x200);
 		IsoMessage iso2 = mf.newMessage(0x200);
 		assert iso1 != iso2;
-		assert iso1.getObjectValue(3) == iso1.getObjectValue(3);
+		assert iso1.getObjectValue(3).equals(iso2.getObjectValue(3));
 		assert iso1.getField(3) != iso2.getField(3);
 		assert iso1.getField(48) != iso2.getField(48);
-		CustomField48 cf48_1 = (CustomField48)iso1.getObjectValue(48);
+		CustomField48 cf48_1 = iso1.getObjectValue(48);
 		int origv = cf48_1.getValue2();
 		cf48_1.setValue2(origv + 1000);
-		CustomField48 cf48_2 = (CustomField48)iso2.getObjectValue(48);
+		CustomField48 cf48_2 = iso2.getObjectValue(48);
 		assert cf48_1 == cf48_2;
 		assert cf48_2.getValue2() == origv + 1000;
 	}
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSimpleFieldSetter() {
+        IsoMessage iso = mf.newMessage(0x200);
+        IsoValue<String> f3 = iso.getField(3);
+        iso.updateValue(3, "999999");
+        assert iso.getObjectValue(3).equals("999999");
+        IsoValue<String> nf3 = iso.getField(3);
+        assert f3 != nf3;
+        assert f3.getType() == nf3.getType();
+        assert f3.getLength() == nf3.getLength();
+        assert f3.getEncoder() == nf3.getEncoder();
+        iso.updateValue(4, "INVALID!");
+        throw new RuntimeException("Update failed!");
+    }
 
 }
