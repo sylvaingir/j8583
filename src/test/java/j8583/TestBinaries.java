@@ -16,8 +16,8 @@ import com.solab.iso8583.util.HexCodec;
 /** Test binary message encoding and binary fields. */
 public class TestBinaries {
 
-	private MessageFactory mfactAscii = new MessageFactory();
-	private MessageFactory mfactBin = new MessageFactory();
+	private MessageFactory<IsoMessage> mfactAscii = new MessageFactory<IsoMessage>();
+	private MessageFactory<IsoMessage> mfactBin = new MessageFactory<IsoMessage>();
 
 	@Before
 	public void setup() throws IOException {
@@ -35,26 +35,26 @@ public class TestBinaries {
 		Assert.assertEquals(new BigDecimal("1234.00"), m.getObjectValue(4));
 		Assert.assertTrue("No field 7!", m.hasField(7));
 		Assert.assertEquals("Wrong trace", "000123", m.getField(11).toString());
-		byte[] buf = (byte[])m.getObjectValue(41);
+		byte[] buf = m.getObjectValue(41);
 		byte[] exp = new byte[]{ (byte)0xab, (byte)0xcd, (byte)0xef, 0, 0, 0, 0, 0};
 		Assert.assertEquals("Field 41 wrong length", 8, buf.length);
 		Assert.assertArrayEquals("Field 41 wrong value", exp, buf);
-		buf = (byte[])m.getObjectValue(42);
+		buf = m.getObjectValue(42);
 		exp = new byte[]{ (byte)0x0a, (byte)0xbc, (byte)0xde, 0 };
 		Assert.assertEquals("field 42 wrong length", 4, buf.length);
 		Assert.assertArrayEquals("Field 42 wrong value", exp, buf);
 		Assert.assertTrue(((String)m.getObjectValue(43)).startsWith("Field of length 40"));
-		buf = (byte[])m.getObjectValue(62);
+		buf = m.getObjectValue(62);
 		exp = new byte[]{ 1, (byte)0x23, (byte)0x45, (byte)0x67, (byte)0x89, (byte)0xab, (byte)0xcd, (byte)0xef,
 				0x62, 1, (byte)0x23, (byte)0x45, (byte)0x67, (byte)0x89, (byte)0xab, (byte)0xcd };
 		Assert.assertArrayEquals(exp, buf);
-		buf = (byte[])m.getObjectValue(64);
+		buf = m.getObjectValue(64);
         exp[8] = 0x64;
 		Assert.assertArrayEquals(exp, buf);
-		buf = (byte[])m.getObjectValue(63);
+		buf = m.getObjectValue(63);
 		exp = new byte[]{ 0, (byte)0x12, (byte)0x34, (byte)0x56, (byte)0x78, (byte)0x63 };
 		Assert.assertArrayEquals(exp, buf);
-		buf = (byte[])m.getObjectValue(65);
+		buf = m.getObjectValue(65);
         exp[5] = 0x65;
 		Assert.assertArrayEquals(exp, buf);
 	}

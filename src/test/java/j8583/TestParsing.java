@@ -7,7 +7,7 @@ import java.text.ParseException;
 import com.solab.iso8583.IsoMessage;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.parse.NumericParseInfo;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

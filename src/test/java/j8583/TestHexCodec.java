@@ -1,7 +1,6 @@
 package j8583;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.solab.iso8583.util.HexCodec;
