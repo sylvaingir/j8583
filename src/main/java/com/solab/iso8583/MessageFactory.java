@@ -56,9 +56,9 @@ public class MessageFactory<T extends IsoMessage> {
 	/** This map stores the message template for each message type. */
 	private Map<Integer, T> typeTemplates = new HashMap<Integer, T>();
 	/** Stores the information needed to parse messages sorted by type. */
-	private Map<Integer, Map<Integer, FieldParseInfo>> parseMap = new HashMap<Integer, Map<Integer, FieldParseInfo>>();
+	protected Map<Integer, Map<Integer, FieldParseInfo>> parseMap = new HashMap<Integer, Map<Integer, FieldParseInfo>>();
 	/** Stores the field numbers to be parsed, in order of appearance. */
-	private Map<Integer, List<Integer>> parseOrder = new HashMap<Integer, List<Integer>>();
+    protected Map<Integer, List<Integer>> parseOrder = new HashMap<Integer, List<Integer>>();
 
 	private TraceNumberGenerator traceGen;
 	/** The ISO header to be included in each message type. */

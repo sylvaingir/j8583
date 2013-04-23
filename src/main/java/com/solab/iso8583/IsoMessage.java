@@ -399,7 +399,7 @@ public class IsoMessage {
      * not present in the source message it is simply ignored. */
     public void copyFieldsFrom(IsoMessage src, int...idx) {
     	for (int i : idx) {
-    		IsoValue<Object> v = src.getField(i);
+    		IsoValue<?> v = src.getField(i);
     		if (v != null) {
         		setValue(i, v.getValue(), v.getEncoder(), v.getType(), v.getLength());
     		}
