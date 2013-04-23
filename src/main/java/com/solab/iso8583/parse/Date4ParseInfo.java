@@ -37,8 +37,8 @@ public class Date4ParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parse(final int field, final byte[] buf, final int pos,
-                                final CustomField<?> custom) throws ParseException {
+	public <T> IsoValue<Date> parse(final int field, final byte[] buf, final int pos,
+                                final CustomField<T> custom) throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid DATE4 field %d position %d",
                     field, pos), pos);
@@ -60,8 +60,8 @@ public class Date4ParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parseBinary(final int field, final byte[] buf, final int pos,
-                                      final CustomField<?> custom) throws ParseException {
+	public <T> IsoValue<Date> parseBinary(final int field, final byte[] buf, final int pos,
+                                      final CustomField<T> custom) throws ParseException {
 		int[] tens = new int[2];
 		int start = 0;
         if (buf.length-pos < 2) {

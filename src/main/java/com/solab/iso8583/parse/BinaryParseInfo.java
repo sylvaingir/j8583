@@ -38,8 +38,8 @@ public class BinaryParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parse(final int field, final byte[] buf, final int pos,
-                             final CustomField<?> custom)
+	public <T> IsoValue<?> parse(final int field, final byte[] buf, final int pos,
+                             final CustomField<T> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid BINARY field %d position %d",
@@ -54,18 +54,15 @@ public class BinaryParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length*2, getCharacterEncoding())), length, custom);
-			if (v.getValue() == null) {
-				return new IsoValue<byte[]>(type, binval, binval.length, null);
-			}
-			return v;
+            T dec = custom.decodeField(new String(buf, pos, length*2, getCharacterEncoding()));
+            return dec == null ? new IsoValue<byte[]>(type, binval, binval.length, null) :
+                    new IsoValue<T>(type, dec, length, custom);
 		}
 	}
 
 	@Override
-	public IsoValue<?> parseBinary(final int field, final byte[] buf, final int pos,
-                                   final CustomField<?> custom) throws ParseException {
+	public <T> IsoValue<?> parseBinary(final int field, final byte[] buf, final int pos,
+                                   final CustomField<T> custom) throws ParseException {
         if (pos < 0) {
             throw new ParseException(String.format("Invalid BINARY field %d position %d",
                       field, pos), pos);
@@ -80,12 +77,9 @@ public class BinaryParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, _v, length, null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length)), length, custom);
-			if (v.getValue() == null) {
-				return new IsoValue<byte[]>(type, _v, length, null);
-			}
-			return v;
+            T dec = custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length));
+            return dec == null ? new IsoValue<byte[]>(type, _v, length, null) :
+                    new IsoValue<T>(type, dec, length, custom);
 		}
 	}
 

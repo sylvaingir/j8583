@@ -35,8 +35,9 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 		super(t, len);
 	}
 
-	public IsoValue<?> parse(final int field, final byte[] buf, final int pos,
-                             final CustomField<?> custom)
+    @Override
+	public <T> IsoValue<?> parse(final int field, final byte[] buf, final int pos,
+                             final CustomField<T> custom)
             throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid ALPHA/NUM field %d position %d",
@@ -53,12 +54,9 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
             if (custom == null) {
                 return new IsoValue<String>(type, _v, length, null);
             } else {
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
-                if (v.getValue() == null) {
-                    return new IsoValue<String>(type, _v, length, null);
-                }
-                return v;
+                T decoded = custom.decodeField(_v);
+                return decoded == null ? new IsoValue<String>(type, _v, length, null) :
+                    new IsoValue<T>(type, decoded, length, custom);
             }
         } catch (StringIndexOutOfBoundsException ex) {
             throw new ParseException(String.format(

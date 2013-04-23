@@ -36,8 +36,8 @@ public class LllvarParseInfo extends FieldParseInfo {
 		super(IsoType.LLLVAR, 0);
 	}
 
-	public IsoValue<?> parse(final int field, final byte[] buf,
-                             final int pos, final CustomField<?> custom)
+	public <T> IsoValue<?> parse(final int field, final byte[] buf,
+                             final int pos, final CustomField<T> custom)
 	throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid LLLVAR field %d pos %d",
@@ -74,14 +74,15 @@ public class LllvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, _v, length, null);
 		} else {
-			Object decoded = custom.decodeField(_v);
+			T decoded = custom.decodeField(_v);
 			//If decode fails, return string; otherwise use the decoded object and its codec
-			return new IsoValue(type, decoded == null ? _v : decoded, length, decoded == null ? null : custom);
+            return decoded == null ? new IsoValue<String>(type, _v, length, null) :
+                new IsoValue<T>(type, decoded, length, custom);
 		}
 	}
 
-	public IsoValue<?> parseBinary(final int field, final byte[] buf,
-                                   final int pos, final CustomField<?> custom)
+	public <T> IsoValue<?> parseBinary(final int field, final byte[] buf,
+                                   final int pos, final CustomField<T> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin LLLVAR field %d pos %d", field, pos), pos);
@@ -100,8 +101,7 @@ public class LllvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos + 2, length, getCharacterEncoding()), null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos + 2, length, getCharacterEncoding())), custom);
+			IsoValue<T> v = new IsoValue<T>(type, custom.decodeField(new String(buf, pos + 2, length, getCharacterEncoding())), custom);
 			if (v.getValue() == null) {
 				return new IsoValue<String>(type, new String(buf, pos + 2, length, getCharacterEncoding()), null);
 			}

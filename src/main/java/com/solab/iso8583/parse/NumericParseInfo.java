@@ -35,8 +35,9 @@ public class NumericParseInfo extends AlphaNumericFieldParseInfo {
 		super(IsoType.NUMERIC, len);
 	}
 
-	public IsoValue<Number> parseBinary(final int field, final byte[] buf,
-                                        final int pos, final CustomField<?> custom)
+    @Override
+	public <T> IsoValue<Number> parseBinary(final int field, final byte[] buf,
+                                        final int pos, final CustomField<T> custom)
             throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin NUMERIC field %d pos %d",

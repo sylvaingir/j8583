@@ -37,8 +37,9 @@ public class AmountParseInfo extends FieldParseInfo {
 		super(IsoType.AMOUNT, 12);
 	}
 
-	public IsoValue<BigDecimal> parse(final int field, final byte[] buf,
-                                      final int pos, final CustomField<?> custom)
+    @Override
+	public <T> IsoValue<BigDecimal> parse(final int field, final byte[] buf,
+                                      final int pos, final CustomField<T> custom)
             throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid AMOUNT field %d position %d",
@@ -50,7 +51,7 @@ public class AmountParseInfo extends FieldParseInfo {
 		}
 		String c = new String(buf, pos, 12, getCharacterEncoding());
 		try {
-			return new IsoValue<BigDecimal>(type, new BigDecimal(c).movePointLeft(2), null);
+			return new IsoValue<BigDecimal>(type, new BigDecimal(c).movePointLeft(2));
 		} catch (NumberFormatException ex) {
 			throw new ParseException(String.format("Cannot read amount '%s' field %d pos %d",
                     c, field, pos), pos);
@@ -60,8 +61,9 @@ public class AmountParseInfo extends FieldParseInfo {
 		}
 	}
 
-	public IsoValue<BigDecimal> parseBinary(final int field, final byte[] buf,
-                                            final int pos, final CustomField<?> custom)
+    @Override
+	public <T> IsoValue<BigDecimal> parseBinary(final int field, final byte[] buf,
+                                            final int pos, final CustomField<T> custom)
             throws ParseException {
 		char[] digits = new char[13];
 		digits[10] = '.';
@@ -74,7 +76,7 @@ public class AmountParseInfo extends FieldParseInfo {
 			}
 		}
 		try {
-			return new IsoValue<BigDecimal>(IsoType.AMOUNT, new BigDecimal(new String(digits)), null);
+			return new IsoValue<BigDecimal>(IsoType.AMOUNT, new BigDecimal(new String(digits)));
 		} catch (NumberFormatException ex) {
 			throw new ParseException(String.format("Cannot read amount '%s' field %d pos %d",
                     new String(digits), field, pos), pos);

@@ -35,8 +35,9 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
 		super(IsoType.ALPHA, len);
 	}
 
-	public IsoValue<?> parseBinary(final int field, final byte[] buf, final int pos,
-                                   final CustomField<?> custom)
+    @Override
+	public <T> IsoValue<?> parseBinary(final int field, final byte[] buf, final int pos,
+                                   final CustomField<T> custom)
             throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin ALPHA field %d position %d",
@@ -50,12 +51,10 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
             if (custom == null) {
                 return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
             } else {
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos, length, getCharacterEncoding())), length, custom);
-                if (v.getValue() == null) {
-                    return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
-                }
-                return v;
+                T decoded = custom.decodeField(new String(buf, pos, length, getCharacterEncoding()));
+                return decoded == null ?
+                    new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null) :
+                    new IsoValue<T>(type, decoded, length, custom);
             }
         } catch (IndexOutOfBoundsException ex) {
             throw new ParseException(String.format(

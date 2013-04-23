@@ -37,8 +37,8 @@ public class LllbinParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parse(final int field, final byte[] buf,
-                             final int pos, final CustomField<?> custom)
+	public <T> IsoValue<?> parse(final int field, final byte[] buf,
+                             final int pos, final CustomField<T> custom)
             throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid LLLBIN field %d pos %d",
@@ -64,14 +64,10 @@ public class LllbinParseInfo extends FieldParseInfo {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
 		} else {
             try {
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                IsoValue<?> v = new IsoValue(type, custom.decodeField(
-                    length == 0 ? "" : new String(buf, pos + 3, length)), length, custom);
-                if (v.getValue() == null) {
-                    //problems decoding? return the string
-                    return new IsoValue<byte[]>(type, binval, binval.length, null);
-                }
-                return v;
+                T dec = custom.decodeField(
+                    length == 0 ? "" : new String(buf, pos + 3, length));
+                return dec == null ? new IsoValue<byte[]>(type, binval, binval.length, null) :
+                        new IsoValue<T>(type, dec, length, custom);
             } catch (IndexOutOfBoundsException ex) {
                 throw new ParseException(String.format(
                         "Insufficient data for LLLBIN field %d, pos %d", field, pos), pos);
@@ -80,8 +76,8 @@ public class LllbinParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parseBinary(final int field, final byte[] buf,
-                                   final int pos, final CustomField<?> custom)
+	public <T> IsoValue<?> parseBinary(final int field, final byte[] buf,
+                                   final int pos, final CustomField<T> custom)
             throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin LLLBIN field %d pos %d",
@@ -104,12 +100,9 @@ public class LllbinParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, _v, null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length)), custom);
-			if (v.getValue() == null) {
-				return new IsoValue<byte[]>(type, _v, null);
-			}
-			return v;
+            T dec = custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length));
+            return dec == null ? new IsoValue<byte[]>(type, _v, null) :
+                    new IsoValue<T>(type, dec, custom);
 		}
 	}
 

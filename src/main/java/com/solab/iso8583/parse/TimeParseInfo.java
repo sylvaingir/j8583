@@ -38,8 +38,8 @@ public class TimeParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parse(final int field, final byte[] buf,
-                                final int pos, final CustomField<?> custom)
+	public <T> IsoValue<Date> parse(final int field, final byte[] buf,
+                                final int pos, final CustomField<T> custom)
             throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid TIME field %d pos %d",
@@ -56,8 +56,8 @@ public class TimeParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<Date> parseBinary(final int field, final byte[] buf,
-                                      final int pos, final CustomField<?> custom)
+	public <T> IsoValue<Date> parseBinary(final int field, final byte[] buf,
+                                      final int pos, final CustomField<T> custom)
             throws ParseException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin TIME field %d pos %d",

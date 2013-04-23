@@ -169,7 +169,8 @@ public class ConfigParser {
 				throw new IOException("Invalid ISO8583 type for template: " + elem.getAttribute("type"));
 			}
 			NodeList fields = elem.getElementsByTagName("field");
-			IsoMessage m = new IsoMessage();
+            @SuppressWarnings("unchecked")
+			T m = (T)new IsoMessage();
 			m.setType(type);
 			m.setCharacterEncoding(mfact.getCharacterEncoding());
 			for (int j = 0; j < fields.getLength(); j++) {
@@ -184,7 +185,7 @@ public class ConfigParser {
 				CustomField<Object> _cf = mfact.getCustomField(num);
 				m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
 			}
-			mfact.addMessageTemplate((T)m);
+			mfact.addMessageTemplate(m);
 		}
 
 		//Read the parsing guides

@@ -70,8 +70,8 @@ public abstract class FieldParseInfo {
      * @param buf The full ISO message buffer.
      * @param pos The starting position for the field data.
      * @param custom A CustomField to decode the field. */
-	public abstract IsoValue<?> parse(final int field, byte[] buf, int pos,
-                                      CustomField<?> custom)
+	public abstract <T> IsoValue<?> parse(final int field, byte[] buf, int pos,
+                                      CustomField<T> custom)
 	throws ParseException, UnsupportedEncodingException;
 
 	/** Parses binary data from the buffer, creating and returning an IsoValue of the configured
@@ -80,8 +80,8 @@ public abstract class FieldParseInfo {
      * @param buf The full ISO message buffer.
      * @param pos The starting position for the field data.
      * @param custom A CustomField to decode the field. */
-	public abstract IsoValue<?> parseBinary(final int field, byte[] buf, int pos,
-                                            CustomField<?> custom)
+	public abstract <T> IsoValue<?> parseBinary(final int field, byte[] buf, int pos,
+                                            CustomField<T> custom)
 	throws ParseException, UnsupportedEncodingException;
 
 	/** Returns a new FieldParseInfo instance that can parse the specified type. */

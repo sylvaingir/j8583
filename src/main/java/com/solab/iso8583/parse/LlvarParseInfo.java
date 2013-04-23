@@ -35,8 +35,9 @@ public class LlvarParseInfo extends FieldParseInfo {
 		super(IsoType.LLVAR, 0);
 	}
 
-	public IsoValue<?> parse(final int field, final byte[] buf,
-                             final int pos, final CustomField<?> custom)
+    @Override
+	public <T> IsoValue<?> parse(final int field, final byte[] buf,
+                             final int pos, final CustomField<T> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid LLVAR field %d %d", field, pos), pos);
@@ -67,17 +68,15 @@ public class LlvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, _v, length, null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
-			if (v.getValue() == null) {
-				return new IsoValue<String>(type, _v, length, null);
-			}
-			return v;
+            T dec = custom.decodeField(_v);
+            return dec == null ? new IsoValue<String>(type, _v, length, null) :
+                    new IsoValue<T>(type, dec, length, custom);
 		}
 	}
 
-	public IsoValue<?> parseBinary(final int field, final byte[] buf,
-                                   final int pos, final CustomField<?> custom)
+    @Override
+	public <T> IsoValue<?> parseBinary(final int field, final byte[] buf,
+                                   final int pos, final CustomField<T> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin LLVAR field %d pos %d",
@@ -98,12 +97,9 @@ public class LlvarParseInfo extends FieldParseInfo {
 		if (custom == null) {
 			return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(new String(buf, pos + 1, length, getCharacterEncoding())), custom);
-			if (v.getValue() == null) {
-				return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);
-			}
-			return v;
+            T dec = custom.decodeField(new String(buf, pos + 1, length, getCharacterEncoding()));
+            return dec == null ? new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null) :
+                    new IsoValue<T>(type, dec, custom);
 		}
 	}
 
