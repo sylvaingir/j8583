@@ -429,8 +429,9 @@ public class MessageFactory<T extends IsoMessage> {
 	 * @param header
 	 * @return IsoMessage
 	 */
+    @SuppressWarnings("unchecked")
 	protected T createIsoMessage(String header) {
-                return (T) new IsoMessage(header);
+        return (T)new IsoMessage(header);
 	}
 
         /** Sets whether the factory should set the current date on newly created messages,
