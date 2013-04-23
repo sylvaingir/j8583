@@ -205,6 +205,25 @@ public class IsoMessage {
     	return this;
     }
 
+    /** A convenience method to set new values in fields that already contain values.
+     * The field's type, length and custom encoder are taken from the current value.
+     * This method can only be used with fields that have been previously set,
+     * usually from a template in the MessageFactory.
+     * @param index The field's index
+     * @param value The new value to be set in that field.
+     * @return The message itself.
+     * @throws IllegalArgumentException if there is no current field at the specified index. */
+    public <T> IsoMessage updateValue(int index, T value) {
+        IsoValue<T> current = getField(index);
+        if (current == null) {
+            throw new IllegalArgumentException("Value-only field setter can only be used on existing fields");
+        } else {
+            setValue(index, value, current.getEncoder(), current.getType(), current.getLength());
+            getField(index).setCharacterEncoding(current.getCharacterEncoding());
+        }
+        return this;
+    }
+
     /** Returns true is the message has a value in the specified field.
      * @param idx The field number. */
     public boolean hasField(int idx) {
@@ -399,7 +418,7 @@ public class IsoMessage {
      * not present in the source message it is simply ignored. */
     public void copyFieldsFrom(IsoMessage src, int...idx) {
     	for (int i : idx) {
-    		IsoValue<?> v = src.getField(i);
+    		IsoValue<Object> v = src.getField(i);
     		if (v != null) {
         		setValue(i, v.getValue(), v.getEncoder(), v.getType(), v.getLength());
     		}
