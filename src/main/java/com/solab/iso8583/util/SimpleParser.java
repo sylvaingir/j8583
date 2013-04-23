@@ -31,7 +31,7 @@ public class SimpleParser {
     }
 
     public static void main(String [] args) throws IOException, ParseException {
-        final MessageFactory mf = new MessageFactory();
+        final MessageFactory<IsoMessage> mf = new MessageFactory<IsoMessage>();
         if (args.length == 0) {
             ConfigParser.configureFromDefault(mf);
         } else {
