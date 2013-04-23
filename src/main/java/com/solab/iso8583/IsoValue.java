@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import com.solab.iso8583.util.Bcd;
 import com.solab.iso8583.util.HexCodec;
 
 /** Represents a value that is stored in a field inside an ISO8583 message.
@@ -291,7 +292,7 @@ public class IsoValue<T> implements Cloneable {
 			}
 			//Encode in BCD if it's one of these types
 			if (buf != null) {
-				toBcd(toString(), buf);
+				Bcd.encode(toString(), buf);
 				outs.write(buf);
 				return;
 			}
@@ -313,26 +314,6 @@ public class IsoValue<T> implements Cloneable {
 			}
 		} else {
 			outs.write(encoding == null ? toString().getBytes() : toString().getBytes(encoding));
-		}
-	}
-
-	/** Encode the value as BCD and put it in the buffer. The buffer must be big enough
-	 * to store the digits in the original value (half the length of the string). */
-	private void toBcd(String value, byte[] buf) {
-		int charpos = 0; //char where we start
-		int bufpos = 0;
-		if (value.length() % 2 == 1) {
-			//for odd lengths we encode just the first digit in the first byte
-			buf[0] = (byte)(value.charAt(0) - 48);
-			charpos = 1;
-			bufpos = 1;
-		}
-		//encode the rest of the string
-		while (charpos < value.length()) {
-			buf[bufpos] = (byte)(((value.charAt(charpos) - 48) << 4)
-					| (value.charAt(charpos + 1) - 48));
-			charpos += 2;
-			bufpos++;
 		}
 	}
 

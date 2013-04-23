@@ -24,6 +24,7 @@ import java.text.ParseException;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.util.Bcd;
 
 /** This class is used to parse NUMERIC fields.
  * 
@@ -49,30 +50,18 @@ public class NumericParseInfo extends AlphaNumericFieldParseInfo {
 		}
 		//A long covers up to 18 digits
 		if (length < 19) {
-			long l = 0;
-			long power = 1L;
-			for (int i = pos + (length / 2) + (length % 2) - 1; i >= pos; i--) {
-				l += (buf[i] & 0x0f) * power;
-				power *= 10L;
-				l += ((buf[i] & 0xf0) >> 4) * power;
-				power *= 10L;
-			}
-			return new IsoValue<Number>(IsoType.NUMERIC, l, length, null);
+			return new IsoValue<Number>(IsoType.NUMERIC, Bcd.decodeToLong(buf, pos, length),
+                length, null);
 		} else {
 			//Use a BigInteger
-			char[] digits = new char[length];
-			int start = 0;
             try {
-                for (int i = pos; i < pos + (length / 2) + (length % 2); i++) {
-                    digits[start++] = (char)(((buf[i] & 0xf0) >> 4) + 48);
-                    digits[start++] = (char)((buf[i] & 0x0f) + 48);
-                }
+                return new IsoValue<Number>(IsoType.NUMERIC,
+                    Bcd.decodeToBigInteger(buf, pos, length), length, null);
             } catch (IndexOutOfBoundsException ex) {
                 throw new ParseException(String.format(
-                        "Insufficient data for bin %s field %d of length %d, pos %d",
-             				type, field, length, pos), pos);
+                    "Insufficient data for bin %s field %d of length %d, pos %d",
+                    type, field, length, pos), pos);
             }
-			return new IsoValue<Number>(IsoType.NUMERIC, new BigInteger(new String(digits)), length, null);
 		}
 	}
 
