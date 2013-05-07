@@ -396,7 +396,7 @@ public class IsoMessage {
 
     //These are for Groovy compat
     /** Sets the specified value in the specified field, just like {@link #setField(int, IsoValue)}. */
-    public void putAt(int i, IsoValue<?> v) {
+    public <T> void putAt(int i, IsoValue<T> v) {
     	setField(i, v);
     }
     /** Returns the IsoValue in the specified field, just like {@link #getField(int)}. */
@@ -406,7 +406,7 @@ public class IsoMessage {
 
 	//These are for Scala compat
     /** Sets the specified value in the specified field, just like {@link #setField(int, IsoValue)}. */
-	public void update(int i, IsoValue<?> v) {
+	public <T> void update(int i, IsoValue<T> v) {
 		setField(i, v);
 	}
     /** Returns the IsoValue in the specified field, just like {@link #getField(int)}. */
