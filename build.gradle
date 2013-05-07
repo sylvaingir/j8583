@@ -1,7 +1,7 @@
 apply plugin:'java'
 apply plugin: 'maven'
 defaultTasks 'build'
-version='1.7.0-SNAPSHOT'
+version='1.7.0'
 description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
 sourceCompatibility=6
 targetCompatibility=6
