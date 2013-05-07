@@ -13,6 +13,10 @@ public final class Bcd {
 
     private Bcd(){}
 
+    /** Decodes a BCD-encoded number as a long.
+     * @param buf The byte buffer containing the BCD data.
+     * @param pos The starting position in the buffer.
+     * @param length The number of DIGITS (not bytes) to read. */
     public static long decodeToLong(byte[] buf, int pos, int length)
             throws IndexOutOfBoundsException {
         if (length > 18) {
@@ -49,6 +53,10 @@ public final class Bcd {
         }
     }
 
+    /** Decodes a BCD-encoded number as a BigInteger.
+     * @param buf The byte buffer containing the BCD data.
+     * @param pos The starting position in the buffer.
+     * @param length The number of DIGITS (not bytes) to read. */
     public static BigInteger decodeToBigInteger(byte[] buf, int pos, int length)
             throws IndexOutOfBoundsException {
         char[] digits = new char[length];
