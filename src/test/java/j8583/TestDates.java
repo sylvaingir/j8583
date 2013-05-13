@@ -44,7 +44,7 @@ public class TestDates {
 		Assert.assertEquals(comp.getValue(), today.getTime());
 		//Now with the binary
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		comp.write(bout, true);
+		comp.write(bout, true, false);
 		IsoValue<Date> bin = new Date4ParseInfo().parseBinary(0, bout.toByteArray(), 0, null);
 		Assert.assertEquals(comp.getValue().getTime(), bin.getValue().getTime());
 	}
@@ -57,7 +57,7 @@ public class TestDates {
 		assert comp.getValue().after(new Date());
 		//Now with the binary
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		comp.write(bout, true);
+		comp.write(bout, true, false);
 		IsoValue<Date> bin = new Date10ParseInfo().parseBinary(0, bout.toByteArray(), 0, null);
 		Assert.assertEquals(comp.getValue().getTime(), bin.getValue().getTime());
 	}
