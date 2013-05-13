@@ -46,11 +46,7 @@ public class LllvarParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format(
                     "Insufficient data for LLLVAR header field %d pos %d", field, pos), pos);
 		}
-		if (!(Character.isDigit(buf[pos]) && Character.isDigit(buf[pos+1]) && Character.isDigit(buf[pos+2]))) {
-			throw new ParseException(String.format("Invalid LLLVAR length '%s' field %d pos %d",
-				new String(buf, pos, 3), field, pos), pos);
-		}
-		length = ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
+        length = decodeLength(buf, pos, 3);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLLVAR length %d field %d pos %d",
                     length, field, pos), pos);

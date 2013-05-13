@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import com.solab.iso8583.CustomBinaryField;
@@ -40,7 +41,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 	@Override
 	public <T> IsoValue<?> parse(final int field, final byte[] buf,
                              final int pos, final CustomField<T> custom)
-            throws ParseException {
+            throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid LLBIN field %d position %d",
                     field, pos), pos);
@@ -48,7 +49,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format("Insufficient LLBIN header field %d",
                     field), pos);
 		}
-		length = ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
+		length = decodeLength(buf, pos, 2);
 		if (length < 0) {
 			throw new ParseException(String.format("Invalid LLBIN field %d length %d pos %d",
                     field, length, pos), pos);

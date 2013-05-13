@@ -245,48 +245,50 @@ public class IsoValue<T> implements Cloneable {
 		return encoder;
 	}
 
+    protected void writeLengthHeader(final int l, final OutputStream outs, final int digits,
+                                     final boolean binary, final boolean forceStringEncoding)
+            throws IOException {
+        if (binary) {
+            if (digits == 3) {
+                outs.write(l / 100); //00 to 09 automatically in BCD
+            }
+            //BCD encode the rest of the length
+            outs.write((((l % 100) / 10) << 4) | (l % 10));
+        } else if (forceStringEncoding) {
+            String lhead = Integer.toString(l);
+            final int ldiff = digits - lhead.length();
+            if (ldiff == 1) {
+                lhead = '0' + lhead;
+            } else if (ldiff == 2) {
+                lhead = "00" + lhead;
+            }
+            outs.write(lhead.getBytes(encoding));
+        } else {
+            //write the length in ASCII
+            if (digits == 3) {
+                outs.write((l / 100) + 48);
+            }
+            if (l >= 10) {
+                outs.write(((l % 100) / 10) + 48);
+            } else {
+                outs.write(48);
+            }
+            outs.write((l % 10) + 48);
+        }
+    }
+
 	/** Writes the formatted value to a stream, with the length header
-	 * if it's a variable length type. */
-	public void write(OutputStream outs, boolean binary) throws IOException {
+	 * if it's a variable length type.
+     * @param outs The stream to which the value will be written.
+     * @param binary Specifies whether the value should be written in binary or text format.
+     * @param forceStringEncoding When using text format, force the encoding of length headers
+     * for variable-length fields to be done with the proper character encoding. When false,
+     * the length headers are encoded as ASCII; this used to be the only behavior. */
+	public void write(final OutputStream outs, final boolean binary, final boolean forceStringEncoding) throws IOException {
 		if (type == IsoType.LLLVAR || type == IsoType.LLVAR) {
-			if (binary) {
-				if (type == IsoType.LLLVAR) {
-					outs.write(length / 100); //00 to 09 automatically in BCD
-				}
-				//BCD encode the rest of the length
-				outs.write((((length % 100) / 10) << 4) | (length % 10));
-			} else {
-				//write the length in ASCII
-				if (type == IsoType.LLLVAR) {
-					outs.write((length / 100) + 48);
-				}
-				if (length >= 10) {
-					outs.write(((length % 100) / 10) + 48);
-				} else {
-					outs.write(48);
-				}
-				outs.write((length % 10) + 48);
-			}
+            writeLengthHeader(length, outs, type == IsoType.LLLVAR ? 3 : 2, binary, forceStringEncoding);
 		} else if (type == IsoType.LLBIN || type == IsoType.LLLBIN) {
-			if (binary) {
-				if (type == IsoType.LLLBIN ) {
-					outs.write(length / 100); //00 to 09 automatically in BCD
-				}
-				//BCD encode the rest of the length
-				outs.write((((length % 100) / 10) << 4) | (length % 10));
-			} else {
-				int _l = length*2;
-				//write the length in ASCII
-				if (type == IsoType.LLLBIN) {
-					outs.write((_l / 100) + 48);
-				}
-				if (_l >= 10) {
-					outs.write(((_l % 100) / 10) + 48);
-				} else {
-					outs.write(48);
-				}
-				outs.write((_l % 10) + 48);
-			}
+            writeLengthHeader(binary ? length : length*2, outs, type == IsoType.LLLBIN ? 3 : 2, binary, forceStringEncoding);
 		} else if (binary) {
 			//numeric types in binary are coded like this
 			byte[] buf = null;

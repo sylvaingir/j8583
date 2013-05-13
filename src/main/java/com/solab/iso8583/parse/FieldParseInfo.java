@@ -34,6 +34,7 @@ public abstract class FieldParseInfo {
 	protected IsoType type;
 	protected int length;
 	private String encoding = System.getProperty("file.encoding");
+    protected boolean forceStringDecoding;
 
 	/** Creates a new instance that parses a value of the specified type, with the specified length.
 	 * The length is only useful for ALPHA and NUMERIC types.
@@ -46,6 +47,13 @@ public abstract class FieldParseInfo {
 		type = t;
 		length = len;
 	}
+
+    /** Specified whether length headers for variable-length fields in text mode should
+     * be decoded using proper string conversion with the character encoding. Default is false,
+     * which means use the old behavior of decoding as ASCII. */
+    public void setForceStringDecoding(boolean flag) {
+        forceStringDecoding = flag;
+    }
 
 	public void setCharacterEncoding(String value) {
 		encoding = value;
@@ -118,5 +126,15 @@ public abstract class FieldParseInfo {
 		fpi.setCharacterEncoding(encoding);
 		return fpi;
 	}
+
+    protected int decodeLength(byte[] buf, int pos, int digits) throws UnsupportedEncodingException {
+        if (forceStringDecoding) {
+            return Integer.parseInt(new String(buf, pos, digits, encoding));
+        } else if (digits == 3) {
+            return ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
+        } else {
+            return ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
+        }
+    }
 
 }

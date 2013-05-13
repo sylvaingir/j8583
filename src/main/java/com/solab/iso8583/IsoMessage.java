@@ -51,6 +51,7 @@ public class IsoMessage {
     /** Flag to enforce secondary bitmap even if empty. */
     private boolean forceb2;
     private boolean binBitmap;
+    private boolean forceStringEncoding;
     private String encoding = System.getProperty("file.encoding");
 
     /** Creates a new empty message with no values set. */
@@ -96,7 +97,15 @@ public class IsoMessage {
     	return encoding;
     }
 
-    /** Sets the string to be sent as ISO header, that is, after the length header but before the message type. 
+    /** Specified whether the variable-length fields should encode their length
+     * headers using string conversion with the proper character encoding. Default
+     * is false, which is the old behavior (encoding as ASCII). This is only useful
+     * for text format. */
+    public void setForceStringEncoding(boolean flag) {
+        forceStringEncoding = flag;
+    }
+
+    /** Sets the string to be sent as ISO header, that is, after the length header but before the message type.
      * This is useful in case an application needs some custom data in the ISO header of each message (very rare). */
     public void setIsoHeader(String value) {
     	isoHeader = value;
@@ -385,7 +394,7 @@ public class IsoMessage {
     		IsoValue<?> v = fields[i];
     		if (v != null) {
         		try {
-        			v.write(bout, binary);
+        			v.write(bout, binary, forceStringEncoding);
         		} catch (IOException ex) {
         			//should never happen, writing to a ByteArrayOutputStream
         		}

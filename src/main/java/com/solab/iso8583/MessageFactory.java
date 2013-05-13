@@ -94,13 +94,24 @@ public class MessageFactory<T extends IsoMessage> {
             throw new IllegalArgumentException("Cannot set null encoding.");
         }
 		encoding = value;
-		if (parseMap.size() > 0) {
+		if (!parseMap.isEmpty()) {
 			for (Map<Integer, FieldParseInfo> pt : parseMap.values()) {
 				for (FieldParseInfo fpi : pt.values()) {
 					fpi.setCharacterEncoding(encoding);
 				}
 			}
 		}
+        if (!typeTemplates.isEmpty()) {
+            for (T tmpl : typeTemplates.values()) {
+                tmpl.setCharacterEncoding(encoding);
+                for (int i = 2 ; i<129; i++) {
+                    IsoValue<?> v = tmpl.getField(i);
+                    if (v != null) {
+                        v.setCharacterEncoding(encoding);
+                    }
+                }
+            }
+        }
 	}
 
 	/** Returns the encoding used to parse ALPHA, LLVAR and LLLVAR fields. The default is the file.encoding
@@ -143,12 +154,12 @@ public class MessageFactory<T extends IsoMessage> {
 	}
 	/** Returns a custom field encoder/decoder for the specified field number, if one is available. */
 	@SuppressWarnings("unchecked")
-	public <T> CustomField<T> getCustomField(int index) {
+	public <F> CustomField<F> getCustomField(int index) {
 		return customFields.get(index);
 	}
 	/** Returns a custom field encoder/decoder for the specified field number, if one is available. */
 	@SuppressWarnings("unchecked")
-	public <T> CustomField<T> getCustomField(Integer index) {
+	public <F> CustomField<F> getCustomField(Integer index) {
 		return customFields.get(index);
 	}
 
