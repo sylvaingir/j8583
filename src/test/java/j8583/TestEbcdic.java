@@ -1,5 +1,6 @@
 package j8583;
 
+import com.solab.iso8583.IsoMessage;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.parse.LlbinParseInfo;
@@ -66,13 +67,27 @@ public class TestEbcdic {
         lllbin.setCharacterEncoding("Cp1047");
         lllbin.setForceStringDecoding(true);
         field = lllbin.parse(1, new byte[]{(byte)240, (byte)240, (byte)242, 67, 49}, 0, null);
-        Assert.assertArrayEquals(stringA, (byte[])field.getValue());
+        Assert.assertArrayEquals(stringA, (byte[]) field.getValue());
 
         final LlbinParseInfo llbin = new LlbinParseInfo();
         llbin.setCharacterEncoding("Cp1047");
         llbin.setForceStringDecoding(true);
         field = llbin.parse(1, new byte[]{(byte)240, (byte)242, 67, 49}, 0, null);
-        Assert.assertArrayEquals(stringA, (byte[])field.getValue());
+        Assert.assertArrayEquals(stringA, (byte[]) field.getValue());
+    }
+
+    @Test
+    public void testMessageType() {
+        final IsoMessage msg = new IsoMessage();
+        msg.setType(0x1100);
+        msg.setBinaryBitmap(true);
+        msg.setCharacterEncoding("Cp1047");
+        final byte[] enc = msg.writeData();
+        Assert.assertEquals(12, enc.length);
+        Assert.assertEquals((byte)241, enc[0]);
+        Assert.assertEquals((byte)241, enc[1]);
+        Assert.assertEquals((byte)240, enc[2]);
+        Assert.assertEquals((byte)240, enc[3]);
     }
 
 }
