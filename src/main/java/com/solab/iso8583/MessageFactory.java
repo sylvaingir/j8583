@@ -75,7 +75,19 @@ public class MessageFactory<T extends IsoMessage> {
 	private boolean ignoreLast;
 	private boolean forceb2;
     private boolean binBitmap;
+    private boolean forceStringEncoding;
 	private String encoding = System.getProperty("file.encoding");
+
+    /** This flag gets passed on to newly created messages and also sets this value for all
+     * field parsers in parsing guides. */
+    public void setForceStringEncoding(boolean flag) {
+        forceStringEncoding = flag;
+        for (Map<Integer,FieldParseInfo> pm : parseMap.values()) {
+            for (FieldParseInfo parser : pm.values()) {
+                parser.setForceStringDecoding(flag);
+            }
+        }
+    }
 
     /** Tells the factory to create messages that encode their bitmaps in binary format
      * even when they're encoded as text. Has no effect on binary messages. */
@@ -268,11 +280,13 @@ public class MessageFactory<T extends IsoMessage> {
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
-		final T m = createIsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength) : null);
+		final T m = createIsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength, encoding) : null);
 		m.setCharacterEncoding(encoding);
 		final int type;
 		if (useBinary) {
 			type = ((buf[isoHeaderLength] & 0xff) << 8) | (buf[isoHeaderLength + 1] & 0xff);
+        } else if (forceStringEncoding) {
+            type = Integer.parseInt(new String(buf, isoHeaderLength, 4, encoding), 16);
 		} else {
 			type = ((buf[isoHeaderLength] - 48) << 12)
 			| ((buf[isoHeaderLength + 1] - 48) << 8)
