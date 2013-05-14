@@ -57,8 +57,8 @@ public class DateExpParseInfo extends FieldParseInfo {
 		//Set the month in the date
         if (forceStringDecoding) {
             cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - (cal.get(Calendar.YEAR) % 100)
-                    + Integer.parseInt(new String(buf, pos, 2, getCharacterEncoding())));
-            cal.set(Calendar.MONTH, Integer.parseInt(new String(buf, pos+2, 2, getCharacterEncoding()))-1);
+                    + Integer.parseInt(new String(buf, pos, 2, getCharacterEncoding()), 10));
+            cal.set(Calendar.MONTH, Integer.parseInt(new String(buf, pos+2, 2, getCharacterEncoding()), 10)-1);
         } else {
             cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - (cal.get(Calendar.YEAR) % 100)
                     + ((buf[pos] - 48) * 10) + buf[pos + 1] - 48);
