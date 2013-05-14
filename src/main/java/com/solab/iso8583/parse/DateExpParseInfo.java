@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,7 +40,7 @@ public class DateExpParseInfo extends FieldParseInfo {
 	@Override
 	public <T> IsoValue<Date> parse(final int field, final byte[] buf,
                                 final int pos, final CustomField<T> custom)
-            throws ParseException {
+            throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid DATE_EXP field %d position %d",
                     field, pos), pos);
@@ -54,9 +55,15 @@ public class DateExpParseInfo extends FieldParseInfo {
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.DATE, 1);
 		//Set the month in the date
-		cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - (cal.get(Calendar.YEAR) % 100)
-				+ ((buf[pos] - 48) * 10) + buf[pos + 1] - 48);
-		cal.set(Calendar.MONTH, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 49);
+        if (forceStringDecoding) {
+            cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - (cal.get(Calendar.YEAR) % 100)
+                    + Integer.parseInt(new String(buf, pos, 2, getCharacterEncoding())));
+            cal.set(Calendar.MONTH, Integer.parseInt(new String(buf, pos+2, 2, getCharacterEncoding()))-1);
+        } else {
+            cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - (cal.get(Calendar.YEAR) % 100)
+                    + ((buf[pos] - 48) * 10) + buf[pos + 1] - 48);
+            cal.set(Calendar.MONTH, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 49);
+        }
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
 
