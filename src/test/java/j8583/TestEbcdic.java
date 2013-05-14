@@ -3,6 +3,7 @@ package j8583;
 import com.solab.iso8583.IsoMessage;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.MessageFactory;
 import com.solab.iso8583.parse.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * Test for EBCDIC support.
@@ -76,7 +78,7 @@ public class TestEbcdic {
     }
 
     @Test
-    public void testMessageType() {
+    public void testMessageType() throws UnsupportedEncodingException, ParseException {
         final IsoMessage msg = new IsoMessage();
         msg.setType(0x1100);
         msg.setBinaryBitmap(true);
@@ -87,6 +89,14 @@ public class TestEbcdic {
         Assert.assertEquals((byte) 241, enc[1]);
         Assert.assertEquals((byte)240, enc[2]);
         Assert.assertEquals((byte) 240, enc[3]);
+        MessageFactory<IsoMessage> mf = new MessageFactory<IsoMessage>();
+        HashMap<Integer, FieldParseInfo> pmap = new HashMap<Integer, FieldParseInfo>();
+        mf.setForceStringEncoding(true);
+        mf.setUseBinaryBitmap(true);
+        mf.setCharacterEncoding("Cp1047");
+        mf.setParseMap(0x1100, pmap);
+        IsoMessage m2 = mf.parseMessage(enc, 0);
+        Assert.assertEquals(msg.getType(), m2.getType());
     }
 
     @Test
