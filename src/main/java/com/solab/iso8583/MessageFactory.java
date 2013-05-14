@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.solab.iso8583.util.HexCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -325,45 +326,57 @@ public class MessageFactory<T extends IsoMessage> {
 		} else {
 			//ASCII parsing
 			try {
-				for (int i = isoHeaderLength + 4; i < isoHeaderLength + 20; i++) {
-					if (buf[i] >= '0' && buf[i] <= '9') {
-						bs.set(pos++, ((buf[i] - 48) & 8) > 0);
-						bs.set(pos++, ((buf[i] - 48) & 4) > 0);
-						bs.set(pos++, ((buf[i] - 48) & 2) > 0);
-						bs.set(pos++, ((buf[i] - 48) & 1) > 0);
-					} else if (buf[i] >= 'A' && buf[i] <= 'F') {
-						bs.set(pos++, ((buf[i] - 55) & 8) > 0);
-						bs.set(pos++, ((buf[i] - 55) & 4) > 0);
-						bs.set(pos++, ((buf[i] - 55) & 2) > 0);
-						bs.set(pos++, ((buf[i] - 5) & 1) > 0);
-					} else if (buf[i] >= 'a' && buf[i] <= 'f') {
-						bs.set(pos++, ((buf[i] - 87) & 8) > 0);
-						bs.set(pos++, ((buf[i] - 87) & 4) > 0);
-						bs.set(pos++, ((buf[i] - 87) & 2) > 0);
-						bs.set(pos++, ((buf[i] - 87) & 1) > 0);
-					}
-				}
+                final byte[] bitmapBuffer;
+                if (forceStringEncoding) {
+                    byte[] _bb = HexCodec.hexDecode(new String(buf, isoHeaderLength+4, 16, encoding));
+                    bitmapBuffer = new byte[36+isoHeaderLength];
+                    System.arraycopy(_bb, 0, bitmapBuffer, 4+isoHeaderLength, 16);
+                } else {
+                    bitmapBuffer = buf;
+                }
+                for (int i = isoHeaderLength + 4; i < isoHeaderLength + 20; i++) {
+                    if (bitmapBuffer[i] >= '0' && bitmapBuffer[i] <= '9') {
+                        bs.set(pos++, ((bitmapBuffer[i] - 48) & 8) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 48) & 4) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 48) & 2) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 48) & 1) > 0);
+                    } else if (bitmapBuffer[i] >= 'A' && bitmapBuffer[i] <= 'F') {
+                        bs.set(pos++, ((bitmapBuffer[i] - 55) & 8) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 55) & 4) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 55) & 2) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 5) & 1) > 0);
+                    } else if (bitmapBuffer[i] >= 'a' && bitmapBuffer[i] <= 'f') {
+                        bs.set(pos++, ((bitmapBuffer[i] - 87) & 8) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 87) & 4) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 87) & 2) > 0);
+                        bs.set(pos++, ((bitmapBuffer[i] - 87) & 1) > 0);
+                    }
+                }
 				//Check for secondary bitmap and parse it if necessary
 				if (bs.get(0)) {
 					if (buf.length < minlength + 16) {
 						throw new ParseException("Insufficient length for secondary bitmap", minlength);
 					}
+                    if (forceStringEncoding) {
+                        byte[] _bb = HexCodec.hexDecode(new String(buf, isoHeaderLength+4, 16, encoding));
+                        System.arraycopy(_bb, 0, bitmapBuffer, 20+isoHeaderLength, 16);
+                    }
 					for (int i = isoHeaderLength + 20; i < isoHeaderLength + 36; i++) {
-						if (buf[i] >= '0' && buf[i] <= '9') {
-							bs.set(pos++, ((buf[i] - 48) & 8) > 0);
-							bs.set(pos++, ((buf[i] - 48) & 4) > 0);
-							bs.set(pos++, ((buf[i] - 48) & 2) > 0);
-							bs.set(pos++, ((buf[i] - 48) & 1) > 0);
-						} else if (buf[i] >= 'A' && buf[i] <= 'F') {
-							bs.set(pos++, ((buf[i] - 55) & 8) > 0);
-							bs.set(pos++, ((buf[i] - 55) & 4) > 0);
-							bs.set(pos++, ((buf[i] - 55) & 2) > 0);
-							bs.set(pos++, ((buf[i] - 5) & 1) > 0);
-						} else if (buf[i] >= 'a' && buf[i] <= 'f') {
-							bs.set(pos++, ((buf[i] - 87) & 8) > 0);
-							bs.set(pos++, ((buf[i] - 87) & 4) > 0);
-							bs.set(pos++, ((buf[i] - 87) & 2) > 0);
-							bs.set(pos++, ((buf[i] - 87) & 1) > 0);
+						if (bitmapBuffer[i] >= '0' && bitmapBuffer[i] <= '9') {
+							bs.set(pos++, ((bitmapBuffer[i] - 48) & 8) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 48) & 4) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 48) & 2) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 48) & 1) > 0);
+						} else if (bitmapBuffer[i] >= 'A' && bitmapBuffer[i] <= 'F') {
+							bs.set(pos++, ((bitmapBuffer[i] - 55) & 8) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 55) & 4) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 55) & 2) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 5) & 1) > 0);
+						} else if (bitmapBuffer[i] >= 'a' && bitmapBuffer[i] <= 'f') {
+							bs.set(pos++, ((bitmapBuffer[i] - 87) & 8) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 87) & 4) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 87) & 2) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 87) & 1) > 0);
 						}
 					}
 					pos = 16 + minlength;
