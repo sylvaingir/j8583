@@ -373,6 +373,11 @@ public class IsoMessage {
     			}
     		}
     	} else {
+            ByteArrayOutputStream bout2 = null;
+            if (forceStringEncoding) {
+                bout2 = bout;
+                bout = new ByteArrayOutputStream();
+            }
             int pos = 0;
             int lim = bs.size() / 4;
             for (int i = 0; i < lim; i++) {
@@ -386,6 +391,15 @@ public class IsoMessage {
                 if (bs.get(pos++))
                     nibble |= 1;
                 bout.write(HEX[nibble]);
+            }
+            if (forceStringEncoding) {
+                final String _hb = new String(bout.toByteArray());
+                bout = bout2;
+                try {
+                    bout.write(_hb.getBytes(encoding));
+                } catch (IOException ignore) {
+                    //never happen
+                }
             }
     	}
 

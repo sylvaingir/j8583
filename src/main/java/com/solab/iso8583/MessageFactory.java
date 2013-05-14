@@ -328,7 +328,7 @@ public class MessageFactory<T extends IsoMessage> {
 			try {
                 final byte[] bitmapBuffer;
                 if (forceStringEncoding) {
-                    byte[] _bb = HexCodec.hexDecode(new String(buf, isoHeaderLength+4, 16, encoding));
+                    byte[] _bb = new String(buf, isoHeaderLength+4, 16, encoding).getBytes();
                     bitmapBuffer = new byte[36+isoHeaderLength];
                     System.arraycopy(_bb, 0, bitmapBuffer, 4+isoHeaderLength, 16);
                 } else {
@@ -358,7 +358,7 @@ public class MessageFactory<T extends IsoMessage> {
 						throw new ParseException("Insufficient length for secondary bitmap", minlength);
 					}
                     if (forceStringEncoding) {
-                        byte[] _bb = HexCodec.hexDecode(new String(buf, isoHeaderLength+4, 16, encoding));
+                        byte[] _bb = new String(buf, isoHeaderLength+4, 16, encoding).getBytes();
                         System.arraycopy(_bb, 0, bitmapBuffer, 20+isoHeaderLength, 16);
                     }
 					for (int i = isoHeaderLength + 20; i < isoHeaderLength + 36; i++) {
