@@ -5,6 +5,7 @@ import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.MessageFactory;
 import com.solab.iso8583.parse.*;
+import com.solab.iso8583.util.HexCodec;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -96,6 +97,14 @@ public class TestEbcdic {
         mf.setCharacterEncoding("Cp1047");
         mf.setParseMap(0x1100, pmap);
         IsoMessage m2 = mf.parseMessage(enc, 0);
+        Assert.assertEquals(msg.getType(), m2.getType());
+        //Now with text bitmap
+        msg.setBinaryBitmap(false);
+        msg.setForceStringEncoding(true);
+        final byte[] enc2 = msg.writeData();
+        Assert.assertEquals(20, enc2.length);
+        mf.setUseBinaryBitmap(false);
+        m2 = mf.parseMessage(enc2, 0);
         Assert.assertEquals(msg.getType(), m2.getType());
     }
 
