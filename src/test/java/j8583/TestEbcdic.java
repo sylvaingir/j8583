@@ -157,4 +157,27 @@ public class TestEbcdic {
         Assert.assertEquals(new BigDecimal("1234567.89"), v.getValue());
     }
 
+    @Test
+    public void testMessage() throws ParseException, UnsupportedEncodingException {
+        final byte[] trama = HexCodec.hexDecode("f1f8f1f42030010002000000f0f0f0f0f0f0f0f1f5f9f5f5f1f3f0f6f1f2f1f1f2f9f0f8f8f3f1f8f0f0");
+        MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
+        mfact.setUseBinaryBitmap(true);
+        HashMap<Integer, FieldParseInfo> pinfo = new HashMap<Integer, FieldParseInfo>();
+        pinfo.put(3, new AlphaParseInfo(6));
+        pinfo.put(11, new AlphaParseInfo(6));
+        pinfo.put(12, new AlphaParseInfo(12));
+        pinfo.put(24, new AlphaParseInfo(3));
+        pinfo.put(39, new AlphaParseInfo(3));
+        mfact.setParseMap(0x1814, pinfo);
+        mfact.setCharacterEncoding("Cp1047");
+        mfact.setForceStringEncoding(true);
+        IsoMessage iso = mfact.parseMessage(trama, 0);
+        Assert.assertNotNull(iso);
+        Assert.assertEquals("000000", iso.getObjectValue(3));
+        Assert.assertEquals("015955", iso.getObjectValue(11));
+        Assert.assertEquals("130612112908", iso.getObjectValue(12));
+        Assert.assertEquals("831", iso.getObjectValue(24));
+        Assert.assertEquals("800", iso.getObjectValue(39));
+    }
+
 }
