@@ -318,6 +318,26 @@ public class IsoMessage {
     	return buf;
     }
 
+    /** Creates a BitSet for the bitmap. */
+    protected BitSet createBitmapBitSet() {
+        BitSet bs = new BitSet(forceb2 ? 128 : 64);
+        for (int i = 2 ; i < 129; i++) {
+            if (fields[i] != null) {
+                bs.set(i - 1);
+            }
+        }
+        if (forceb2) {
+            bs.set(0);
+        } else if (bs.length() > 64) {
+            //Extend to 128 if needed
+            BitSet b2 = new BitSet(128);
+            b2.or(bs);
+            bs = b2;
+            bs.set(0);
+        }
+        return bs;
+    }
+
     /** This calls writeInternal(), allowing applications to get the byte buffer containing the
      * message data, without the length header. */
     public byte[] writeData() {
@@ -342,21 +362,7 @@ public class IsoMessage {
     	}
 
     	//Bitmap
-    	BitSet bs = new BitSet(forceb2 ? 128 : 64);
-    	for (int i = 2 ; i < 129; i++) {
-    		if (fields[i] != null) {
-        		bs.set(i - 1);
-    		}
-    	}
-    	if (forceb2) {
-    		bs.set(0);
-    	} else if (bs.length() > 64) {
-        	//Extend to 128 if needed
-    		BitSet b2 = new BitSet(128);
-    		b2.or(bs);
-    		bs = b2;
-    		bs.set(0);
-    	}
+        BitSet bs = createBitmapBitSet();
     	//Write bitmap to stream
     	if (binary || binBitmap) {
     		int pos = 128;
@@ -415,6 +421,42 @@ public class IsoMessage {
     		}
     	}
     	return bout.toByteArray();
+    }
+
+    /** Returns a string representation of the message, as if it were encoded
+     * in ASCII with no binary bitmap. */
+    public String debugString() {
+        StringBuilder sb = new StringBuilder();
+        if (isoHeader != null) {
+            sb.append(isoHeader);
+        }
+        sb.append(String.format("%04x", type));
+
+        //Bitmap
+        BitSet bs = createBitmapBitSet();
+        int pos = 0;
+        int lim = bs.size() / 4;
+        for (int i = 0; i < lim; i++) {
+            int nibble = 0;
+            if (bs.get(pos++))
+               nibble |= 8;
+            if (bs.get(pos++))
+               nibble |= 4;
+            if (bs.get(pos++))
+               nibble |= 2;
+            if (bs.get(pos++))
+               nibble |= 1;
+            sb.append(HEX[nibble]);
+        }
+
+        //Fields
+        for (int i = 2; i < 129; i++) {
+            IsoValue<?> v = fields[i];
+            if (v != null) {
+                sb.append(v);
+            }
+        }
+        return sb.toString();
     }
 
     //These are for Groovy compat
