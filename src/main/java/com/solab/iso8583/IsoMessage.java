@@ -446,7 +446,7 @@ public class IsoMessage {
                nibble |= 2;
             if (bs.get(pos++))
                nibble |= 1;
-            sb.append(HEX[nibble]);
+            sb.append(new String(HEX, nibble, 1));
         }
 
         //Fields
