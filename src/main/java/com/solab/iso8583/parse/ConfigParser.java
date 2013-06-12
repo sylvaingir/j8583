@@ -120,7 +120,7 @@ public class ConfigParser {
 				@Override
 				public InputSource resolveEntity(String publicId, String systemId)
 						throws SAXException, IOException {
-					if (systemId.indexOf("j8583.dtd") >= 0) {
+					if (systemId.contains("j8583.dtd")) {
 						URL dtd = getClass().getResource("j8583.dtd");
 						if (dtd == null) {
 							log.warn("Cannot find j8583.dtd in classpath. j8583 config files will not be validated.");
@@ -210,7 +210,6 @@ public class ConfigParser {
 			}
 			mfact.setParseMap(type, parseMap);
 		}
-
 	}
 
 	/** Configures a MessageFactory using the default configuration file j8583.xml. This is useful
