@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.solab.iso8583.util.HexCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +88,9 @@ public class MessageFactory<T extends IsoMessage> {
             }
         }
     }
+    public boolean isForceStringEncoding() {
+        return forceStringEncoding;
+    }
 
     /** Tells the factory to create messages that encode their bitmaps in binary format
      * even when they're encoded as text. Has no effect on binary messages. */
@@ -137,7 +139,7 @@ public class MessageFactory<T extends IsoMessage> {
 	public void setForceSecondaryBitmap(boolean flag) {
 		forceb2 = flag;
 	}
-	public boolean getForceSecondaryBitmap() {
+	public boolean isForceSecondaryBitmap() {
 		return forceb2;
 	}
 
@@ -181,6 +183,9 @@ public class MessageFactory<T extends IsoMessage> {
 	 * but is really convenient in case the MessageFactory is being configured from within, say, Spring. */
 	public void setConfigPath(String path) throws IOException {
 		ConfigParser.configureFromClasspathConfig(this, path);
+        //Now re-set some properties that need to be propagated down to the recently assigned objects
+        setCharacterEncoding(encoding);
+        setForceStringEncoding(forceStringEncoding);
 	}
 
 	/** Tells the receiver to create and parse binary messages if the flag is true.
@@ -465,7 +470,7 @@ public class MessageFactory<T extends IsoMessage> {
 
 	/** Creates a Iso message, override this method in the subclass to provide your 
 	 * own implementations of IsoMessage.
-	 * @param header
+	 * @param header The optional ISO header that goes before the message type
 	 * @return IsoMessage
 	 */
     @SuppressWarnings("unchecked")
