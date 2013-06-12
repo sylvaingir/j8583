@@ -83,6 +83,8 @@ public class TestBinaries {
 		//Compare values, should be the same
 		testParsed(bin2);
 		Assert.assertEquals(bin.getObjectValue(7).toString(), bin2.getObjectValue(7).toString());
+        //Test the debug string
+        Assert.assertEquals("Debug strings differ", ascii.debugString(), bin.debugString());
 	}
 
     @Test
