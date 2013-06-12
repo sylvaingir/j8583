@@ -6,12 +6,10 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import com.solab.iso8583.IsoMessage;
 import org.junit.*;
 
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
-import com.solab.iso8583.MessageFactory;
 import com.solab.iso8583.parse.Date10ParseInfo;
 import com.solab.iso8583.parse.Date4ParseInfo;
 
@@ -20,16 +18,6 @@ import com.solab.iso8583.parse.Date4ParseInfo;
  * @author Enrique Zamudio
  */
 public class TestDates {
-
-	private MessageFactory<IsoMessage> mf;
-
-	@Before
-	public void init() throws IOException {
-		mf = new MessageFactory<IsoMessage>();
-		mf.setCharacterEncoding("UTF-8");
-		mf.setCustomField(48, new CustomField48());
-		mf.setConfigPath("config.xml");
-	}
 
 	@Test
 	public void testDate4FutureTolerance() throws ParseException, IOException {
