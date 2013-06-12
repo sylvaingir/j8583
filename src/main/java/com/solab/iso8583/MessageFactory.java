@@ -216,6 +216,7 @@ public class MessageFactory<T extends IsoMessage> {
 		m.setForceSecondaryBitmap(forceb2);
         m.setBinaryBitmap(binBitmap);
 		m.setCharacterEncoding(encoding);
+        m.setForceStringEncoding(forceStringEncoding);
 
 		//Copy the values from the template
 		IsoMessage templ = typeTemplates.get(type);
