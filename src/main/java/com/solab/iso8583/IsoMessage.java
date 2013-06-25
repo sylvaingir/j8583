@@ -453,7 +453,13 @@ public class IsoMessage {
         for (int i = 2; i < 129; i++) {
             IsoValue<?> v = fields[i];
             if (v != null) {
-                sb.append(v);
+                String desc = v.toString();
+                if (v.getType() == IsoType.LLBIN || v.getType() == IsoType.LLVAR) {
+                    sb.append(String.format("%02d", desc.length()));
+                } else if (v.getType() == IsoType.LLLBIN || v.getType() == IsoType.LLLVAR) {
+                    sb.append(String.format("%03d", desc.length()));
+                }
+                sb.append(desc);
             }
         }
         return sb.toString();

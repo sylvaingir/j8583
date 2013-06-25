@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 
+import com.solab.iso8583.IsoType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,7 +85,10 @@ public class TestBinaries {
 		testParsed(bin2);
 		Assert.assertEquals(bin.getObjectValue(7).toString(), bin2.getObjectValue(7).toString());
         //Test the debug string
+        ascii.setValue(60, "XXX", IsoType.LLVAR, 0);
+        bin.setValue(60, "XXX", IsoType.LLVAR, 0);
         Assert.assertEquals("Debug strings differ", ascii.debugString(), bin.debugString());
+        Assert.assertTrue("LLVAR fields wrong", ascii.debugString().contains("03XXX"));
 	}
 
     @Test
