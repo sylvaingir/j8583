@@ -32,4 +32,27 @@ public class TestBcd {
         Assert.assertArrayEquals(new byte[]{9,(byte)0x99}, buf);
     }
 
+    @Test
+    public void testDecoding() {
+        byte[] buf = new byte[2];
+        Assert.assertEquals(0, Bcd.decodeToLong(buf, 0, 1));
+        Assert.assertEquals(0, Bcd.decodeToLong(buf, 0, 2));
+        Assert.assertEquals(0, Bcd.decodeToLong(buf, 0, 3));
+        Assert.assertEquals(0, Bcd.decodeToLong(buf, 0, 4));
+        buf[0]=0x79;
+        Assert.assertEquals(79, Bcd.decodeToLong(buf, 0, 2));
+        buf[0]=(byte)0x80;
+        Assert.assertEquals(80, Bcd.decodeToLong(buf, 0, 2));
+        buf[0]=(byte)0x99;
+        Assert.assertEquals(99, Bcd.decodeToLong(buf, 0, 2));
+        buf[0]=1;
+        Assert.assertEquals(100, Bcd.decodeToLong(buf,0,4));
+        buf[1]=0x79;
+        Assert.assertEquals(179, Bcd.decodeToLong(buf,0,4));
+        buf[1]=(byte)0x99;
+        Assert.assertEquals(199, Bcd.decodeToLong(buf,0,4));
+        buf[0]=9;
+        Assert.assertEquals(999, Bcd.decodeToLong(buf,0,4));
+    }
+
 }
