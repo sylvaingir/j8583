@@ -106,6 +106,110 @@ public class ConfigParser {
 		return mfact;
 	}
 
+    protected static <T extends IsoMessage> void parseHeaders(
+            final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
+        boolean pass2 = false;
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element elem = (Element)nodes.item(i);
+            int type = parseType(elem.getAttribute("type"));
+            if (type == -1) {
+                throw new IOException("Invalid type for ISO8583 header: " + elem.getAttribute("type"));
+            }
+            if (elem.getChildNodes() == null || elem.getChildNodes().getLength() == 0) {
+                if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
+                    pass2 = true;
+                }
+                else throw new IOException("Invalid ISO8583 header element");
+            } else {
+                String header = elem.getChildNodes().item(0).getNodeValue();
+                if (log.isTraceEnabled()) {
+                    log.trace("Adding ISO8583 header for type {}: {}", elem.getAttribute("type"), header);
+                }
+                mfact.setIsoHeader(type, header);
+            }
+        }
+        if (pass2) {
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Element elem = (Element)nodes.item(i);
+                int type = parseType(elem.getAttribute("type"));
+                if (type == -1) {
+                    throw new IOException("Invalid type for ISO8583 header: "
+                            + elem.getAttribute("type"));
+                }
+                if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
+                    int t2 = parseType(elem.getAttribute("ref"));
+                    if (t2 == -1) {
+                        throw new IOException("Invalid type reference "
+                                + elem.getAttribute("ref") + " for ISO8583 header " + type);
+                    }
+                    String h = mfact.getIsoHeader(t2);
+                    if (h == null) {
+                        throw new IllegalArgumentException("Header def " + type + " refers to nonexistent header " + t2);
+                    }
+                    if (log.isTraceEnabled()) {
+                        log.trace("Adding ISO8583 header for type {}: {} (copied from {})",
+                                elem.getAttribute("type"), h, elem.getAttribute("ref"));
+                    }
+                    mfact.setIsoHeader(type, h);
+                }
+            }
+        }
+    }
+
+    protected static <T extends IsoMessage> void parseTemplates(
+            final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element elem = (Element)nodes.item(i);
+            int type = parseType(elem.getAttribute("type"));
+            if (type == -1) {
+                throw new IOException("Invalid ISO8583 type for template: " + elem.getAttribute("type"));
+            }
+            NodeList fields = elem.getElementsByTagName("field");
+            @SuppressWarnings("unchecked")
+            T m = (T)new IsoMessage();
+            m.setType(type);
+            m.setCharacterEncoding(mfact.getCharacterEncoding());
+            for (int j = 0; j < fields.getLength(); j++) {
+                Element f = (Element)fields.item(j);
+                int num = Integer.parseInt(f.getAttribute("num"));
+                IsoType itype = IsoType.valueOf(f.getAttribute("type"));
+                int length = 0;
+                if (f.getAttribute("length").length() > 0) {
+                    length = Integer.parseInt(f.getAttribute("length"));
+                }
+                String v = f.getChildNodes().item(0).getNodeValue();
+                CustomField<Object> _cf = mfact.getCustomField(num);
+                m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
+            }
+            mfact.addMessageTemplate(m);
+        }
+
+    }
+
+    protected static <T extends IsoMessage> void parseGuides(
+            final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element elem = (Element)nodes.item(i);
+            int type = parseType(elem.getAttribute("type"));
+            if (type == -1) {
+                throw new IOException("Invalid ISO8583 type for parse guide: " + elem.getAttribute("type"));
+            }
+            NodeList fields = elem.getElementsByTagName("field");
+            HashMap<Integer, FieldParseInfo> parseMap = new HashMap<Integer, FieldParseInfo>();
+            for (int j = 0; j < fields.getLength(); j++) {
+                Element f = (Element)fields.item(j);
+                int num = Integer.parseInt(f.getAttribute("num"));
+                IsoType itype = IsoType.valueOf(f.getAttribute("type"));
+                int length = 0;
+                if (f.getAttribute("length").length() > 0) {
+                    length = Integer.parseInt(f.getAttribute("length"));
+                }
+                parseMap.put(num, FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding()));
+            }
+            mfact.setParseMap(type, parseMap);
+        }
+    }
+
 	/** Reads the XML from the stream and configures the message factory with its values.
 	 * @param mfact The message factory to be configured with the values read from the XML.
 	 * @param stream The InputStream containing the XML configuration. */
@@ -141,106 +245,10 @@ public class ConfigParser {
 		}
 		final Element root = doc.getDocumentElement();
 
-		//Read the ISO headers
-		NodeList nodes = root.getElementsByTagName("header");
-		Element elem = null;
-        boolean pass2 = false;
-		for (int i = 0; i < nodes.getLength(); i++) {
-			elem = (Element)nodes.item(i);
-			int type = parseType(elem.getAttribute("type"));
-			if (type == -1) {
-				throw new IOException("Invalid type for ISO8583 header: " + elem.getAttribute("type"));
-			}
-			if (elem.getChildNodes() == null || elem.getChildNodes().getLength() == 0) {
-                if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
-                    pass2 = true;
-                }
-				else throw new IOException("Invalid ISO8583 header element");
-			} else {
-                String header = elem.getChildNodes().item(0).getNodeValue();
-                if (log.isTraceEnabled()) {
-                    log.trace("Adding ISO8583 header for type {}: {}", elem.getAttribute("type"), header);
-                }
-                mfact.setIsoHeader(type, header);
-            }
-		}
-        if (pass2) {
-            for (int i = 0; i < nodes.getLength(); i++) {
-                elem = (Element)nodes.item(i);
-                int type = parseType(elem.getAttribute("type"));
-                if (type == -1) {
-                    throw new IOException("Invalid type for ISO8583 header: "
-                            + elem.getAttribute("type"));
-                }
-                if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
-                    int t2 = parseType(elem.getAttribute("ref"));
-                    if (t2 == -1) {
-                        throw new IOException("Invalid type reference "
-                                + elem.getAttribute("ref") + " for ISO8583 header " + type);
-                    }
-                    String h = mfact.getIsoHeader(t2);
-                    if (h == null) {
-                        throw new IllegalArgumentException("Header def " + type + " refers to nonexistent header " + t2);
-                    }
-                    if (log.isTraceEnabled()) {
-                        log.trace("Adding ISO8583 header for type {}: {} (copied from {})",
-                                elem.getAttribute("type"), h, elem.getAttribute("ref"));
-                    }
-                    mfact.setIsoHeader(type, h);
-                }
-            }
-        }
-
-		//Read the message templates
-		nodes = root.getElementsByTagName("template");
-		for (int i = 0; i < nodes.getLength(); i++) {
-			elem = (Element)nodes.item(i);
-			int type = parseType(elem.getAttribute("type"));
-			if (type == -1) {
-				throw new IOException("Invalid ISO8583 type for template: " + elem.getAttribute("type"));
-			}
-			NodeList fields = elem.getElementsByTagName("field");
-            @SuppressWarnings("unchecked")
-			T m = (T)new IsoMessage();
-			m.setType(type);
-			m.setCharacterEncoding(mfact.getCharacterEncoding());
-			for (int j = 0; j < fields.getLength(); j++) {
-				Element f = (Element)fields.item(j);
-				int num = Integer.parseInt(f.getAttribute("num"));
-				IsoType itype = IsoType.valueOf(f.getAttribute("type"));
-				int length = 0;
-				if (f.getAttribute("length").length() > 0) {
-					length = Integer.parseInt(f.getAttribute("length"));
-				}
-				String v = f.getChildNodes().item(0).getNodeValue();
-				CustomField<Object> _cf = mfact.getCustomField(num);
-				m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
-			}
-			mfact.addMessageTemplate(m);
-		}
-
+        parseHeaders(root.getElementsByTagName("header"), mfact);
+        parseTemplates(root.getElementsByTagName("template"), mfact);
 		//Read the parsing guides
-		nodes = root.getElementsByTagName("parse");
-		for (int i = 0; i < nodes.getLength(); i++) {
-			elem = (Element)nodes.item(i);
-			int type = parseType(elem.getAttribute("type"));
-			if (type == -1) {
-				throw new IOException("Invalid ISO8583 type for parse guide: " + elem.getAttribute("type"));
-			}
-			NodeList fields = elem.getElementsByTagName("field");
-			HashMap<Integer, FieldParseInfo> parseMap = new HashMap<Integer, FieldParseInfo>();
-			for (int j = 0; j < fields.getLength(); j++) {
-				Element f = (Element)fields.item(j);
-				int num = Integer.parseInt(f.getAttribute("num"));
-				IsoType itype = IsoType.valueOf(f.getAttribute("type"));
-				int length = 0;
-				if (f.getAttribute("length").length() > 0) {
-					length = Integer.parseInt(f.getAttribute("length"));
-				}
-				parseMap.put(num, FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding()));
-			}
-			mfact.setParseMap(type, parseMap);
-		}
+        parseGuides(root.getElementsByTagName("parse"), mfact);
 	}
 
 	/** Configures a MessageFactory using the default configuration file j8583.xml. This is useful
