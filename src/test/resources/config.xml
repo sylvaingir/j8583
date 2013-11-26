@@ -7,10 +7,10 @@
 <!-- These are the ISO headers to be prepended to the message types specified -->
 <header type="0200">ISO015000050</header>
 <header type="0210">ISO015000055</header>
-<header type="0400">ISO015000050</header>
-<header type="0410">ISO015000055</header>
+<header type="0400" ref="0200" />
+<header type="0410" ref="0210" />
 <header type="0800">ISO015000015</header>
-<header type="0810">ISO015000015</header>
+<header type="0810" ref="0800"/>
 
 <!-- The client example uses this to create requests -->
 <template type="0200">
