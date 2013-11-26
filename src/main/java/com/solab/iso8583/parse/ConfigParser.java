@@ -204,6 +204,11 @@ public class ConfigParser {
                             + elem.getAttribute("extends"));
                 }
                 T tref = mfact.getMessageTemplate(ref);
+                if (tref == null) {
+                    throw new IllegalArgumentException("Message template "
+                            + elem.getAttribute("type") + " extends nonexistent template "
+                            + elem.getAttribute("extends"));
+                }
                 @SuppressWarnings("unchecked")
                 T m = (T)new IsoMessage();
                 m.setType(type);
@@ -238,14 +243,23 @@ public class ConfigParser {
 
     protected static <T extends IsoMessage> void parseGuides(
             final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
+        ArrayList<Element> subs = null;
+        HashMap<Integer,HashMap<Integer,FieldParseInfo>> guides = new HashMap<Integer, HashMap<Integer, FieldParseInfo>>();
         for (int i = 0; i < nodes.getLength(); i++) {
             Element elem = (Element)nodes.item(i);
             int type = parseType(elem.getAttribute("type"));
             if (type == -1) {
                 throw new IOException("Invalid ISO8583 type for parse guide: " + elem.getAttribute("type"));
             }
-            NodeList fields = elem.getElementsByTagName("field");
+            if (elem.getAttribute("extends") != null && !elem.getAttribute("extends").isEmpty()) {
+                if (subs == null) {
+                    subs = new ArrayList<Element>(nodes.getLength()-i);
+                }
+                subs.add(elem);
+                continue;
+            }
             HashMap<Integer, FieldParseInfo> parseMap = new HashMap<Integer, FieldParseInfo>();
+            NodeList fields = elem.getElementsByTagName("field");
             for (int j = 0; j < fields.getLength(); j++) {
                 Element f = (Element)fields.item(j);
                 int num = Integer.parseInt(f.getAttribute("num"));
@@ -257,6 +271,44 @@ public class ConfigParser {
                 parseMap.put(num, FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding()));
             }
             mfact.setParseMap(type, parseMap);
+            guides.put(type, parseMap);
+        }
+        if (subs != null) {
+            for (Element elem : subs) {
+                int type = parseType(elem.getAttribute("type"));
+                int ref = parseType(elem.getAttribute("extends"));
+                if (ref == -1) {
+                    throw new IllegalArgumentException("Message template "
+                            + elem.getAttribute("type") + " extends invalid template "
+                            + elem.getAttribute("extends"));
+                }
+                HashMap<Integer,FieldParseInfo> parent = guides.get(ref);
+                if (parent == null) {
+                    throw new IllegalArgumentException("Parsing guide "
+                            + elem.getAttribute("type") + " extends nonexistent guide "
+                            + elem.getAttribute("extends"));
+                }
+                HashMap<Integer,FieldParseInfo> child = new HashMap<Integer, FieldParseInfo>();
+                child.putAll(parent);
+                NodeList fields = elem.getElementsByTagName("field");
+                for (int j = 0; j < fields.getLength(); j++) {
+                    Element f = (Element)fields.item(j);
+                    int num = Integer.parseInt(f.getAttribute("num"));
+                    String typedef = f.getAttribute("type");
+                    if ("exclude".equals(typedef)) {
+                        child.remove(num);
+                    } else {
+                        IsoType itype = IsoType.valueOf(typedef);
+                        int length = 0;
+                        if (f.getAttribute("length").length() > 0) {
+                            length = Integer.parseInt(f.getAttribute("length"));
+                        }
+                        child.put(num, FieldParseInfo.getInstance(itype, length,
+                                mfact.getCharacterEncoding()));
+                    }
+                }
+                mfact.setParseMap(type, child);
+            }
         }
     }
 
