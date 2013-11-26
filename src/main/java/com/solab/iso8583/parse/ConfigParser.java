@@ -144,6 +144,7 @@ public class ConfigParser {
 		//Read the ISO headers
 		NodeList nodes = root.getElementsByTagName("header");
 		Element elem = null;
+        boolean pass2 = false;
 		for (int i = 0; i < nodes.getLength(); i++) {
 			elem = (Element)nodes.item(i);
 			int type = parseType(elem.getAttribute("type"));
@@ -151,14 +152,44 @@ public class ConfigParser {
 				throw new IOException("Invalid type for ISO8583 header: " + elem.getAttribute("type"));
 			}
 			if (elem.getChildNodes() == null || elem.getChildNodes().getLength() == 0) {
-				throw new IOException("Invalid ISO8583 header element");
-			}
-			String header = elem.getChildNodes().item(0).getNodeValue();
-			if (log.isTraceEnabled()) {
-				log.trace("Adding ISO8583 header for type {}: {}", elem.getAttribute("type"), header);
-			}
-			mfact.setIsoHeader(type, header);
+                if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
+                    pass2 = true;
+                }
+				else throw new IOException("Invalid ISO8583 header element");
+			} else {
+                String header = elem.getChildNodes().item(0).getNodeValue();
+                if (log.isTraceEnabled()) {
+                    log.trace("Adding ISO8583 header for type {}: {}", elem.getAttribute("type"), header);
+                }
+                mfact.setIsoHeader(type, header);
+            }
 		}
+        if (pass2) {
+            for (int i = 0; i < nodes.getLength(); i++) {
+                elem = (Element)nodes.item(i);
+                int type = parseType(elem.getAttribute("type"));
+                if (type == -1) {
+                    throw new IOException("Invalid type for ISO8583 header: "
+                            + elem.getAttribute("type"));
+                }
+                if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
+                    int t2 = parseType(elem.getAttribute("ref"));
+                    if (t2 == -1) {
+                        throw new IOException("Invalid type reference "
+                                + elem.getAttribute("ref") + " for ISO8583 header " + type);
+                    }
+                    String h = mfact.getIsoHeader(t2);
+                    if (h == null) {
+                        throw new IllegalArgumentException("Header def " + type + " refers to nonexistent header " + t2);
+                    }
+                    if (log.isTraceEnabled()) {
+                        log.trace("Adding ISO8583 header for type {}: {} (copied from {})",
+                                elem.getAttribute("type"), h, elem.getAttribute("ref"));
+                    }
+                    mfact.setIsoHeader(type, h);
+                }
+            }
+        }
 
 		//Read the message templates
 		nodes = root.getElementsByTagName("template");
