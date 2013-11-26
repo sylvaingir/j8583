@@ -21,6 +21,7 @@ package com.solab.iso8583.parse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -108,7 +109,7 @@ public class ConfigParser {
 
     protected static <T extends IsoMessage> void parseHeaders(
             final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
-        boolean pass2 = false;
+        ArrayList<Element> refs = null;
         for (int i = 0; i < nodes.getLength(); i++) {
             Element elem = (Element)nodes.item(i);
             int type = parseType(elem.getAttribute("type"));
@@ -117,7 +118,10 @@ public class ConfigParser {
             }
             if (elem.getChildNodes() == null || elem.getChildNodes().getLength() == 0) {
                 if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
-                    pass2 = true;
+                    if (refs == null) {
+                        refs = new ArrayList<Element>(nodes.getLength()-i);
+                    }
+                    refs.add(elem);
                 }
                 else throw new IOException("Invalid ISO8583 header element");
             } else {
@@ -128,9 +132,8 @@ public class ConfigParser {
                 mfact.setIsoHeader(type, header);
             }
         }
-        if (pass2) {
-            for (int i = 0; i < nodes.getLength(); i++) {
-                Element elem = (Element)nodes.item(i);
+        if (refs != null) {
+            for (Element elem : refs) {
                 int type = parseType(elem.getAttribute("type"));
                 if (type == -1) {
                     throw new IOException("Invalid type for ISO8583 header: "
@@ -158,17 +161,25 @@ public class ConfigParser {
 
     protected static <T extends IsoMessage> void parseTemplates(
             final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
+        ArrayList<Element> subs = null;
         for (int i = 0; i < nodes.getLength(); i++) {
             Element elem = (Element)nodes.item(i);
             int type = parseType(elem.getAttribute("type"));
             if (type == -1) {
                 throw new IOException("Invalid ISO8583 type for template: " + elem.getAttribute("type"));
             }
-            NodeList fields = elem.getElementsByTagName("field");
+            if (elem.getAttribute("extends") != null && !elem.getAttribute("extends").isEmpty()) {
+                if (subs == null) {
+                    subs = new ArrayList<Element>(nodes.getLength()-i);
+                }
+                subs.add(elem);
+                continue;
+            }
             @SuppressWarnings("unchecked")
             T m = (T)new IsoMessage();
             m.setType(type);
             m.setCharacterEncoding(mfact.getCharacterEncoding());
+            NodeList fields = elem.getElementsByTagName("field");
             for (int j = 0; j < fields.getLength(); j++) {
                 Element f = (Element)fields.item(j);
                 int num = Integer.parseInt(f.getAttribute("num"));
@@ -183,7 +194,46 @@ public class ConfigParser {
             }
             mfact.addMessageTemplate(m);
         }
-
+        if (subs != null) {
+            for (Element elem : subs) {
+                int type = parseType(elem.getAttribute("type"));
+                int ref = parseType(elem.getAttribute("extends"));
+                if (ref == -1) {
+                    throw new IllegalArgumentException("Message template "
+                            + elem.getAttribute("type") + " extends invalid template "
+                            + elem.getAttribute("extends"));
+                }
+                T tref = mfact.getMessageTemplate(ref);
+                @SuppressWarnings("unchecked")
+                T m = (T)new IsoMessage();
+                m.setType(type);
+                m.setCharacterEncoding(mfact.getCharacterEncoding());
+                for (int i = 2; i < 128; i++) {
+                    if (tref.hasField(i)) {
+                        m.setField(i, tref.getField(i).clone());
+                    }
+                }
+                NodeList fields = elem.getElementsByTagName("field");
+                for (int j = 0; j < fields.getLength(); j++) {
+                    Element f = (Element)fields.item(j);
+                    int num = Integer.parseInt(f.getAttribute("num"));
+                    final String typedef = f.getAttribute("type");
+                    if ("exclude".equals(typedef)) {
+                        m.setField(num, null);
+                    } else {
+                        IsoType itype = IsoType.valueOf(typedef);
+                        int length = 0;
+                        if (f.getAttribute("length").length() > 0) {
+                            length = Integer.parseInt(f.getAttribute("length"));
+                        }
+                        String v = f.getChildNodes().item(0).getNodeValue();
+                        CustomField<Object> _cf = mfact.getCustomField(num);
+                        m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
+                    }
+                }
+                mfact.addMessageTemplate(m);
+            }
+        }
     }
 
     protected static <T extends IsoMessage> void parseGuides(
