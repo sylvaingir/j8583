@@ -1,12 +1,14 @@
 package j8583;
 
 import com.solab.iso8583.IsoMessage;
+import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.MessageFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 /**
  * Test certain ConfigParser features.
@@ -17,7 +19,7 @@ import java.io.IOException;
 public class TestConfigParser {
 
     @Test
-    public void testParser() throws IOException {
+    public void testParser() throws IOException, ParseException {
         MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
         mfact.setConfigPath("config.xml");
         //Headers
@@ -42,6 +44,22 @@ public class TestConfigParser {
         Assert.assertTrue(m400.hasField(90));
         Assert.assertTrue(m200.hasField(102));
         Assert.assertFalse(m400.hasField(102));
+
+        //Parsing guides
+        final String s800 = "0800201080000000000012345611251125";
+        final String s810 = "08102010000002000000123456112500";
+        IsoMessage m = mfact.parseMessage(s800.getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertTrue(m.hasField(3));
+        Assert.assertTrue(m.hasField(12));
+        Assert.assertTrue(m.hasField(17));
+        Assert.assertFalse(m.hasField(39));
+        m = mfact.parseMessage(s810.getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertTrue(m.hasField(3));
+        Assert.assertTrue(m.hasField(12));
+        Assert.assertFalse(m.hasField(17));
+        Assert.assertTrue(m.hasField(39));
     }
 
 }

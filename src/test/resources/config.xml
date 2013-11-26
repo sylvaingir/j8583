@@ -121,4 +121,15 @@
 	<field num="102" type="LLLVAR" />
 </parse>
 
+<parse type="0800">
+    <field num="3" type="ALPHA" length="6">123456</field>
+    <field num="12" type="DATE4">1231</field>
+    <field num="17" type="DATE4">1231</field>
+</parse>
+
+<parse type="0810" extends="0800">
+    <field num="17" type="exclude"/>
+    <field num="39" type="ALPHA" length="2"/>
+</parse>
+
 </j8583-config>
