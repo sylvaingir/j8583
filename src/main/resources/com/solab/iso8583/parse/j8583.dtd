@@ -6,6 +6,7 @@
 
 <!ELEMENT template ( field* ) >
 <!ATTLIST template type NMTOKEN #REQUIRED >
+<!ATTLIST template extends NMTOKEN #IMPLIED >
 
 <!ELEMENT parse ( field+ ) >
 <!ATTLIST parse type NMTOKEN #REQUIRED >
