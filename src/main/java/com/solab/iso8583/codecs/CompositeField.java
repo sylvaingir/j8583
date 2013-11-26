@@ -1,12 +1,16 @@
 package com.solab.iso8583.codecs;
 
 import com.solab.iso8583.CustomBinaryField;
+import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.parse.FieldParseInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +22,7 @@ import java.util.List;
  */
 public class CompositeField implements CustomBinaryField<CompositeField> {
 
+    private static final Logger log = LoggerFactory.getLogger(CompositeField.class);
     private boolean binary;
     /** Stores the subfields. */
     private List<IsoValue<?>> values;
@@ -31,7 +36,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
         return binary;
     }
 
-    public void setValue(List<IsoValue<?>> values) {
+    public void setValues(List<IsoValue<?>> values) {
         this.values = values;
     }
     public List<IsoValue<?>> getValues() {
@@ -60,8 +65,62 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
     }
 
     @Override
-    public CompositeField decodeBinaryField(byte[] value, int offset, int length) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public CompositeField decodeBinaryField(byte[] buf, int offset, int length) {
+        List<IsoValue<?>> vals = new ArrayList<IsoValue<?>>(parsers.size());
+        int pos = 0;
+        try {
+            for (FieldParseInfo fpi : parsers) {
+                IsoValue<?> v = fpi.parseBinary(0, buf, pos, null);
+                if (v != null) {
+                    pos += v.getLength();
+                    if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
+                        pos++;
+                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN) {
+                        pos+=2;
+                    }
+                    vals.add(v);
+                }
+            }
+            final CompositeField f = new CompositeField();
+            f.setValues(vals);
+            return f;
+        } catch (ParseException ex) {
+            log.error("Decoding binary CompositeField", ex);
+            return null;
+        } catch (UnsupportedEncodingException ex) {
+            log.error("Decoding binary CompositeField", ex);
+            return null;
+        }
+    }
+
+    @Override
+    public CompositeField decodeField(String value) {
+        List<IsoValue<?>> vals = new ArrayList<IsoValue<?>>(parsers.size());
+        byte[] buf = value.getBytes();
+        int pos = 0;
+        try {
+            for (FieldParseInfo fpi : parsers) {
+                IsoValue<?> v = fpi.parse(0, buf, pos, null);
+                if (v != null) {
+                    pos += v.getLength();
+                    if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
+                        pos+=2;
+                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN) {
+                        pos+=3;
+                    }
+                    vals.add(v);
+                }
+            }
+            final CompositeField f = new CompositeField();
+            f.setValues(vals);
+            return f;
+        } catch (ParseException ex) {
+            log.error("Decoding CompositeField", ex);
+            return null;
+        } catch (UnsupportedEncodingException ex) {
+            log.error("Decoding CompositeField", ex);
+            return null;
+        }
     }
 
     @Override
@@ -72,14 +131,10 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
                 v.write(bout, binary, true);
             }
         } catch (IOException ex) {
+            log.error("Encoding binary CompositeField", ex);
             //shouldn't happen
         }
         return bout.toByteArray();
-    }
-
-    @Override
-    public CompositeField decodeField(String value) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
