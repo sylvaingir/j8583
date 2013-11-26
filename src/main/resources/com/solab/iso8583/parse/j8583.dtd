@@ -10,6 +10,7 @@
 
 <!ELEMENT parse ( field+ ) >
 <!ATTLIST parse type NMTOKEN #REQUIRED >
+<!ATTLIST parse extends NMTOKEN #IMPLIED >
 
 <!ELEMENT field ( #PCDATA ) >
 <!ATTLIST field num NMTOKEN #REQUIRED >
