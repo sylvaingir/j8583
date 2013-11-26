@@ -37,6 +37,11 @@
 	<field num="126" type="LLLVAR">...and yet another fixed field.</field>
 </template>
 
+<template type="0400" extends="0200">
+    <field num="90" type="ALPHA" length="42">BLA</field>
+    <field num="102" type="exclude" />
+</template>
+
 <template type="0600">
 	<field num="4" type="AMOUNT">1234</field>
 	<field num="11" type="NUMERIC" length="6">123</field>
