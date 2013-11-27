@@ -423,7 +423,11 @@ public class MessageFactory<T extends IsoMessage> {
 						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
 						bs.clear(i - 1);
 					} else {
-						IsoValue<?> val = fpi.parseBinary(i, buf, pos, getCustomField(i));
+                        CustomField<?> decoder = fpi.getDecoder();
+                        if (decoder == null) {
+                            decoder = getCustomField(i);
+                        }
+						IsoValue<?> val = fpi.parseBinary(i, buf, pos, decoder);
 						m.setField(i, val);
 						if (val != null) {
 							if (val.getType() == IsoType.NUMERIC || val.getType() == IsoType.DATE10
@@ -450,7 +454,11 @@ public class MessageFactory<T extends IsoMessage> {
 						log.warn("Field {} is not really in the message even though it's in the bitmap", i);
 						bs.clear(i - 1);
 					} else {
-						IsoValue<?> val = fpi.parse(i, buf, pos, getCustomField(i));
+                        CustomField<?> decoder = fpi.getDecoder();
+                        if (decoder == null) {
+                            decoder = getCustomField(i);
+                        }
+						IsoValue<?> val = fpi.parse(i, buf, pos, decoder);
 						m.setField(i, val);
 						//To get the correct next position, we need to get the number of bytes, not chars
 						pos += val.toString().getBytes(fpi.getCharacterEncoding()).length;
