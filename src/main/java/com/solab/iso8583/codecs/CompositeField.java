@@ -1,6 +1,7 @@
 package com.solab.iso8583.codecs;
 
 import com.solab.iso8583.CustomBinaryField;
+import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.parse.FieldParseInfo;
@@ -24,26 +25,40 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
 
     private static final Logger log = LoggerFactory.getLogger(CompositeField.class);
     /** Stores the subfields. */
-    private List<IsoValue<?>> values;
+    @SuppressWarnings("rawtypes")
+    private List<IsoValue> values;
     /** Stores the parsers for the subfields. */
     private List<FieldParseInfo> parsers;
 
-    public void setValues(List<IsoValue<?>> values) {
+    @SuppressWarnings("rawtypes")
+    public void setValues(List<IsoValue> values) {
         this.values = values;
     }
-    public List<IsoValue<?>> getValues() {
+    @SuppressWarnings("rawtypes")
+    public List<IsoValue> getValues() {
         return values;
     }
+    @SuppressWarnings("rawtypes")
     public CompositeField addValue(IsoValue<?> v) {
         if (values == null) {
-            values = new ArrayList<IsoValue<?>>(4);
+            values = new ArrayList<IsoValue>(4);
         }
         values.add(v);
         return this;
     }
-    public Object getObjectValue(int idx) {
+    public <T> CompositeField addValue(T val, CustomField<T> encoder, IsoType t, int length) {
+        return addValue(t.needsLength() ? new IsoValue<T>(t, val, length, encoder)
+                : new IsoValue<T>(t, val, encoder));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> IsoValue<T> getField(int idx) {
         if (idx < 0 || idx > values.size())return null;
-        return values.get(idx).getValue();
+        return values.get(idx);
+    }
+    public <T> T getObjectValue(int idx) {
+        IsoValue<T> v = getField(idx);
+        return v==null ? null : v.getValue();
     }
 
     public void setParsers(List<FieldParseInfo> fpis) {
@@ -62,7 +77,8 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
 
     @Override
     public CompositeField decodeBinaryField(byte[] buf, int offset, int length) {
-        List<IsoValue<?>> vals = new ArrayList<IsoValue<?>>(parsers.size());
+        @SuppressWarnings("rawtypes")
+        List<IsoValue> vals = new ArrayList<IsoValue>(parsers.size());
         int pos = 0;
         try {
             for (FieldParseInfo fpi : parsers) {
@@ -97,7 +113,8 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
 
     @Override
     public CompositeField decodeField(String value) {
-        List<IsoValue<?>> vals = new ArrayList<IsoValue<?>>(parsers.size());
+        @SuppressWarnings("rawtypes")
+        List<IsoValue> vals = new ArrayList<IsoValue>(parsers.size());
         byte[] buf = value.getBytes();
         int pos = 0;
         try {
@@ -146,7 +163,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
         try {
             String encoding = null;
             for (IsoValue<?> v : value.getValues()) {
-                v.write(bout, true, true);
+                v.write(bout, false, true);
                 if (encoding == null)encoding = v.getCharacterEncoding();
             }
             buf = bout.toByteArray();
