@@ -35,6 +35,7 @@ public abstract class FieldParseInfo {
 	protected int length;
 	private String encoding = System.getProperty("file.encoding");
     protected boolean forceStringDecoding;
+    private CustomField<?> decoder;
 
 	/** Creates a new instance that parses a value of the specified type, with the specified length.
 	 * The length is only useful for ALPHA and NUMERIC types.
@@ -71,6 +72,13 @@ public abstract class FieldParseInfo {
 	public IsoType getType() {
 		return type;
 	}
+
+    public void setDecoder(CustomField<?> value) {
+        decoder = value;
+    }
+    public CustomField<?> getDecoder() {
+         return decoder;
+    }
 
 	/** Parses the character data from the buffer and returns the
 	 * IsoValue with the correct data type in it.
