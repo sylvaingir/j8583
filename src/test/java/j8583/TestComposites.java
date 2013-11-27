@@ -17,9 +17,9 @@ import org.junit.Test;
  */
 public class TestComposites {
 
-    final String textData = "One  03Two00999";
+    final String textData = "One  03Two00999X";
     final byte[] binaryData = new byte[]{'O', 'n', 'e', ' ', ' ', 3, 'T', 'w', 'o',
-                    0, 9, (byte) 0x99};
+                    0, 9, (byte) 0x99, 'X'};
 
     @Test
     public void testEncodeText() {
@@ -32,6 +32,8 @@ public class TestComposites {
         Assert.assertEquals("One  03Two", f.encodeField(f));
         f.addValue(new IsoValue<Long>(IsoType.NUMERIC, 999l, 5));
         f.getValues().get(2).setCharacterEncoding("UTF-8");
+        Assert.assertEquals("One  03Two00999", f.encodeField(f));
+        f.addValue(new IsoValue<String>(IsoType.ALPHA, "X", 1));
         Assert.assertEquals(textData, f.encodeField(f));
     }
 
@@ -45,6 +47,7 @@ public class TestComposites {
         Assert.assertArrayEquals(new byte[]{'O', 'n', 'e', ' ', ' ', 3, 'T', 'w', 'o'},
                 f.encodeBinaryField(f));
         f.addValue(new IsoValue<Long>(IsoType.NUMERIC, 999l, 5));
+        f.addValue(new IsoValue<String>(IsoType.ALPHA, "X", 1));
         Assert.assertArrayEquals(binaryData, f.encodeBinaryField(f));
     }
 
@@ -53,13 +56,15 @@ public class TestComposites {
         final CompositeField dec = new CompositeField()
                 .addParser(new AlphaParseInfo(5))
                 .addParser(new LlvarParseInfo())
-                .addParser(new NumericParseInfo(5));
+                .addParser(new NumericParseInfo(5))
+                .addParser(new AlphaParseInfo(1));
         final CompositeField f = dec.decodeField(textData);
         Assert.assertNotNull(f);
-        Assert.assertEquals(3, f.getValues().size());
+        Assert.assertEquals(4, f.getValues().size());
         Assert.assertEquals("One  ", f.getValues().get(0).getValue());
         Assert.assertEquals("Two", f.getValues().get(1).getValue());
         Assert.assertEquals("00999", f.getValues().get(2).getValue());
+        Assert.assertEquals("X", f.getValues().get(3).getValue());
     }
 
     @Test
@@ -67,13 +72,15 @@ public class TestComposites {
         final CompositeField dec = new CompositeField()
                 .addParser(new AlphaParseInfo(5))
                 .addParser(new LlvarParseInfo())
-                .addParser(new NumericParseInfo(5));
+                .addParser(new NumericParseInfo(5))
+                .addParser(new AlphaParseInfo(1));
         final CompositeField f = dec.decodeBinaryField(binaryData, 0, binaryData.length);
         Assert.assertNotNull(f);
-        Assert.assertEquals(3, f.getValues().size());
+        Assert.assertEquals(4, f.getValues().size());
         Assert.assertEquals("One  ", f.getValues().get(0).getValue());
         Assert.assertEquals("Two", f.getValues().get(1).getValue());
         Assert.assertEquals(999l, f.getValues().get(2).getValue());
+        Assert.assertEquals("X", f.getValues().get(3).getValue());
     }
 
 }
