@@ -132,4 +132,13 @@
     <field num="39" type="ALPHA" length="2"/>
 </parse>
 
+<parse type="1200">
+    <field num="10" type="LLLVAR">
+        <field num="1" type="ALPHA" length="5" />
+        <field num="2" type="LLVAR"/>
+        <field num="3" type="NUMERIC" length="5" />
+        <field num="4" type="ALPHA" length="1" />
+    </field>
+</parse>
+
 </j8583-config>
