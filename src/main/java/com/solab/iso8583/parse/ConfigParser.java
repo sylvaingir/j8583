@@ -28,6 +28,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.solab.iso8583.codecs.CompositeField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -241,6 +242,16 @@ public class ConfigParser {
         }
     }
 
+    protected static <T extends IsoMessage> FieldParseInfo getParser(
+            Element f, MessageFactory<T> mfact) {
+        IsoType itype = IsoType.valueOf(f.getAttribute("type"));
+        int length = 0;
+        if (f.getAttribute("length").length() > 0) {
+            length = Integer.parseInt(f.getAttribute("length"));
+        }
+        return FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding());
+    }
+
     protected static <T extends IsoMessage> void parseGuides(
             final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
         ArrayList<Element> subs = null;
@@ -263,12 +274,7 @@ public class ConfigParser {
             for (int j = 0; j < fields.getLength(); j++) {
                 Element f = (Element)fields.item(j);
                 int num = Integer.parseInt(f.getAttribute("num"));
-                IsoType itype = IsoType.valueOf(f.getAttribute("type"));
-                int length = 0;
-                if (f.getAttribute("length").length() > 0) {
-                    length = Integer.parseInt(f.getAttribute("length"));
-                }
-                parseMap.put(num, FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding()));
+                parseMap.put(num, getParser(f, mfact));
             }
             mfact.setParseMap(type, parseMap);
             guides.put(type, parseMap);
@@ -298,13 +304,7 @@ public class ConfigParser {
                     if ("exclude".equals(typedef)) {
                         child.remove(num);
                     } else {
-                        IsoType itype = IsoType.valueOf(typedef);
-                        int length = 0;
-                        if (f.getAttribute("length").length() > 0) {
-                            length = Integer.parseInt(f.getAttribute("length"));
-                        }
-                        child.put(num, FieldParseInfo.getInstance(itype, length,
-                                mfact.getCharacterEncoding()));
+                        child.put(num, getParser(f, mfact));
                     }
                 }
                 mfact.setParseMap(type, child);
