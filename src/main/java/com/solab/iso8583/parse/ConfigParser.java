@@ -243,13 +243,25 @@ public class ConfigParser {
     }
 
     protected static <T extends IsoMessage> FieldParseInfo getParser(
-            Element f, MessageFactory<T> mfact) {
+            Element f, MessageFactory<T> mfact) throws IOException {
         IsoType itype = IsoType.valueOf(f.getAttribute("type"));
         int length = 0;
         if (f.getAttribute("length").length() > 0) {
             length = Integer.parseInt(f.getAttribute("length"));
         }
-        return FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding());
+        FieldParseInfo fpi = FieldParseInfo.getInstance(itype, length, mfact.getCharacterEncoding());
+        NodeList subs = f.getElementsByTagName("field");
+        if (subs != null && subs.getLength() > 0) {
+            final CompositeField combo = new CompositeField();
+            for (int i=0; i<subs.getLength(); i++) {
+                Element sf = (Element)subs.item(i);
+                if (sf.getParentNode()==f) {
+                    combo.addParser(getParser(sf, mfact));
+                }
+            }
+            fpi.setDecoder(combo);
+        }
+        return fpi;
     }
 
     protected static <T extends IsoMessage> void parseGuides(
@@ -273,8 +285,10 @@ public class ConfigParser {
             NodeList fields = elem.getElementsByTagName("field");
             for (int j = 0; j < fields.getLength(); j++) {
                 Element f = (Element)fields.item(j);
-                int num = Integer.parseInt(f.getAttribute("num"));
-                parseMap.put(num, getParser(f, mfact));
+                if (f.getParentNode()==elem) {
+                    int num = Integer.parseInt(f.getAttribute("num"));
+                    parseMap.put(num, getParser(f, mfact));
+                }
             }
             mfact.setParseMap(type, parseMap);
             guides.put(type, parseMap);
