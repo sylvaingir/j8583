@@ -23,18 +23,10 @@ import java.util.List;
 public class CompositeField implements CustomBinaryField<CompositeField> {
 
     private static final Logger log = LoggerFactory.getLogger(CompositeField.class);
-    private boolean binary;
     /** Stores the subfields. */
     private List<IsoValue<?>> values;
     /** Stores the parsers for the subfields. */
     private List<FieldParseInfo> parsers;
-
-    public void setBinary(boolean flag) {
-        binary = flag;
-    }
-    public boolean isBinary() {
-        return binary;
-    }
 
     public void setValues(List<IsoValue<?>> values) {
         this.values = values;
@@ -48,6 +40,10 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
         }
         values.add(v);
         return this;
+    }
+    public Object getObjectValue(int idx) {
+        if (idx < 0 || idx > values.size())return null;
+        return values.get(idx).getValue();
     }
 
     public void setParsers(List<FieldParseInfo> fpis) {
@@ -133,8 +129,8 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
     public byte[] encodeBinaryField(CompositeField value) {
         final ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try {
-            for (IsoValue<?> v : values) {
-                v.write(bout, binary, true);
+            for (IsoValue<?> v : value.getValues()) {
+                v.write(bout, true, true);
             }
         } catch (IOException ex) {
             log.error("Encoding binary CompositeField", ex);
@@ -145,17 +141,35 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
 
     @Override
     public String encodeField(CompositeField value) {
-        if (binary)return null;
-        final byte[] buf = encodeBinaryField(value);
-        String encoding = null;
-        for (IsoValue<?> v : values) {
-            if (encoding == null)encoding = v.getCharacterEncoding();
-        }
+        final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        byte[] buf = null;
         try {
+            String encoding = null;
+            for (IsoValue<?> v : value.getValues()) {
+                v.write(bout, true, true);
+                if (encoding == null)encoding = v.getCharacterEncoding();
+            }
+            buf = bout.toByteArray();
             return new String(buf, encoding==null?"UTF-8":encoding);
         } catch (UnsupportedEncodingException ex) {
-            return new String(buf);
+            log.error("Encoding text CompositeField", ex);
+        } catch (IOException ex) {
+            log.error("Encoding text CompositeField", ex);
+            //shouldn't happen
         }
+        return new String(buf);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("CompositeField[");
+        if (values!=null) {
+            boolean first=true;
+            for (IsoValue<?> v : values) {
+                if (first)first=false;else sb.append(',');
+                sb.append(v.getType());
+            }
+        }
+        return sb.append(']').toString();
+    }
 }
