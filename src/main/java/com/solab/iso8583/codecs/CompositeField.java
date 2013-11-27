@@ -72,7 +72,13 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
             for (FieldParseInfo fpi : parsers) {
                 IsoValue<?> v = fpi.parseBinary(0, buf, pos, null);
                 if (v != null) {
-                    pos += v.getLength();
+                    if (v.getType() == IsoType.NUMERIC || v.getType() == IsoType.DATE10
+                            || v.getType() == IsoType.DATE4 || v.getType() == IsoType.DATE_EXP
+                            || v.getType() == IsoType.AMOUNT || v.getType() == IsoType.TIME) {
+                        pos += (v.getLength() / 2) + (v.getLength() % 2);
+                    } else {
+                        pos += v.getLength();
+                    }
                     if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
                         pos++;
                     } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN) {
@@ -102,7 +108,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
             for (FieldParseInfo fpi : parsers) {
                 IsoValue<?> v = fpi.parse(0, buf, pos, null);
                 if (v != null) {
-                    pos += v.getLength();
+                    pos += v.toString().getBytes(fpi.getCharacterEncoding()).length;
                     if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
                         pos+=2;
                     } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN) {
