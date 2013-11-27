@@ -21,6 +21,13 @@ Configuración por XML
 <header type="0400">ISO015000050</header>
 +-----
 
+  <<Nuevo en 1.9:>> Se puede definir un elemento <<<header>>> como referencia a otro elemento para que tengan
+  el mismo valor:
+
++-----
+<header type="0800" ref="0200" />
++-----
+
 * Elemento <<<template>>>
 
   Cada elemento <<<template>>> define una plantilla de mensaje, con el tipo del mismo y los campos que debe
@@ -42,6 +49,19 @@ Configuración por XML
     <field num="102" type="LLVAR">ABCD</field>
 </template>
 +-----
+
+  <<Nuevo en 1.9:>> Se puede definir una plantilla que extienda otra plantilla, de modo que incluya todos
+  los campos de la plantilla que extiende, además de poder excluir campos de la plantilla original.
+
++-----
+<template type="0400">
+    <field num="90" type="ALPHA" length="42">bla bla</field>
+    <field num="102" type="exclude" />
+</template>
++-----
+
+  En este ejemplo, la plantilla para mensajes 0400 include todos los campos de los mensajes 0200
+  <excepto> el campo 102, y además incluye el campo 90.
 
 * Elemento <<<parse>>>
 
@@ -72,10 +92,63 @@ Configuración por XML
     <field num="60" type="LLLVAR" />
     <field num="61" type="LLLVAR" />
     <field num="70" type="ALPHA" length="3" />
-    <field num="90" type="ALPHA" length="42" />
     <field num="100" type="LLVAR" />
     <field num="102" type="LLVAR" />
     <field num="126" type="LLLVAR" />
 </parse>
 +-----
-  
+
+  <<Nuevo en 1.9:>> Al igual que las plantillas, las guías de lectura también pueden extender otras guías:
+
++-----
+<parse type="0410">
+    <field num="90" type="ALPHA" length="42" />
+    <field num="102" type="exclude" />
+</parse>
++-----
+
+* Campos compuestos
+
+  Otra característica nueva a partir de la versión 1.9 son los campos compuestos, por medio de la clase
+  CompositeField, que es una implementación de CustomField que funciona como un contenedor de varios
+  IsoValues, y puede ser configurado en la guía de lectura de un tipo de mensaje:
+
++-----
+<parse type="0410">
+    <field num="125" type="LLLVAR">
+        <field num="1" type="ALPHA" length="5" />
+        <field num="2" type="LLVAR" />
+        <field num="3" type="NUMERIC" length="6" />
+        <field num="4" type="ALPHA" length="2" />
+    </field>
+</parse>
++-----
+
+  En este ejemplo, cuando un mensaje tipo 0410 se decodifica, el valor del campo 125 será una instancia
+  de <<<CompositeField>>> y se pueden obtener sus subcampos con los métodos <<<getField()>>> y
+  <<<getObjectValue()>>>. El atributo <<<num>>> de los subcampos es ignorado; simplemente se tiene que
+  incluir para pasar la validación del DTD.
+
+  Lo anterior significa que se puede hacer esto con código, una vez que se ha leído el mensaje:
+
++-----
+//Suponiendo que originalmente el campo 125 trae "018one  03two123456OK"
+CompositeField f = message.getObjectValue(125);
+String sub1 = f.getObjectValue(0); //"one  "
+String sub2 = f.getObjectValue(1); //"two"
+String sub3 = f.getObjectValue(2); //"123456"
+String sub4 = f.getObjectValue(3); //"OK"
++-----
+
+  También se puede crear un CompositeField, guardar varios valores en él, y luego ponerlo
+  como valor en cualquier campo de un IsoMessage, usando el mismo objeto como CustomField:
+
++-----
+CompositeField f = new CompositeField().addValue(new IsoValue<String>(IsoType.ALPHA, "one", 5))
+    .addValue(new IsoValue<String>(IsoType.LLVAR, "two"))
+    .addValue(new IsoValue<Long>(IsoType.NUMERIC, 123l, 6))
+    .addValue(new IsoValue<String>(IsoType.ALPHA, "OK", 2));
+message.setValue(125, f, f, IsoType.LLLVAR, 0);
++-----
+
+  Cuando ese mensaje sea codificado, el campo 125 se verá como "<<<018one 03two000123OK>>>".
