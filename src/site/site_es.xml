@@ -15,7 +15,7 @@
 		<item name="Descargar" href="http://sourceforge.net/projects/j8583/files/j8583/"/>
 	</links>
 
-	<menu name="j8583 1.9.0">
+	<menu name="j8583 1.9.1">
 		<item name="Introducción" href="index.html"/>
 		<item name="Documentación API" href="../javadoc/index.html" />
 		<item name="Guía de inicio" href="guide.html"/>
