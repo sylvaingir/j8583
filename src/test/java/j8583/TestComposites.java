@@ -40,7 +40,6 @@ public class TestComposites {
     @Test
     public void testEncodeBinary() {
         final CompositeField f = new CompositeField();
-        f.setBinary(true);
         f.addValue(new IsoValue<String>(IsoType.ALPHA, "One", 5));
         Assert.assertArrayEquals(new byte[]{'O', 'n', 'e', 32, 32}, f.encodeBinaryField(f));
         f.addValue(new IsoValue<String>(IsoType.LLVAR, "Two"));
