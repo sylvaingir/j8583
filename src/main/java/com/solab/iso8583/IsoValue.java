@@ -262,7 +262,7 @@ public class IsoValue<T> implements Cloneable {
             } else if (ldiff == 2) {
                 lhead = "00" + lhead;
             }
-            outs.write(lhead.getBytes(encoding));
+            outs.write(encoding == null ? lhead.getBytes():lhead.getBytes(encoding));
         } else {
             //write the length in ASCII
             if (digits == 3) {
