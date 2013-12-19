@@ -21,14 +21,9 @@ package com.solab.iso8583;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.solab.iso8583.parse.DateTimeParseInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -274,6 +269,20 @@ public class MessageFactory<T extends IsoMessage> {
 		}
 		return resp;
 	}
+
+    /** Sets the timezone for the specified FieldParseInfo, if it's indeed for parsing dates. */
+    public void setTimezoneForParseGuide(int messageType, int field, TimeZone tz) {
+        Map<Integer, FieldParseInfo> guide = parseMap.get(messageType);
+        if (guide != null) {
+            FieldParseInfo fpi = guide.get(field);
+            if (fpi instanceof DateTimeParseInfo) {
+                ((DateTimeParseInfo) fpi).setTimeZone(tz);
+                return;
+            }
+        }
+        log.warn("Field {} for message type {} is not for dates, cannot set timezone",
+                field, messageType);
+    }
 
 	/** Creates a new message instance from the buffer, which must contain a valid ISO8583
 	 * message. If the factory is set to use binary messages then it will try to parse
