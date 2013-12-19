@@ -3,6 +3,10 @@ package j8583;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import com.solab.iso8583.IsoMessage;
 import com.solab.iso8583.IsoValue;
@@ -120,4 +124,32 @@ public class TestParsing {
         Assert.assertEquals("12345", f.getObjectValue(2));
         Assert.assertEquals(".", f.getObjectValue(3));
     }
+
+    @Test
+    public void testDates() throws ParseException, UnsupportedEncodingException {
+        IsoMessage m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
+        Assert.assertNotNull(m);
+        Date f = m.getObjectValue(7);
+        Assert.assertNotNull(f);
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.setTime(f);
+        Assert.assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
+        Assert.assertEquals(25, cal.get(Calendar.DATE));
+        Assert.assertEquals(21, cal.get(Calendar.HOUR_OF_DAY));
+        mf.setTimezoneForParseGuide(0x600, 7, TimeZone.getTimeZone("GMT"));
+        m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
+        f = m.getObjectValue(7);
+        cal.setTime(f);
+        Assert.assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
+        Assert.assertEquals(25, cal.get(Calendar.DATE));
+        Assert.assertEquals(15, cal.get(Calendar.HOUR_OF_DAY));
+        mf.setTimezoneForParseGuide(0x600, 7, TimeZone.getTimeZone("GMT+0100"));
+        m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
+        f = m.getObjectValue(7);
+        cal.setTime(f);
+        Assert.assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
+        Assert.assertEquals(25, cal.get(Calendar.DATE));
+        Assert.assertEquals(14, cal.get(Calendar.HOUR_OF_DAY));
+    }
+
 }
