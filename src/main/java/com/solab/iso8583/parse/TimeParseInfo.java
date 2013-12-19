@@ -31,7 +31,7 @@ import com.solab.iso8583.IsoValue;
  * 
  * @author Enrique Zamudio
  */
-public class TimeParseInfo extends FieldParseInfo {
+public class TimeParseInfo extends DateTimeParseInfo {
 
 	
 	public TimeParseInfo() {
@@ -59,6 +59,9 @@ public class TimeParseInfo extends FieldParseInfo {
             cal.set(Calendar.MINUTE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
             cal.set(Calendar.SECOND, ((buf[pos + 4] - 48) * 10) + buf[pos + 5] - 48);
         }
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
 
@@ -82,6 +85,9 @@ public class TimeParseInfo extends FieldParseInfo {
 		cal.set(Calendar.HOUR_OF_DAY, tens[0]);
 		cal.set(Calendar.MINUTE, tens[1]);
 		cal.set(Calendar.SECOND, tens[2]);
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
 

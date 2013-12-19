@@ -31,13 +31,8 @@ import com.solab.iso8583.IsoValue;
  * 
  * @author Enrique Zamudio
  */
-public class Date10ParseInfo extends FieldParseInfo {
+public class Date10ParseInfo extends DateTimeParseInfo {
 
-	private static final long FUTURE_TOLERANCE;
-
-	static {
-		FUTURE_TOLERANCE = Long.parseLong(System.getProperty("j8583.future.tolerance", "900000"));
-	}
 	public Date10ParseInfo() {
 		super(IsoType.DATE10, 10);
 	}
@@ -72,6 +67,9 @@ public class Date10ParseInfo extends FieldParseInfo {
             cal.set(Calendar.SECOND, ((buf[pos + 8] - 48) * 10) + buf[pos + 9] - 48);
         }
         cal.set(Calendar.MILLISECOND,0);
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
 		adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
@@ -103,17 +101,11 @@ public class Date10ParseInfo extends FieldParseInfo {
 		cal.set(Calendar.MINUTE, tens[3]);
 		cal.set(Calendar.SECOND, tens[4]);
 		cal.set(Calendar.MILLISECOND,0);
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
 		adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
-	}
-
-	public static void adjustWithFutureTolerance(Calendar cal) {
-		//We need to handle a small tolerance into the future (a couple of minutes)
-		long now = System.currentTimeMillis();
-		long then = cal.getTimeInMillis();
-		if (then > now && then-now > FUTURE_TOLERANCE) {
-			cal.add(Calendar.YEAR, -1);
-		}
 	}
 
 }

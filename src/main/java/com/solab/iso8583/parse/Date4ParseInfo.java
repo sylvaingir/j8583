@@ -31,7 +31,7 @@ import com.solab.iso8583.IsoValue;
  * 
  * @author Enrique Zamudio
  */
-public class Date4ParseInfo extends FieldParseInfo {
+public class Date4ParseInfo extends DateTimeParseInfo {
 
 	public Date4ParseInfo() {
 		super(IsoType.DATE4, 4);
@@ -62,6 +62,9 @@ public class Date4ParseInfo extends FieldParseInfo {
             cal.set(Calendar.MONTH, ((buf[pos] - 48) * 10) + buf[pos + 1] - 49);
             cal.set(Calendar.DATE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
         }
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
 		Date10ParseInfo.adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
@@ -87,7 +90,10 @@ public class Date4ParseInfo extends FieldParseInfo {
 		cal.set(Calendar.MONTH, tens[0] - 1);
 		cal.set(Calendar.DATE, tens[1]);
 		cal.set(Calendar.MILLISECOND,0);
-		Date10ParseInfo.adjustWithFutureTolerance(cal);
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
+		DateTimeParseInfo.adjustWithFutureTolerance(cal);
 		return new IsoValue<Date>(type, cal.getTime(), null);
 	}
 
