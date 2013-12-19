@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.TimeZone;
 
 import com.solab.iso8583.util.Bcd;
 import com.solab.iso8583.util.HexCodec;
@@ -42,6 +43,7 @@ public class IsoValue<T> implements Cloneable {
 	private CustomField<T> encoder;
 	private int length;
 	private String encoding;
+    private TimeZone tz;
 
 	public IsoValue(IsoType t, T value) {
 		this(t, value, null);
@@ -172,6 +174,14 @@ public class IsoValue<T> implements Cloneable {
 		return encoding;
 	}
 
+    /** Sets the timezone, useful for date fields. */
+    public void setTimeZone(TimeZone value) {
+        tz = value;
+    }
+    public TimeZone getTimeZone() {
+        return tz;
+    }
+
 	/** Returns the formatted value as a String. The formatting depends on the type of the
 	 * receiver. */
 	public String toString() {
@@ -195,7 +205,7 @@ public class IsoValue<T> implements Cloneable {
 		} else if (type == IsoType.LLVAR || type == IsoType.LLLVAR) {
 			return encoder == null ? value.toString() : encoder.encodeField(value);
 		} else if (value instanceof Date) {
-			return type.format((Date)value);
+			return type.format((Date)value, tz);
 		} else if (type == IsoType.BINARY) {
 			if (value instanceof byte[]) {
                 final byte[] _v = (byte[])value;

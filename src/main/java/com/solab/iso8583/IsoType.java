@@ -19,7 +19,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 package com.solab.iso8583;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /** Defines the possible values types that can be used in the fields.
  * Some types required the length of the value to be specified (NUMERIC
@@ -76,17 +78,23 @@ public enum IsoType {
 
 	/** Formats a Date if the receiver is DATE10, DATE4, DATE_EXP or TIME; throws an exception
 	 * otherwise. */
-	public String format(Date value) {
+	public String format(final Date value, final TimeZone tz) {
+        final SimpleDateFormat sdf;
 		if (this == DATE10) {
-			return String.format("%Tm%<Td%<TH%<TM%<TS", value);
+            sdf = new SimpleDateFormat("MMddHHmmss");
 		} else if (this == DATE4) {
-			return String.format("%Tm%<Td", value);
+            sdf = new SimpleDateFormat("MMdd");
 		} else if (this == DATE_EXP) {
-			return String.format("%Ty%<Tm", value);
+            sdf = new SimpleDateFormat("yyMM");
 		} else if (this == TIME) {
-			return String.format("%TH%<TM%<TS", value);
-		}
-		throw new IllegalArgumentException("Cannot format date as " + this);
+            sdf = new SimpleDateFormat("HHmmss");
+		} else {
+            throw new IllegalArgumentException("Cannot format date as " + this);
+        }
+        if (tz != null) {
+            sdf.setTimeZone(tz);
+        }
+        return sdf.format(value);
 	}
 
 	/** Formats the string to the given length (length is only useful if type is ALPHA, NUMERIC or BINARY). */
