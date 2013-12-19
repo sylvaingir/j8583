@@ -27,7 +27,7 @@ public class TestDates {
 		today.set(GregorianCalendar.MINUTE,0);
 		today.set(GregorianCalendar.SECOND,0);
 		today.set(GregorianCalendar.MILLISECOND,0);
-		byte[] buf = IsoType.DATE4.format(soon).getBytes();
+		byte[] buf = IsoType.DATE4.format(soon, null).getBytes();
 		IsoValue<Date> comp = new Date4ParseInfo().parse(0, buf, 0, null);
 		Assert.assertEquals(comp.getValue(), today.getTime());
 		//Now with the binary
@@ -40,7 +40,7 @@ public class TestDates {
 	@Test
 	public void testDate10FutureTolerance() throws ParseException, IOException {
 		Date soon = new Date(System.currentTimeMillis() + 50000);
-		byte[] buf = IsoType.DATE10.format(soon).getBytes();
+		byte[] buf = IsoType.DATE10.format(soon, null).getBytes();
 		IsoValue<Date> comp = new Date10ParseInfo().parse(0, buf, 0, null);
 		assert comp.getValue().after(new Date());
 		//Now with the binary
