@@ -1,4 +1,4 @@
-package j8583;
+package com.solab.iso8583;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -8,15 +8,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import com.solab.iso8583.IsoMessage;
-import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.codecs.CompositeField;
 import com.solab.iso8583.parse.NumericParseInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.solab.iso8583.MessageFactory;
 
 /** Test that parsing invalid messages is properly handled.
  * 

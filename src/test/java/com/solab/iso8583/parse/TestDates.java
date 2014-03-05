@@ -1,4 +1,4 @@
-package j8583;
+package com.solab.iso8583.parse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,8 +10,6 @@ import org.junit.*;
 
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
-import com.solab.iso8583.parse.Date10ParseInfo;
-import com.solab.iso8583.parse.Date4ParseInfo;
 
 /** Test that the dates are formatted and parsed correctly.
  * 

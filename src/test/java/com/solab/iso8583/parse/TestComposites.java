@@ -1,11 +1,8 @@
-package j8583;
+package com.solab.iso8583.parse;
 
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.codecs.CompositeField;
-import com.solab.iso8583.parse.AlphaParseInfo;
-import com.solab.iso8583.parse.LlvarParseInfo;
-import com.solab.iso8583.parse.NumericParseInfo;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -1,6 +1,5 @@
-package j8583;
+package com.solab.iso8583.util;
 
-import com.solab.iso8583.util.Bcd;
 import org.junit.Assert;
 import org.junit.Test;
 

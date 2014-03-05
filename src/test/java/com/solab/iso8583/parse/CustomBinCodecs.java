@@ -1,13 +1,10 @@
-package j8583;
+package com.solab.iso8583.parse;
 
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.MessageFactory;
 import com.solab.iso8583.IsoMessage;
 import com.solab.iso8583.codecs.BigIntBcdCodec;
 import com.solab.iso8583.codecs.LongBcdCodec;
-import com.solab.iso8583.parse.FieldParseInfo;
-import com.solab.iso8583.parse.LlbinParseInfo;
-import com.solab.iso8583.parse.LllbinParseInfo;
 import com.solab.iso8583.util.HexCodec;
 import org.junit.Assert;
 import org.junit.Test;

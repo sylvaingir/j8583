@@ -1,17 +1,14 @@
-package j8583;
+package com.solab.iso8583;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 
-import com.solab.iso8583.IsoType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.solab.iso8583.IsoMessage;
-import com.solab.iso8583.MessageFactory;
 import com.solab.iso8583.util.HexCodec;
 
 /** Test binary message encoding and binary fields. */

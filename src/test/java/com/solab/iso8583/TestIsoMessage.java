@@ -1,17 +1,12 @@
-package j8583;
+package com.solab.iso8583;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 
-import com.solab.iso8583.IsoValue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.solab.iso8583.IsoMessage;
-import com.solab.iso8583.IsoType;
-import com.solab.iso8583.MessageFactory;
 
 /** These are very simple tests for creating and manipulating messages.
  * 

@@ -1,10 +1,7 @@
-package j8583;
+package com.solab.iso8583.util;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.solab.iso8583.util.HexCodec;
-
 
 public class TestHexCodec {
 

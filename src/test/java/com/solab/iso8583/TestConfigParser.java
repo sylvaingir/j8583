@@ -1,9 +1,5 @@
-package j8583;
+package com.solab.iso8583;
 
-import com.solab.iso8583.IsoMessage;
-import com.solab.iso8583.IsoType;
-import com.solab.iso8583.IsoValue;
-import com.solab.iso8583.MessageFactory;
 import org.junit.Assert;
 import org.junit.Test;
 

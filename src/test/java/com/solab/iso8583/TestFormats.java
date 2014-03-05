@@ -1,4 +1,4 @@
-package j8583;
+package com.solab.iso8583;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -6,8 +6,6 @@ import java.util.TimeZone;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.solab.iso8583.IsoType;
 
 /** Tests formatting of certain IsoTypes.
  * 
