@@ -3,6 +3,8 @@ package com.solab.iso8583;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -77,7 +79,7 @@ public class TestIsoMessage {
 	@Test
 	public void testParsing() throws IOException, ParseException {
 		InputStream ins = getClass().getResourceAsStream("/parse1.txt");
-		byte[] buf = new byte[400];
+		final byte[] buf = new byte[400];
 		int pos = 0;
 		while (ins.available() > 0) {
 			buf[pos++] = (byte)ins.read();
@@ -91,6 +93,15 @@ public class TestIsoMessage {
 		byte[] b3 = new byte[b2.length];
 		System.arraycopy(buf, 0, b3, 0, b3.length);
 		Assert.assertArrayEquals(b3, b2);
+
+        //Test it contains the correct fields
+        final List<Integer> fields = Arrays.asList(3, 4, 7, 11, 12, 13, 15, 17, 32, 35, 37, 38, 39, 41, 43, 49, 60, 61, 100, 102, 126);
+        testFields(iso, fields);
+        //Again, but now with forced encoding
+        mf.setForceStringEncoding(true);
+        iso = mf.parseMessage(buf, mf.getIsoHeader(0x210).length());
+        Assert.assertEquals(0x210, iso.getType());
+        testFields(iso, fields);
 	}
 
 	@Test
@@ -124,4 +135,13 @@ public class TestIsoMessage {
         throw new RuntimeException("Update failed!");
     }
 
+    private void testFields(IsoMessage m, List<Integer> fields) {
+        for (int i = 2; i < 128; i++) {
+            if (fields.contains(i)) {
+                Assert.assertTrue(m.hasField(i));
+            } else {
+                Assert.assertFalse(m.hasField(i));
+            }
+        }
+    }
 }
