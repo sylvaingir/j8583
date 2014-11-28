@@ -21,9 +21,7 @@
       </profile>
     </annotationProcessing>
   </component>
-  <component name="CopyrightManager" default="">
-    <module2copyright />
-  </component>
+  <component name="CopyrightManager" default="" />
   <component name="DependencyValidationManager">
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
   </component>
@@ -96,10 +94,6 @@
         </GradleTaskDescriptor>
       </set>
     </option>
-  </component>
-  <component name="GradleSettings">
-    <option name="gradleHome" value="$PROJECT_DIR$/../../../gradle-1.8" />
-    <option name="linkedProjectPath" value="" />
   </component>
   <component name="GradleUISettings2">
     <setting name="root" />
@@ -271,7 +265,7 @@
       <module fileurl="file://$PROJECT_DIR$/j8583.iml" filepath="$PROJECT_DIR$/j8583.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="Java 6" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" assert-keyword="true" jdk-15="true" project-jdk-name="Java 7" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="SvnConfiguration" maxAnnotateRevisions="500" myUseAcceleration="nothing" myAutoUpdateAfterCommit="false" cleanupOnStartRun="false">
@@ -296,4 +290,3 @@
     <mapping directory="" vcs="Git" />
   </component>
 </project>
-
