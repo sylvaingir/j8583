@@ -32,7 +32,7 @@ import com.solab.iso8583.IsoValue;
 public abstract class FieldParseInfo {
 
 	protected IsoType type;
-	protected int length;
+	protected final int length;
 	private String encoding = System.getProperty("file.encoding");
     protected boolean forceStringDecoding;
     private CustomField<?> decoder;
@@ -137,7 +137,7 @@ public abstract class FieldParseInfo {
 
     protected int decodeLength(byte[] buf, int pos, int digits) throws UnsupportedEncodingException {
         if (forceStringDecoding) {
-            return Integer.parseInt(new String(buf, pos, digits, encoding));
+            return Integer.parseInt(new String(buf, pos, digits, encoding), 10);
         } else if (digits == 3) {
             return ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
         } else {
