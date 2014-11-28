@@ -187,26 +187,26 @@ public enum IsoType {
 	}
 
 	public <T> IsoValue<T> value(T val, int len) {
-		return new IsoValue<T>(this, val, len);
+		return new IsoValue<>(this, val, len);
 	}
 
 	public <T> IsoValue<T> value(T val) {
-		return new IsoValue<T>(this, val);
+		return new IsoValue<>(this, val);
 	}
 
 	public <T> IsoValue<T> call(T val, int len) {
-		return new IsoValue<T>(this, val, len);
+		return new IsoValue<>(this, val, len);
 	}
 
 	public <T> IsoValue<T> call(T val) {
-		return new IsoValue<T>(this, val);
+		return new IsoValue<>(this, val);
 	}
 
 	public <T> IsoValue<T> apply(T val, int len) {
-		return new IsoValue<T>(this, val, len);
+		return new IsoValue<>(this, val, len);
 	}
 	public <T> IsoValue<T> apply(T val) {
-		return new IsoValue<T>(this, val);
+		return new IsoValue<>(this, val);
 	}
 
 }

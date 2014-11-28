@@ -49,18 +49,18 @@ public class MessageFactory<T extends IsoMessage> {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	/** This map stores the message template for each message type. */
-	private Map<Integer, T> typeTemplates = new HashMap<Integer, T>();
+	private Map<Integer, T> typeTemplates = new HashMap<>();
 	/** Stores the information needed to parse messages sorted by type. */
-	protected Map<Integer, Map<Integer, FieldParseInfo>> parseMap = new HashMap<Integer, Map<Integer, FieldParseInfo>>();
+	protected Map<Integer, Map<Integer, FieldParseInfo>> parseMap = new HashMap<>();
 	/** Stores the field numbers to be parsed, in order of appearance. */
-    protected Map<Integer, List<Integer>> parseOrder = new HashMap<Integer, List<Integer>>();
+    protected Map<Integer, List<Integer>> parseOrder = new HashMap<>();
 
 	private TraceNumberGenerator traceGen;
 	/** The ISO header to be included in each message type. */
-	private Map<Integer, String> isoHeaders = new HashMap<Integer, String>();
+	private Map<Integer, String> isoHeaders = new HashMap<>();
 	/** A map for the custom field encoder/decoders, keyed by field number. */
 	@SuppressWarnings("rawtypes")
-	private Map<Integer, CustomField> customFields = new HashMap<Integer, CustomField>();
+	private Map<Integer, CustomField> customFields = new HashMap<>();
 	/** Indicates if the current date should be set on new messages (field 7). */
 	private boolean setDate;
 	/** Indicates if the factory should create binary messages and also parse binary messages. */
@@ -576,7 +576,7 @@ public class MessageFactory<T extends IsoMessage> {
 	 * of field to expect. The keys will be the field numbers. */
 	public void setParseMap(int type, Map<Integer, FieldParseInfo> map) {
 		parseMap.put(type, map);
-		ArrayList<Integer> index = new ArrayList<Integer>();
+		ArrayList<Integer> index = new ArrayList<>();
 		index.addAll(map.keySet());
 		Collections.sort(index);
 		log.trace(String.format("ISO8583 MessageFactory adding parse map for type %04x with fields %s", type, index));

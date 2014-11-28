@@ -41,14 +41,14 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
     @SuppressWarnings("rawtypes")
     public CompositeField addValue(IsoValue<?> v) {
         if (values == null) {
-            values = new ArrayList<IsoValue>(4);
+            values = new ArrayList<>(4);
         }
         values.add(v);
         return this;
     }
     public <T> CompositeField addValue(T val, CustomField<T> encoder, IsoType t, int length) {
-        return addValue(t.needsLength() ? new IsoValue<T>(t, val, length, encoder)
-                : new IsoValue<T>(t, val, encoder));
+        return addValue(t.needsLength() ? new IsoValue<>(t, val, length, encoder)
+                : new IsoValue<>(t, val, encoder));
     }
 
     @SuppressWarnings("unchecked")
@@ -78,7 +78,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
     @Override
     public CompositeField decodeBinaryField(byte[] buf, int offset, int length) {
         @SuppressWarnings("rawtypes")
-        List<IsoValue> vals = new ArrayList<IsoValue>(parsers.size());
+        List<IsoValue> vals = new ArrayList<>(parsers.size());
         int pos = 0;
         try {
             for (FieldParseInfo fpi : parsers) {
@@ -114,7 +114,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
     @Override
     public CompositeField decodeField(String value) {
         @SuppressWarnings("rawtypes")
-        List<IsoValue> vals = new ArrayList<IsoValue>(parsers.size());
+        List<IsoValue> vals = new ArrayList<>(parsers.size());
         byte[] buf = value.getBytes();
         int pos = 0;
         try {
@@ -158,23 +158,19 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
 
     @Override
     public String encodeField(CompositeField value) {
-        final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        byte[] buf = null;
         try {
             String encoding = null;
+            final ByteArrayOutputStream bout = new ByteArrayOutputStream();
             for (IsoValue<?> v : value.getValues()) {
                 v.write(bout, false, true);
                 if (encoding == null)encoding = v.getCharacterEncoding();
             }
-            buf = bout.toByteArray();
+            final byte[] buf = bout.toByteArray();
             return new String(buf, encoding==null?"UTF-8":encoding);
-        } catch (UnsupportedEncodingException ex) {
-            log.error("Encoding text CompositeField", ex);
         } catch (IOException ex) {
             log.error("Encoding text CompositeField", ex);
-            //shouldn't happen
+            return "";
         }
-        return new String(buf);
     }
 
     @Override

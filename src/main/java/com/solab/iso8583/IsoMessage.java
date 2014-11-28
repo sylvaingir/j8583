@@ -204,9 +204,9 @@ public class IsoMessage {
     	} else {
     		IsoValue<T> v = null;
     		if (t.needsLength()) {
-    			v = new IsoValue<T>(t, value, length, encoder);
+    			v = new IsoValue<>(t, value, length, encoder);
     		} else {
-    			v = new IsoValue<T>(t, value, encoder);
+    			v = new IsoValue<>(t, value, encoder);
     		}
     		v.setCharacterEncoding(encoding);
     		fields[index] = v;

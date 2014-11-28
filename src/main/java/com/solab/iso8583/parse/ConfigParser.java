@@ -58,7 +58,7 @@ public class ConfigParser {
                ClassLoader loader) throws IOException {
    		if (loader.getResource("j8583.xml") == null) {
    			log.warn("ISO8583 ConfigParser cannot find j8583.xml, returning empty message factory");
-   			return new MessageFactory<IsoMessage>();
+   			return new MessageFactory<>();
    		} else {
    			return createFromClasspathConfig(loader, "j8583.xml");
    		}
@@ -81,29 +81,23 @@ public class ConfigParser {
      * using MessageFactory's ClassLoader. */
    	public static MessageFactory<IsoMessage> createFromClasspathConfig(
                ClassLoader loader, String path) throws IOException {
-		InputStream ins = loader.getResourceAsStream(path);
-		MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
-		if (ins != null) {
-			log.debug("ISO8583 Parsing config from classpath file {}", path);
-			try {
-				parse(mfact, ins);
-			} finally {
-				ins.close();
-			}
-		} else {
-			log.warn("ISO8583 File not found in classpath: {}", path);
-		}
+		MessageFactory<IsoMessage> mfact = new MessageFactory<>();
+        try (InputStream ins = loader.getResourceAsStream(path)) {
+            if (ins != null) {
+                log.debug("ISO8583 Parsing config from classpath file {}", path);
+                parse(mfact, ins);
+            } else {
+                log.error("ISO8583 File not found in classpath: {}", path);
+            }
+        }
 		return mfact;
 	}
 
 	/** Creates a message factory from the file located at the specified URL. */
 	public static MessageFactory<IsoMessage> createFromUrl(URL url) throws IOException {
-		MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
-		InputStream stream = url.openStream();
-		try {
+		MessageFactory<IsoMessage> mfact = new MessageFactory<>();
+		try (InputStream stream = url.openStream()) {
 			parse(mfact, stream);
-		} finally {
-			stream.close();
 		}
 		return mfact;
 	}
@@ -352,11 +346,8 @@ public class ConfigParser {
 				}
 			});
 			doc = docb.parse(stream);
-		} catch (ParserConfigurationException ex) {
+		} catch (ParserConfigurationException | SAXException ex) {
 			log.error("ISO8583 Cannot parse XML configuration", ex);
-			return;
-		} catch (SAXException ex) {
-			log.error("ISO8583 Parsing XML configuration", ex);
 			return;
 		}
 		final Element root = doc.getDocumentElement();
@@ -382,11 +373,8 @@ public class ConfigParser {
 	 * configure the message factory from that config. */
 	public static <T extends IsoMessage> void configureFromUrl(
             MessageFactory<T> mfact, URL url) throws IOException {
-		InputStream stream = url.openStream();
-		try {
+		try (InputStream stream = url.openStream()) {
 			parse(mfact, stream);
-		} finally {
-			stream.close();
 		}
 	}
 
@@ -395,17 +383,14 @@ public class ConfigParser {
 	 * Spring-bound instances of MessageFactory for example. */
 	public static <T extends IsoMessage> void configureFromClasspathConfig(
             MessageFactory<T> mfact, String path) throws IOException {
-		InputStream ins = mfact.getClass().getClassLoader().getResourceAsStream(path);
-		if (ins != null) {
-			log.debug("ISO8583 Parsing config from classpath file {}", path);
-			try {
-				parse(mfact, ins);
-			} finally {
-				ins.close();
-			}
-		} else {
-			log.warn("ISO8583 File not found in classpath: {}", path);
-		}
+        try (InputStream ins = mfact.getClass().getClassLoader().getResourceAsStream(path)) {
+            if (ins != null) {
+                log.debug("ISO8583 Parsing config from classpath file {}", path);
+                parse(mfact, ins);
+            } else {
+                log.warn("ISO8583 File not found in classpath: {}", path);
+            }
+        }
 	}
 
 	/** Parses a message type expressed as a hex string and returns the integer number.
