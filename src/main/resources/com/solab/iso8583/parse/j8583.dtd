@@ -8,7 +8,7 @@
 <!ATTLIST template type NMTOKEN #REQUIRED >
 <!ATTLIST template extends NMTOKEN #IMPLIED >
 
-<!ELEMENT parse ( field+ ) >
+<!ELEMENT parse ( field* ) >
 <!ATTLIST parse type NMTOKEN #REQUIRED >
 <!ATTLIST parse extends NMTOKEN #IMPLIED >
 
