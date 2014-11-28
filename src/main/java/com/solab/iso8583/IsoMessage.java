@@ -496,4 +496,10 @@ public class IsoMessage {
     	}
     }
 
+    /** Remove the specified fields from the message. */
+    public void removeFields(int... idx) {
+        for (int i : idx) {
+            setField(i, null);
+        }
+    }
 }
