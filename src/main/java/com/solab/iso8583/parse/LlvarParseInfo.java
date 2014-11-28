@@ -40,37 +40,41 @@ public class LlvarParseInfo extends FieldParseInfo {
                              final int pos, final CustomField<T> custom)
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid LLVAR field %d %d", field, pos), pos);
-		} else if (pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLVAR header, pos %d", pos), pos);
-		}
-		length = decodeLength(buf, pos, 2);
-		if (length < 0) {
 			throw new ParseException(String.format(
-                    "Invalid LLVAR length %d, field %d pos %d", length, field, pos), pos);
-		} else if (length+pos+2 > buf.length) {
+					"Invalid LLVAR field %d %d", field, pos), pos);
+		} else if (pos+2 > buf.length) {
+			throw new ParseException(String.format(
+					"Insufficient data for LLVAR header, pos %d", pos), pos);
+		}
+		final int len = decodeLength(buf, pos, 2);
+		if (len < 0) {
+			throw new ParseException(String.format(
+                    "Invalid LLVAR length %d, field %d pos %d", len, field, pos), pos);
+		} else if (len+pos+2 > buf.length) {
 			throw new ParseException(String.format(
                     "Insufficient data for LLVAR field %d, pos %d", field, pos), pos);
 		}
 		String _v;
         try {
-            _v = length == 0 ? "" : new String(buf, pos + 2, length, getCharacterEncoding());
+            _v = len == 0 ? "" : new String(buf, pos + 2, len, getCharacterEncoding());
         } catch (IndexOutOfBoundsException ex) {
             throw new ParseException(String.format(
                     "Insufficient data for LLVAR header, field %d pos %d", field, pos), pos);
         }
-		//This is new: if the String's length is different from the specified length in the buffer,
-		//there are probably some extended characters. So we create a String from the rest of the buffer,
-		//and then cut it to the specified length.
-		if (_v.length() != length) {
-			_v = new String(buf, pos + 2, buf.length-pos-2, getCharacterEncoding()).substring(0, length);
+		//This is new: if the String's length is different from the specified
+		// length in the buffer, there are probably some extended characters.
+		// So we create a String from the rest of the buffer, and then cut it to
+		// the specified length.
+		if (_v.length() != len) {
+			_v = new String(buf, pos + 2, buf.length-pos-2,
+					getCharacterEncoding()).substring(0, len);
 		}
 		if (custom == null) {
-			return new IsoValue<String>(type, _v, length, null);
+			return new IsoValue<String>(type, _v, len, null);
 		} else {
             T dec = custom.decodeField(_v);
-            return dec == null ? new IsoValue<String>(type, _v, length, null) :
-                    new IsoValue<T>(type, dec, length, custom);
+            return dec == null ? new IsoValue<String>(type, _v, len, null) :
+                    new IsoValue<T>(type, dec, len, custom);
 		}
 	}
 
@@ -83,22 +87,25 @@ public class LlvarParseInfo extends FieldParseInfo {
                     field, pos), pos);
 		} else if (pos+1 > buf.length) {
 			throw new ParseException(String.format(
-                    "Insufficient data for bin LLVAR header, field %d pos %d", field, pos), pos);
+                    "Insufficient data for bin LLVAR header, field %d pos %d",
+					field, pos), pos);
 		}
-		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
-		if (length < 0) {
+		final int len = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
+		if (len < 0) {
 			throw new ParseException(String.format(
-                    "Invalid bin LLVAR length %d, field %d pos %d", length, field, pos), pos);
+                    "Invalid bin LLVAR length %d, field %d pos %d", len, field, pos), pos);
 		}
-		if (length+pos+1 > buf.length) {
+		if (len+pos+1 > buf.length) {
 			throw new ParseException(String.format(
                     "Insufficient data for bin LLVAR field %d, pos %d", field, pos), pos);
 		}
 		if (custom == null) {
-			return new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null);
+			return new IsoValue<String>(type, new String(buf, pos + 1, len,
+					getCharacterEncoding()), null);
 		} else {
-            T dec = custom.decodeField(new String(buf, pos + 1, length, getCharacterEncoding()));
-            return dec == null ? new IsoValue<String>(type, new String(buf, pos + 1, length, getCharacterEncoding()), null) :
+            T dec = custom.decodeField(new String(buf, pos + 1, len, getCharacterEncoding()));
+            return dec == null ? new IsoValue<String>(type,
+					new String(buf, pos + 1, len, getCharacterEncoding()), null) :
                     new IsoValue<T>(type, dec, custom);
 		}
 	}

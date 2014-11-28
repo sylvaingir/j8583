@@ -49,22 +49,23 @@ public class LlbinParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format("Insufficient LLBIN header field %d",
                     field), pos);
 		}
-		length = decodeLength(buf, pos, 2);
-		if (length < 0) {
+		final int len = decodeLength(buf, pos, 2);
+		if (len < 0) {
 			throw new ParseException(String.format("Invalid LLBIN field %d length %d pos %d",
-                    field, length, pos), pos);
+                    field, len, pos), pos);
 		}
-		if (length+pos+2 > buf.length) {
+		if (len+pos+2 > buf.length) {
 			throw new ParseException(String.format(
                     "Insufficient data for LLBIN field %d, pos %d (LEN states '%s')",
                     field, pos, new String(buf, pos, 2)), pos);
 		}
-		byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 2, length));
+		byte[] binval = len == 0 ? new byte[0] : HexCodec.hexDecode(
+                new String(buf, pos + 2, len));
 		if (custom == null) {
 			return new IsoValue<byte[]>(type, binval, binval.length, null);
         } else if (custom instanceof CustomBinaryField) {
             try {
-                T dec = ((CustomBinaryField<T>)custom).decodeBinaryField(buf, pos + 2, length);
+                T dec = ((CustomBinaryField<T>)custom).decodeBinaryField(buf, pos + 2, len);
                 return dec == null ? new IsoValue<byte[]>(type, binval, binval.length, null) :
                         new IsoValue<T>(type, dec, 0, custom);
             } catch (IndexOutOfBoundsException ex) {
@@ -74,7 +75,7 @@ public class LlbinParseInfo extends FieldParseInfo {
             }
 		} else {
             try {
-                T dec = custom.decodeField(new String(buf, pos + 2, length));
+                T dec = custom.decodeField(new String(buf, pos + 2, len));
                 return dec == null ? new IsoValue<byte[]>(type, binval, binval.length, null) :
                         new IsoValue<T>(type, dec, binval.length, custom);
             } catch (IndexOutOfBoundsException ex) {
@@ -98,7 +99,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 		}
 		final int l = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
 		if (l < 0) {
-			throw new ParseException(String.format("Invalid bin LLBIN length %d pos %d", length, pos), pos);
+			throw new ParseException(String.format("Invalid bin LLBIN length %d pos %d", l, pos), pos);
 		}
 		if (l+pos+1 > buf.length) {
 			throw new ParseException(String.format(
