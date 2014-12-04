@@ -64,7 +64,8 @@ public class IsoMessage {
     }
 
     /** Tells the message to encode its bitmap in binary format, even if the message
-     * itself is encoded as text. */
+     * itself is encoded as text. This has no effect if the binary flag is set, which means
+     * binary messages will always encode their bitmap in binary format. */
     public void setBinaryBitmap(boolean flag) {
         binBitmap = flag;
     }
@@ -124,7 +125,9 @@ public class IsoMessage {
     	return type;
     }
 
-    /** Indicates whether the message should be binary. Default is false. */
+    /** Indicates whether the message should be binary. Default is false.
+     * To encode the message as text but the bitmap in binary format, you can set the
+     * binaryBitmap flag. */
     public void setBinary(boolean flag) {
     	binary = flag;
     }
