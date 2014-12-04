@@ -270,7 +270,7 @@ public class MessageFactory<T extends IsoMessage> {
 		return resp;
 	}
 
-    /** Sets the timezone for the specified FieldParseInfo, if it's indeed for parsing dates. */
+    /** Sets the timezone for the specified FieldParseInfo, if it's needed for parsing dates. */
     public void setTimezoneForParseGuide(int messageType, int field, TimeZone tz) {
         Map<Integer, FieldParseInfo> guide = parseMap.get(messageType);
         if (guide != null) {
