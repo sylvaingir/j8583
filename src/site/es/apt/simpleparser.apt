@@ -12,7 +12,7 @@ Procesador simple de mensajes ISO8583
   configuración de j8583. Por ejemplo:
 
 +-----
-java -cp lib/slf4j-api-1.7.1.jar:lib/slf4j-simple-1.7.1.jar:lib/j8583-1.5.6.jar com.solab.iso8583.util.SimpleParser /tmp/j8583-config.xml
+java -cp lib/slf4j-api-1.7.7.jar:lib/slf4j-simple-1.7.7.jar:lib/j8583-1.10.2.jar com.solab.iso8583.util.SimpleParser /tmp/j8583-config.xml
 +-----
 
   Una vez que arranca, se puede pegar un mensaje ISO8583 codificado en texto y el programa

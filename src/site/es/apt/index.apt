@@ -44,6 +44,7 @@ Encabezado ISO (opcional)|Tipo de mensaje|bitmap primario|bitmap secundario (opc
   clase IsoValue como valores en sus campos. Se puede trabajar directamente son los IsoValues o se pueden
   usar algunos métodos de conveniencia del IsoMessage para trabajar directamente con los datos almacenados.
 
-  j8583 puede manejar de forma directa los tipos de datos básicos: valores numéricos, cadenas, y fechas.
+  j8583 puede manejar de forma directa los tipos de datos básicos: valores numéricos, cadenas, montos, fechas
+  y arreglos de bytes.
   Si deseas guardar objetos de otra clase en un campo, puedes implementar tu propio codificador/decodificador
   de datos para ese campo. En la {{{guide.html}guía del usuario}} hay más información al respecto.

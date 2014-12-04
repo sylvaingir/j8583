@@ -11,23 +11,29 @@ Configurando j8583 con Spring
 
   Las propiedades que se pueden configurar en la definición del componente en Spring son:
 
-*------------+---------------------------------+
-| configPath | Indica la ruta al archivo de configuración XML que contiene las plantillas de mensajes y de lectura. Debe ser una ruta dentro del classpath.
-*------------+---------------------------------+
-| customFields | Un mapa con los CustomFields que se deben usar en cada campo que los requiera (las llaves son los números de campo).
-*------------+---------------------------------+
-| assignDate | Se pone en <true> para que la MessageFactory le ponga la fecha actual a los mensajes nuevos en el campo 7, tipo DATE10.
-*------------+---------------------------------+
-| etx        | Se indica el valor numérico del caracter que debe ser el terminador de mensajes, o -1 para no usar un terminador.
-*------------+---------------------------------+
-| forceSecondaryBitmap | Si se activa, los mensajes creados incluirán el bitmap secundario en la trama generada aún cuando no tengan campos del 65 al 128. Algunos proveedores requieren esto.
-*------------+---------------------------------+
+*------------------------+---------------------------------+
+| configPath             | Indica la ruta al archivo de configuración XML que contiene las plantillas de mensajes y de lectura. Debe ser una ruta dentro del classpath.
+*------------------------+---------------------------------+
+| customFields           | Un mapa con los CustomFields que se deben usar en cada campo que los requiera (las llaves son los números de campo).
+*------------------------+---------------------------------+
+| characterEncoding      | Fija el juego de caracteres que se debe usar para parsear datos de texto (ALPHA,LLVAR,LLLVAR) cuando se necesita uno distinto al valor por defecto de la plataforma.
+*------------------------+---------------------------------+
+| assignDate             | Se pone en <true> para que la MessageFactory le ponga la fecha actual a los mensajes nuevos en el campo 7, tipo DATE10.
+*------------------------+---------------------------------+
+| etx                    | Se indica el valor numérico del caracter que debe ser el terminador de mensajes, o -1 para no usar un terminador.
+*------------------------+---------------------------------+
+| forceSecondaryBitmap   | Si se activa, los mensajes creados incluirán el bitmap secundario en la trama generada aún cuando no tengan campos del 65 al 128. Algunos proveedores requieren esto.
+*------------------------+---------------------------------+
+| forceStringEncoding    | Cuando se activa esta bandera, los valores de texto se decodifican utilizando el juego de caracteres definido, en vez de convertir directamente cadenas a partir de arreglos de bytes, lo cual es el comportamiento por defecto para un mejor desempeño pero puede presentar problemas con valores que contengan caracteres no-ASCII.
+*------------------------+---------------------------------+
 | ignoreLastMissingField | Si se activa esta propiedad, entonces al leer mensajes que se terminan antes de haber procesado todos los campos indicados en el bitmap, únicamente se imprime una advertencia en la bitácora. Normalmente (con la propiedad desactiva) se arroja una ParseException cuando faltan campos en el mensaje.
-*------------+---------------------------------+
-| useBinaryMessages | Si se activa esta propiedad, se pasa a los mensajes creados para que al generar sus tramas lo hagan en formato binario. El default es que se utilice ASCII.
-*------------+---------------------------------+
-| traceNumberGenerator | Se pasa la implementación de TraceNumberGenerator para que la fábrica pueda ponerle un nuevo número de traza en el campo 11 a los mensajes creados.
-*------------+---------------------------------+
+*------------------------+---------------------------------+
+| traceNumberGenerator   | Se pasa la implementación de TraceNumberGenerator para que la fábrica pueda ponerle un nuevo número de traza en el campo 11 a los mensajes creados.
+*------------------------+---------------------------------+
+| useBinaryBitmap        | Activar esta bandera indica que los mensajes nuevos deben codificar su bitmap en formato binario, aunque el resto se encuentre en formato texto. Esto no tiene efecto alguno en mensajes binarios.
+*------------------------+---------------------------------+
+| useBinaryMessages      | Si se activa esta propiedad, se pasa a los mensajes creados para que al generar sus tramas lo hagan en formato binario. El default es que se utilice ASCII.
+*------------------------+---------------------------------+
 
   Example:
 
@@ -45,3 +51,14 @@ Configurando j8583 con Spring
   <property name="configPath" value="/your-j8583.xml" />
 </bean>
 +-----
+
+  Hay algunas propiedades que únicamente se pueden modificar por código:
+
+*------------------------+---------------------------------+
+| timezoneForParseGuide  | Fija la zona horaria para un campo de un tipo de mensaje. Esto es útil para codificar o decodificar fechas y horas con una zona horario distinta de la local.
+*------------------------+---------------------------------+
+| customField            | Especifica un CustomField a usar en un solo campo.
+*------------------------+---------------------------------+
+| isoHeader              | Fija el encabezado ISO para un tipo de mensaje.
+*------------------------+---------------------------------+
+
