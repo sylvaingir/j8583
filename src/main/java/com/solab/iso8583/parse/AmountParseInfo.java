@@ -51,7 +51,7 @@ public class AmountParseInfo extends FieldParseInfo {
 		}
 		String c = new String(buf, pos, 12, getCharacterEncoding());
 		try {
-			return new IsoValue<BigDecimal>(type, new BigDecimal(c).movePointLeft(2));
+			return new IsoValue<>(type, new BigDecimal(c).movePointLeft(2));
 		} catch (NumberFormatException ex) {
 			throw new ParseException(String.format("Cannot read amount '%s' field %d pos %d",
                     c, field, pos), pos);
@@ -76,7 +76,7 @@ public class AmountParseInfo extends FieldParseInfo {
 			}
 		}
 		try {
-			return new IsoValue<BigDecimal>(IsoType.AMOUNT, new BigDecimal(new String(digits)));
+			return new IsoValue<>(IsoType.AMOUNT, new BigDecimal(new String(digits)));
 		} catch (NumberFormatException ex) {
 			throw new ParseException(String.format("Cannot read amount '%s' field %d pos %d",
                     new String(digits), field, pos), pos);

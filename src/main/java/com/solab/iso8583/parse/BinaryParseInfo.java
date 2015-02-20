@@ -52,11 +52,11 @@ public class BinaryParseInfo extends FieldParseInfo {
 		}
 		byte[] binval = HexCodec.hexDecode(new String(buf, pos, length*2));
 		if (custom == null) {
-			return new IsoValue<byte[]>(type, binval, binval.length, null);
+			return new IsoValue<>(type, binval, binval.length, null);
 		} else {
             T dec = custom.decodeField(new String(buf, pos, length*2, getCharacterEncoding()));
-            return dec == null ? new IsoValue<byte[]>(type, binval, binval.length, null) :
-                    new IsoValue<T>(type, dec, length, custom);
+            return dec == null ? new IsoValue<>(type, binval, binval.length, null) :
+                    new IsoValue<>(type, dec, length, custom);
 		}
 	}
 
@@ -75,11 +75,11 @@ public class BinaryParseInfo extends FieldParseInfo {
 		byte[] _v = new byte[length];
 		System.arraycopy(buf, pos, _v, 0, length);
 		if (custom == null) {
-			return new IsoValue<byte[]>(type, _v, length, null);
+			return new IsoValue<>(type, _v, length, null);
 		} else {
             T dec = custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length));
-            return dec == null ? new IsoValue<byte[]>(type, _v, length, null) :
-                    new IsoValue<T>(type, dec, length, custom);
+            return dec == null ? new IsoValue<>(type, _v, length, null) :
+                    new IsoValue<>(type, dec, length, custom);
 		}
 	}
 

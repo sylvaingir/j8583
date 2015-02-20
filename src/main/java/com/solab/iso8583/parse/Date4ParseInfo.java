@@ -66,7 +66,7 @@ public class Date4ParseInfo extends DateTimeParseInfo {
             cal.setTimeZone(tz);
         }
 		Date10ParseInfo.adjustWithFutureTolerance(cal);
-		return new IsoValue<Date>(type, cal.getTime(), null);
+		return new IsoValue<>(type, cal.getTime(), null);
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class Date4ParseInfo extends DateTimeParseInfo {
             cal.setTimeZone(tz);
         }
 		DateTimeParseInfo.adjustWithFutureTolerance(cal);
-		return new IsoValue<Date>(type, cal.getTime(), null);
+		return new IsoValue<>(type, cal.getTime(), null);
 	}
 
 }

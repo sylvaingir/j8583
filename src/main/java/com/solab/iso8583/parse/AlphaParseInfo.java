@@ -49,12 +49,12 @@ public class AlphaParseInfo extends AlphaNumericFieldParseInfo {
 		}
         try {
             if (custom == null) {
-                return new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
+                return new IsoValue<>(type, new String(buf, pos, length, getCharacterEncoding()), length, null);
             } else {
                 T decoded = custom.decodeField(new String(buf, pos, length, getCharacterEncoding()));
                 return decoded == null ?
-                    new IsoValue<String>(type, new String(buf, pos, length, getCharacterEncoding()), length, null) :
-                    new IsoValue<T>(type, decoded, length, custom);
+                    new IsoValue<>(type, new String(buf, pos, length, getCharacterEncoding()), length, null) :
+                    new IsoValue<>(type, decoded, length, custom);
             }
         } catch (IndexOutOfBoundsException ex) {
             throw new ParseException(String.format(

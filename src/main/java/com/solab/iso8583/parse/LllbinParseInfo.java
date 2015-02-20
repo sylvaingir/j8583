@@ -59,13 +59,13 @@ public class LllbinParseInfo extends FieldParseInfo {
 		}
 		byte[] binval = l == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 3, l));
 		if (custom == null) {
-			return new IsoValue<byte[]>(type, binval, binval.length, null);
+			return new IsoValue<>(type, binval, binval.length, null);
         } else if (custom instanceof CustomBinaryField) {
             try {
                 T dec = ((CustomBinaryField<T>)custom).decodeBinaryField(
                     buf, pos + 3, l);
-                return dec == null ? new IsoValue<byte[]>(type, binval, binval.length, null) :
-                        new IsoValue<T>(type, dec, 0, custom);
+                return dec == null ? new IsoValue<>(type, binval, binval.length, null) :
+                        new IsoValue<>(type, dec, 0, custom);
             } catch (IndexOutOfBoundsException ex) {
                 throw new ParseException(String.format(
                         "Insufficient data for LLLBIN field %d, pos %d", field, pos), pos);
@@ -74,8 +74,8 @@ public class LllbinParseInfo extends FieldParseInfo {
             try {
                 T dec = custom.decodeField(
                     l == 0 ? "" : new String(buf, pos + 3, l));
-                return dec == null ? new IsoValue<byte[]>(type, binval, binval.length, null) :
-                        new IsoValue<T>(type, dec, l, custom);
+                return dec == null ? new IsoValue<>(type, binval, binval.length, null) :
+                        new IsoValue<>(type, dec, l, custom);
             } catch (IndexOutOfBoundsException ex) {
                 throw new ParseException(String.format(
                         "Insufficient data for LLLBIN field %d, pos %d", field, pos), pos);
@@ -107,21 +107,21 @@ public class LllbinParseInfo extends FieldParseInfo {
 		byte[] _v = new byte[l];
 		System.arraycopy(buf, pos+2, _v, 0, l);
 		if (custom == null) {
-			return new IsoValue<byte[]>(type, _v, null);
+			return new IsoValue<>(type, _v, null);
         } else if (custom instanceof CustomBinaryField) {
             try {
                 T dec = ((CustomBinaryField<T>)custom).decodeBinaryField(
                     buf, pos + 2, l);
-                return dec == null ? new IsoValue<byte[]>(type, _v, _v.length, null) :
-                        new IsoValue<T>(type, dec, l, custom);
+                return dec == null ? new IsoValue<>(type, _v, _v.length, null) :
+                        new IsoValue<>(type, dec, l, custom);
             } catch (IndexOutOfBoundsException ex) {
                 throw new ParseException(String.format(
                         "Insufficient data for LLLBIN field %d, pos %d", field, pos), pos);
             }
 		} else {
             T dec = custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length));
-            return dec == null ? new IsoValue<byte[]>(type, _v, null) :
-                    new IsoValue<T>(type, dec, custom);
+            return dec == null ? new IsoValue<>(type, _v, null) :
+                    new IsoValue<>(type, dec, custom);
 		}
 	}
 

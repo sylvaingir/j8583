@@ -67,7 +67,7 @@ public class DateExpParseInfo extends DateTimeParseInfo {
         if (tz != null) {
             cal.setTimeZone(tz);
         }
-		return new IsoValue<Date>(type, cal.getTime(), null);
+		return new IsoValue<>(type, cal.getTime(), null);
 	}
 
 	@Override
@@ -99,6 +99,6 @@ public class DateExpParseInfo extends DateTimeParseInfo {
         if (tz != null) {
             cal.setTimeZone(tz);
         }
-		return new IsoValue<Date>(type, cal.getTime(), null);
+		return new IsoValue<>(type, cal.getTime(), null);
 	}
 }
