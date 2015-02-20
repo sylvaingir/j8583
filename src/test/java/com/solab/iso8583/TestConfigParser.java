@@ -16,7 +16,7 @@ public class TestConfigParser {
 
     @Test
     public void testParser() throws IOException, ParseException {
-        MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
+        MessageFactory<IsoMessage> mfact = new MessageFactory<>();
         mfact.setConfigPath("config.xml");
         //Headers
         Assert.assertNotNull(mfact.getIsoHeader(0x800));
@@ -58,4 +58,42 @@ public class TestConfigParser {
         Assert.assertTrue(m.hasField(39));
     }
 
+    @Test //issue 34
+    public void testMultilevelExtendParseGuides() throws IOException, ParseException {
+        MessageFactory<IsoMessage> mfact = new MessageFactory<>();
+        mfact.setConfigPath("issue34.xml");
+        //Parse a 200
+        final String m200 = "0200422000000880800001X1231235959123456101010202020TERMINAL484";
+        final String m210 = "0210422000000A80800001X123123595912345610101020202099TERMINAL484";
+        final String m400 = "0400422000000880800401X1231235959123456101010202020TERMINAL484001X";
+        final String m410 = "0410422000000a80800801X123123595912345610101020202099TERMINAL484001X";
+        IsoMessage m = mfact.parseMessage(m200.getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertEquals("X", m.getObjectValue(2));
+        Assert.assertEquals("123456", m.getObjectValue(11));
+        Assert.assertEquals("TERMINAL", m.getObjectValue(41));
+        Assert.assertEquals("484", m.getObjectValue(49));
+        m = mfact.parseMessage(m210.getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertEquals("X", m.getObjectValue(2));
+        Assert.assertEquals("123456", m.getObjectValue(11));
+        Assert.assertEquals("TERMINAL", m.getObjectValue(41));
+        Assert.assertEquals("484", m.getObjectValue(49));
+        Assert.assertEquals("99", m.getObjectValue(39));
+        m = mfact.parseMessage(m400.getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertEquals("X", m.getObjectValue(2));
+        Assert.assertEquals("123456", m.getObjectValue(11));
+        Assert.assertEquals("TERMINAL", m.getObjectValue(41));
+        Assert.assertEquals("484", m.getObjectValue(49));
+        Assert.assertEquals("X", m.getObjectValue(62));
+        m = mfact.parseMessage(m410.getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertEquals("X", m.getObjectValue(2));
+        Assert.assertEquals("123456", m.getObjectValue(11));
+        Assert.assertEquals("TERMINAL", m.getObjectValue(41));
+        Assert.assertEquals("484", m.getObjectValue(49));
+        Assert.assertEquals("99", m.getObjectValue(39));
+        Assert.assertEquals("X", m.getObjectValue(61));
+    }
 }
