@@ -51,6 +51,7 @@ public class TestFormats {
 		assert IsoType.ALPHA.format("hola", 6).equals("hola  ");
 		assert IsoType.LLVAR.format("hola", 0).equals("hola");
 		assert IsoType.LLLVAR.format("hola", 0).equals("hola");
+        assert IsoType.LLLLVAR.format("HOLA", 0).equals("HOLA");
 	}
 
 }
