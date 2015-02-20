@@ -69,7 +69,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
     }
     public CompositeField addParser(FieldParseInfo fpi) {
         if (parsers == null) {
-            parsers = new ArrayList<FieldParseInfo>(4);
+            parsers = new ArrayList<>(4);
         }
         parsers.add(fpi);
         return this;
@@ -93,7 +93,8 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
                     }
                     if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
                         pos++;
-                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN) {
+                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN
+                            || v.getType() == IsoType.LLLLVAR || v.getType() == IsoType.LLLLBIN) {
                         pos+=2;
                     }
                     vals.add(v);
@@ -126,6 +127,8 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
                         pos+=2;
                     } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN) {
                         pos+=3;
+                    } else if (v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLVAR) {
+                        pos+=4;
                     }
                     vals.add(v);
                 }
@@ -133,10 +136,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
             final CompositeField f = new CompositeField();
             f.setValues(vals);
             return f;
-        } catch (ParseException ex) {
-            log.error("Decoding CompositeField", ex);
-            return null;
-        } catch (UnsupportedEncodingException ex) {
+        } catch (ParseException | UnsupportedEncodingException ex) {
             log.error("Decoding CompositeField", ex);
             return null;
         }
