@@ -114,7 +114,7 @@ public enum IsoType {
 	        } else {
 	        	return String.format(String.format("%%-%ds", length), value);
 	        }
-		} else if (this == LLVAR || this == LLLVAR) {
+		} else if (this == LLVAR || this == LLLVAR || this == LLLLVAR) {
 			return value;
 		} else if (this == NUMERIC) {
 	        char[] c = new char[length];
@@ -152,7 +152,7 @@ public enum IsoType {
 	        }
 	        return new String(c);
 
-		} else if (this == LLBIN || this == LLLBIN) {
+		} else if (this == LLBIN || this == LLLBIN || this == LLLLBIN) {
 			return value;
 		}
 		throw new IllegalArgumentException("Cannot format String as " + this);
@@ -166,11 +166,11 @@ public enum IsoType {
 	        	throw new IllegalArgumentException("Numeric value is larger than intended length: " + value + " LEN " + length);
 	        }
 	        return x;
-		} else if (this == ALPHA || this == LLVAR || this == LLLVAR) {
+		} else if (this == ALPHA || this == LLVAR || this == LLLVAR || this == LLLLVAR) {
 			return format(Long.toString(value), length);
 		} else if (this == AMOUNT) {
 			return String.format("%010d00", value);
-		} else if (this == BINARY || this == LLBIN || this == LLLBIN) {
+		} else if (this == BINARY || this == LLBIN || this == LLLBIN || this == LLLLBIN) {
 			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format number as " + this);
@@ -182,9 +182,9 @@ public enum IsoType {
 			return String.format("%012d", value.movePointRight(2).longValue());
 		} else if (this == NUMERIC) {
 			return format(value.longValue(), length);
-		} else if (this == ALPHA || this == LLVAR || this == LLLVAR) {
+		} else if (this == ALPHA || this == LLVAR || this == LLLVAR || this == LLLLVAR) {
 			return format(value.toString(), length);
-		} else if (this == BINARY || this == LLBIN || this == LLLBIN) {
+		} else if (this == BINARY || this == LLBIN || this == LLLBIN || this == LLLLBIN) {
 			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format BigDecimal as " + this);
