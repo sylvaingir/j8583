@@ -316,6 +316,7 @@ public class ConfigParser {
                     }
                 }
                 mfact.setParseMap(type, child);
+                guides.put(type, child);
             }
         }
     }
