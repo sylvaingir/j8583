@@ -70,11 +70,11 @@ public class LlvarParseInfo extends FieldParseInfo {
 					getCharacterEncoding()).substring(0, len);
 		}
 		if (custom == null) {
-			return new IsoValue<String>(type, _v, len, null);
+			return new IsoValue<>(type, _v, len, null);
 		} else {
             T dec = custom.decodeField(_v);
-            return dec == null ? new IsoValue<String>(type, _v, len, null) :
-                    new IsoValue<T>(type, dec, len, custom);
+            return dec == null ? new IsoValue<>(type, _v, len, null) :
+                    new IsoValue<>(type, dec, len, custom);
 		}
 	}
 
@@ -100,13 +100,13 @@ public class LlvarParseInfo extends FieldParseInfo {
                     "Insufficient data for bin LLVAR field %d, pos %d", field, pos), pos);
 		}
 		if (custom == null) {
-			return new IsoValue<String>(type, new String(buf, pos + 1, len,
+			return new IsoValue<>(type, new String(buf, pos + 1, len,
 					getCharacterEncoding()), null);
 		} else {
             T dec = custom.decodeField(new String(buf, pos + 1, len, getCharacterEncoding()));
-            return dec == null ? new IsoValue<String>(type,
+            return dec == null ? new IsoValue<>(type,
 					new String(buf, pos + 1, len, getCharacterEncoding()), null) :
-                    new IsoValue<T>(type, dec, custom);
+                    new IsoValue<>(type, dec, custom);
 		}
 	}
 

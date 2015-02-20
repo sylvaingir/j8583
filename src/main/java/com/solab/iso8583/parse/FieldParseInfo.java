@@ -127,7 +127,11 @@ public abstract class FieldParseInfo {
 			fpi = new NumericParseInfo(len);
 		} else if (t == IsoType.TIME) {
 			fpi = new TimeParseInfo();
-		}
+		} else if (t == IsoType.LLLLVAR) {
+            fpi = new LlllvarParseInfo();
+        } else if (t == IsoType.LLLLBIN) {
+            fpi = new LlllbinParseInfo();
+        }
 		if (fpi == null) {
 	 		throw new IllegalArgumentException(String.format("Cannot parse type %s", t));
 		}
@@ -138,11 +142,19 @@ public abstract class FieldParseInfo {
     protected int decodeLength(byte[] buf, int pos, int digits) throws UnsupportedEncodingException {
         if (forceStringDecoding) {
             return Integer.parseInt(new String(buf, pos, digits, encoding), 10);
-        } else if (digits == 3) {
-            return ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10) + (buf[pos + 2] - 48);
         } else {
-            return ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
+            switch(digits) {
+                case 2:
+                    return ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
+                case 3:
+                    return ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10)
+                            + (buf[pos + 2] - 48);
+                case 4:
+                    return ((buf[pos] - 48) * 1000) + ((buf[pos + 1] - 48) * 100)
+                            + ((buf[pos + 2] - 48) * 10) + (buf[pos + 3] - 48);
+            }
         }
+        return -1;
     }
 
 }

@@ -341,8 +341,7 @@ public class IsoMessage {
         return bs;
     }
 
-    /** This calls writeInternal(), allowing applications to get the byte buffer containing the
-     * message data, without the length header. */
+    /** Writes the message to a memory stream and returns a byte array with the result. */
     public byte[] writeData() {
     	ByteArrayOutputStream bout = new ByteArrayOutputStream();
     	if (isoHeader != null) {
@@ -461,6 +460,8 @@ public class IsoMessage {
                     sb.append(String.format("%02d", desc.length()));
                 } else if (v.getType() == IsoType.LLLBIN || v.getType() == IsoType.LLLVAR) {
                     sb.append(String.format("%03d", desc.length()));
+                } else if (v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLVAR) {
+                    sb.append(String.format("%04d", desc.length()));
                 }
                 sb.append(desc);
             }

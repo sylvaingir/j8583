@@ -52,11 +52,11 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
                 _v = new String(buf, pos, buf.length-pos, getCharacterEncoding()).substring(0, length);
             }
             if (custom == null) {
-                return new IsoValue<String>(type, _v, length, null);
+                return new IsoValue<>(type, _v, length, null);
             } else {
                 T decoded = custom.decodeField(_v);
-                return decoded == null ? new IsoValue<String>(type, _v, length, null) :
-                    new IsoValue<T>(type, decoded, length, custom);
+                return decoded == null ? new IsoValue<>(type, _v, length, null) :
+                    new IsoValue<>(type, decoded, length, custom);
             }
         } catch (StringIndexOutOfBoundsException ex) {
             throw new ParseException(String.format(

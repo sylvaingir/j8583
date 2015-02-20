@@ -56,7 +56,11 @@ public enum IsoType {
 	/** Similar to LLVAR but holds byte arrays instead of strings. */
 	LLBIN(false, 0),
 	/** Similar to LLLVAR but holds byte arrays instead of strings. */
-	LLLBIN(false, 0);
+	LLLBIN(false, 0),
+    /** variable length with 4-digit header length. */
+    LLLLVAR(false, 0),
+    /** variable length byte array with 4-digit header length. */
+    LLLLBIN(false, 0);
 
 	private boolean needsLen;
 	private int length;
