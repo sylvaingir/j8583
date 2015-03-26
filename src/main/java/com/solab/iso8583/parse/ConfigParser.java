@@ -114,7 +114,7 @@ public class ConfigParser {
             if (elem.getChildNodes() == null || elem.getChildNodes().getLength() == 0) {
                 if (elem.getAttribute("ref") != null && !elem.getAttribute("ref").isEmpty()) {
                     if (refs == null) {
-                        refs = new ArrayList<Element>(nodes.getLength()-i);
+                        refs = new ArrayList<>(nodes.getLength()-i);
                     }
                     refs.add(elem);
                 }
@@ -142,7 +142,8 @@ public class ConfigParser {
                     }
                     String h = mfact.getIsoHeader(t2);
                     if (h == null) {
-                        throw new IllegalArgumentException("Header def " + type + " refers to nonexistent header " + t2);
+                        throw new IllegalArgumentException("Header def " + type +
+                                " refers to nonexistent header " + t2);
                     }
                     if (log.isTraceEnabled()) {
                         log.trace("Adding ISO8583 header for type {}: {} (copied from {})",
@@ -165,7 +166,7 @@ public class ConfigParser {
             }
             if (elem.getAttribute("extends") != null && !elem.getAttribute("extends").isEmpty()) {
                 if (subs == null) {
-                    subs = new ArrayList<Element>(nodes.getLength()-i);
+                    subs = new ArrayList<>(nodes.getLength()-i);
                 }
                 subs.add(elem);
                 continue;
@@ -261,7 +262,7 @@ public class ConfigParser {
     protected static <T extends IsoMessage> void parseGuides(
             final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
         ArrayList<Element> subs = null;
-        HashMap<Integer,HashMap<Integer,FieldParseInfo>> guides = new HashMap<Integer, HashMap<Integer, FieldParseInfo>>();
+        HashMap<Integer,HashMap<Integer,FieldParseInfo>> guides = new HashMap<>();
         for (int i = 0; i < nodes.getLength(); i++) {
             Element elem = (Element)nodes.item(i);
             int type = parseType(elem.getAttribute("type"));
@@ -270,12 +271,12 @@ public class ConfigParser {
             }
             if (elem.getAttribute("extends") != null && !elem.getAttribute("extends").isEmpty()) {
                 if (subs == null) {
-                    subs = new ArrayList<Element>(nodes.getLength()-i);
+                    subs = new ArrayList<>(nodes.getLength()-i);
                 }
                 subs.add(elem);
                 continue;
             }
-            HashMap<Integer, FieldParseInfo> parseMap = new HashMap<Integer, FieldParseInfo>();
+            HashMap<Integer, FieldParseInfo> parseMap = new HashMap<>();
             NodeList fields = elem.getElementsByTagName("field");
             for (int j = 0; j < fields.getLength(); j++) {
                 Element f = (Element)fields.item(j);
@@ -302,7 +303,7 @@ public class ConfigParser {
                             + elem.getAttribute("type") + " extends nonexistent guide "
                             + elem.getAttribute("extends"));
                 }
-                HashMap<Integer,FieldParseInfo> child = new HashMap<Integer, FieldParseInfo>();
+                HashMap<Integer,FieldParseInfo> child = new HashMap<>();
                 child.putAll(parent);
                 NodeList fields = elem.getElementsByTagName("field");
                 for (int j = 0; j < fields.getLength(); j++) {

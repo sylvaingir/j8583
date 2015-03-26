@@ -250,7 +250,8 @@ public class IsoValue<T> implements Cloneable {
 			return false;
 		}
 		IsoValue<?> comp = (IsoValue<?>)other;
-		return (comp.getType() == getType() && comp.getValue().equals(getValue()) && comp.getLength() == getLength());
+		return (comp.getType() == getType() && comp.getValue().equals(getValue())
+				&& comp.getLength() == getLength());
 	}
 
 	@Override

@@ -66,7 +66,8 @@ public class MessageFactory<T extends IsoMessage> {
 	/** Indicates if the factory should create binary messages and also parse binary messages. */
 	private boolean useBinary;
 	private int etx = -1;
-	/** Flag to specify if missing fields should be ignored as long as they're at the end of the message. */
+	/** Flag to specify if missing fields should be ignored as long as they're at
+	 * the end of the message. */
 	private boolean ignoreLast;
 	private boolean forceb2;
     private boolean binBitmap;
@@ -124,13 +125,14 @@ public class MessageFactory<T extends IsoMessage> {
         }
 	}
 
-	/** Returns the encoding used to parse ALPHA, LLVAR and LLLVAR fields. The default is the file.encoding
-	 * system property. */
+	/** Returns the encoding used to parse ALPHA, LLVAR and LLLVAR fields. The default is the
+	 * file.encoding system property. */
 	public String getCharacterEncoding() {
 		return encoding;
 	}
 
-	/** Sets or clears the flag to pass to new messages, to include a secondary bitmap even if it's not needed. */
+	/** Sets or clears the flag to pass to new messages, to include a secondary bitmap
+	 * even if it's not needed. */
 	public void setForceSecondaryBitmap(boolean flag) {
 		forceb2 = flag;
 	}
@@ -296,7 +298,8 @@ public class MessageFactory<T extends IsoMessage> {
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
-		final T m = createIsoMessage(isoHeaderLength > 0 ? new String(buf, 0, isoHeaderLength, encoding) : null);
+		final T m = createIsoMessage(isoHeaderLength > 0 ?
+				new String(buf, 0, isoHeaderLength, encoding) : null);
 		m.setCharacterEncoding(encoding);
 		final int type;
 		if (useBinary) {
@@ -440,16 +443,20 @@ public class MessageFactory<T extends IsoMessage> {
 						m.setField(i, val);
 						if (val != null) {
 							if (val.getType() == IsoType.NUMERIC || val.getType() == IsoType.DATE10
-									|| val.getType() == IsoType.DATE4 || val.getType() == IsoType.DATE_EXP
-									|| val.getType() == IsoType.AMOUNT || val.getType() == IsoType.TIME) {
+									|| val.getType() == IsoType.DATE4
+									|| val.getType() == IsoType.DATE_EXP
+									|| val.getType() == IsoType.AMOUNT
+									|| val.getType() == IsoType.TIME) {
 								pos += (val.getLength() / 2) + (val.getLength() % 2);
 							} else {
 								pos += val.getLength();
 							}
 							if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN) {
 								pos++;
-							} else if (val.getType() == IsoType.LLLVAR || val.getType() == IsoType.LLLBIN
-                                    || val.getType() == IsoType.LLLLVAR || val.getType() == IsoType.LLLLBIN) {
+							} else if (val.getType() == IsoType.LLLVAR
+									|| val.getType() == IsoType.LLLBIN
+                                    || val.getType() == IsoType.LLLLVAR
+									|| val.getType() == IsoType.LLLLBIN) {
                                 pos += 2;
                             }
 						}
@@ -557,7 +564,7 @@ public class MessageFactory<T extends IsoMessage> {
 	}
 
 	/** Returns the template for the specified message type. This allows templates to be modified
-	 * programatically. */
+	 * programmatically. */
 	public T getMessageTemplate(int type) {
 		return typeTemplates.get(type);
 	}
@@ -582,7 +589,8 @@ public class MessageFactory<T extends IsoMessage> {
 		ArrayList<Integer> index = new ArrayList<>();
 		index.addAll(map.keySet());
 		Collections.sort(index);
-		log.trace(String.format("ISO8583 MessageFactory adding parse map for type %04x with fields %s", type, index));
+		log.trace(String.format("ISO8583 MessageFactory adding parse map for type %04x with fields %s",
+				type, index));
 		parseOrder.put(type, index);
 	}
 

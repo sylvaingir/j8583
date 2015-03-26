@@ -27,7 +27,7 @@ import com.solab.iso8583.TraceNumberGenerator;
  */
 public class SimpleTraceGenerator implements TraceNumberGenerator {
 
-	private int value = 0;
+	private volatile int value = 0;
 
 	/** Creates a new instance that will use the specified initial value. This means
 	 * the first nextTrace() call will return this number.
