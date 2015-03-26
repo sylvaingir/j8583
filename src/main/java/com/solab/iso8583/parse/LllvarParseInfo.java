@@ -83,7 +83,7 @@ public class LllvarParseInfo extends FieldParseInfo {
 			throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
 			throw new ParseException(String.format("Invalid bin LLLVAR field %d pos %d", field, pos), pos);
-		} else if (pos+3 > buf.length) {
+		} else if (pos+2 > buf.length) {
 			throw new ParseException(String.format(
                     "Insufficient data for bin LLLVAR header, field %d pos %d", field, pos), pos);
 		}
