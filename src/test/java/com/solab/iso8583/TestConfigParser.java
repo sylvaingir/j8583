@@ -77,6 +77,13 @@ public class TestConfigParser {
         Assert.assertEquals("LLVAR", cf.getField(1).getValue());
         Assert.assertEquals("12345", cf.getField(2).getValue());
         Assert.assertEquals("X", cf.getField(3).getValue());
+        m = mfact.newMessage(0x1200);
+        Assert.assertNotNull(m);
+        Assert.assertTrue(m.hasField(10));
+        Assert.assertFalse(m.hasField(1));
+        Assert.assertFalse(m.hasField(2));
+        Assert.assertFalse(m.hasField(3));
+        Assert.assertFalse(m.hasField(4));
     }
 
     @Test //issue 34
