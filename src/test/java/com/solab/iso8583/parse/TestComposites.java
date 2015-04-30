@@ -21,7 +21,7 @@ public class TestComposites {
     @Test
     public void testEncodeText() {
         final CompositeField f = new CompositeField();
-        f.addValue(new IsoValue<String>(IsoType.ALPHA, "One", 5));
+        f.addValue(new IsoValue<>(IsoType.ALPHA, "One", 5));
         f.getValues().get(0).setCharacterEncoding("UTF-8");
         Assert.assertEquals("One  ", f.encodeField(f));
         f.addValue("Two", null, IsoType.LLVAR, 0);
@@ -37,13 +37,13 @@ public class TestComposites {
     @Test
     public void testEncodeBinary() {
         final CompositeField f = new CompositeField()
-                .addValue(new IsoValue<String>(IsoType.ALPHA, "One", 5));
+                .addValue(new IsoValue<>(IsoType.ALPHA, "One", 5));
         Assert.assertArrayEquals(new byte[]{'O', 'n', 'e', 32, 32}, f.encodeBinaryField(f));
-        f.addValue(new IsoValue<String>(IsoType.LLVAR, "Two"));
+        f.addValue(new IsoValue<>(IsoType.LLVAR, "Two"));
         Assert.assertArrayEquals(new byte[]{'O', 'n', 'e', ' ', ' ', 3, 'T', 'w', 'o'},
                 f.encodeBinaryField(f));
-        f.addValue(new IsoValue<Long>(IsoType.NUMERIC, 999l, 5));
-        f.addValue(new IsoValue<String>(IsoType.ALPHA, "X", 1));
+        f.addValue(new IsoValue<>(IsoType.NUMERIC, 999l, 5));
+        f.addValue(new IsoValue<>(IsoType.ALPHA, "X", 1));
         Assert.assertArrayEquals(binaryData, f.encodeBinaryField(f));
     }
 
