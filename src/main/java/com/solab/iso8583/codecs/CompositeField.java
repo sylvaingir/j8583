@@ -82,7 +82,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
         int pos = 0;
         try {
             for (FieldParseInfo fpi : parsers) {
-                IsoValue<?> v = fpi.parseBinary(0, buf, pos, null);
+                IsoValue<?> v = fpi.parseBinary(0, buf, pos, fpi.getDecoder());
                 if (v != null) {
                     if (v.getType() == IsoType.NUMERIC || v.getType() == IsoType.DATE10
                             || v.getType() == IsoType.DATE4 || v.getType() == IsoType.DATE_EXP
@@ -120,7 +120,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
         int pos = 0;
         try {
             for (FieldParseInfo fpi : parsers) {
-                IsoValue<?> v = fpi.parse(0, buf, pos, null);
+                IsoValue<?> v = fpi.parse(0, buf, pos, fpi.getDecoder());
                 if (v != null) {
                     pos += v.toString().getBytes(fpi.getCharacterEncoding()).length;
                     if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
