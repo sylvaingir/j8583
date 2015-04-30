@@ -55,6 +55,15 @@
 	<field num="102" type="LLLVAR">Field of type LLLVAR</field>
 </template>
 
+<template type="1200">
+	<field num="10" type="LLLVAR">
+		<field num="1" type="ALPHA" length="5" />
+		<field num="2" type="LLVAR"/>
+		<field num="3" type="NUMERIC" length="5" />
+		<field num="4" type="ALPHA" length="1" />
+	</field>
+</template>
+
 <!-- The server example uses this to read the requests -->
 <parse type="0200">
 	<field num="3" type="NUMERIC" length="6" />
