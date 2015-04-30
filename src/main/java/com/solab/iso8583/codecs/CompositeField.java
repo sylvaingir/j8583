@@ -53,7 +53,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
 
     @SuppressWarnings("unchecked")
     public <T> IsoValue<T> getField(int idx) {
-        if (idx < 0 || idx > values.size())return null;
+        if (idx < 0 || idx >= values.size())return null;
         return values.get(idx);
     }
     public <T> T getObjectValue(int idx) {
