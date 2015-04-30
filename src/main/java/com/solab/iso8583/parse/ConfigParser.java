@@ -178,15 +178,17 @@ public class ConfigParser {
             NodeList fields = elem.getElementsByTagName("field");
             for (int j = 0; j < fields.getLength(); j++) {
                 Element f = (Element)fields.item(j);
-                int num = Integer.parseInt(f.getAttribute("num"));
-                IsoType itype = IsoType.valueOf(f.getAttribute("type"));
-                int length = 0;
-                if (f.getAttribute("length").length() > 0) {
-                    length = Integer.parseInt(f.getAttribute("length"));
+                if (f.getParentNode()==elem) {
+                    int num = Integer.parseInt(f.getAttribute("num"));
+                    IsoType itype = IsoType.valueOf(f.getAttribute("type"));
+                    int length = 0;
+                    if (f.getAttribute("length").length() > 0) {
+                        length = Integer.parseInt(f.getAttribute("length"));
+                    }
+                    String v = f.getChildNodes().item(0).getNodeValue();
+                    CustomField<Object> _cf = mfact.getCustomField(num);
+                    m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
                 }
-                String v = f.getChildNodes().item(0).getNodeValue();
-                CustomField<Object> _cf = mfact.getCustomField(num);
-                m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
             }
             mfact.addMessageTemplate(m);
         }
