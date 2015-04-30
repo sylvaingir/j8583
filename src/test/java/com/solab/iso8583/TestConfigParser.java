@@ -81,33 +81,33 @@ public class TestConfigParser {
         m = mfact.parseMessage("01000040000000000000018ALPHA05LLVAR12345X".getBytes(), 0);
         Assert.assertNotNull(m);
         Assert.assertTrue(m.hasField(10));
-        CompositeField cf = m.getObjectValue(10);
-        Assert.assertNotNull(cf.getField(0));
-        Assert.assertNotNull(cf.getField(1));
-        Assert.assertNotNull(cf.getField(2));
-        Assert.assertNotNull(cf.getField(3));
-        Assert.assertNull(cf.getField(4));
-        Assert.assertEquals("ALPHA", cf.getField(0).getValue());
-        Assert.assertEquals("LLVAR", cf.getField(1).getValue());
-        Assert.assertEquals("12345", cf.getField(2).getValue());
-        Assert.assertEquals("X", cf.getField(3).getValue());
+        f = m.getObjectValue(10);
+        Assert.assertNotNull(f.getField(0));
+        Assert.assertNotNull(f.getField(1));
+        Assert.assertNotNull(f.getField(2));
+        Assert.assertNotNull(f.getField(3));
+        Assert.assertNull(f.getField(4));
+        Assert.assertEquals("ALPHA", f.getObjectValue(0));
+        Assert.assertEquals("LLVAR", f.getObjectValue(1));
+        Assert.assertEquals("12345", f.getObjectValue(2));
+        Assert.assertEquals("X", f.getObjectValue(3));
 
         m = mfact.parseMessage("01010040000000000000019ALPHA11F1F205F03F4X".getBytes(), 0);
         Assert.assertNotNull(m);
         Assert.assertTrue(m.hasField(10));
-        cf = m.getObjectValue(10);
-        Assert.assertNotNull(cf.getField(0));
-        Assert.assertNotNull(cf.getField(1));
-        Assert.assertNotNull(cf.getField(2));
-        Assert.assertNull(cf.getField(3));
-        Assert.assertEquals("ALPHA", cf.getField(0).getValue());
-        Assert.assertEquals("X", cf.getField(2).getValue());
-        /*cf = (CompositeField)cf.getField(2).getValue();
-        Assert.assertEquals("F1", cf.getField(0).getValue());
-        Assert.assertEquals("F2", cf.getField(1).getValue());
-        cf = (CompositeField)cf.getField(2).getValue();
-        Assert.assertEquals("F03", cf.getField(0).getValue());
-        Assert.assertEquals("F4", cf.getField(1).getValue());*/
+        f = m.getObjectValue(10);
+        Assert.assertNotNull(f.getField(0));
+        Assert.assertNotNull(f.getField(1));
+        Assert.assertNotNull(f.getField(2));
+        Assert.assertNull(f.getField(3));
+        Assert.assertEquals("ALPHA", f.getObjectValue(0));
+        Assert.assertEquals("X", f.getObjectValue(2));
+        f = f.getObjectValue(1);
+        Assert.assertEquals("F1", f.getObjectValue(0));
+        Assert.assertEquals("F2", f.getObjectValue(1));
+        f = f.getObjectValue(2);
+        Assert.assertEquals("F03", f.getObjectValue(0));
+        Assert.assertEquals("F4", f.getObjectValue(1));
     }
 
     @Test
