@@ -109,19 +109,6 @@ public class TestParsing {
     }
 
     @Test
-    public void testComposite() throws ParseException, UnsupportedEncodingException {
-        IsoMessage m = mf.parseMessage("12000040000000000000016one  03two12345.".getBytes(), 0);
-        Assert.assertNotNull(m);
-        CompositeField f = m.getObjectValue(10);
-        Assert.assertNotNull(f);
-        Assert.assertEquals(4, f.getValues().size());
-        Assert.assertEquals("one  ", f.getObjectValue(0));
-        Assert.assertEquals("two", f.getObjectValue(1));
-        Assert.assertEquals("12345", f.getObjectValue(2));
-        Assert.assertEquals(".", f.getObjectValue(3));
-    }
-
-    @Test
     public void testDates() throws ParseException, UnsupportedEncodingException {
         IsoMessage m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
         Assert.assertNotNull(m);
