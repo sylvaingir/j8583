@@ -33,7 +33,7 @@ public class TestConfigParser {
         Assert.assertNotNull(m200);
         final IsoMessage m400 = mfact.getMessageTemplate(0x400);
         Assert.assertNotNull(m400);
-        for (int i=2; i <89; i++) {
+        for (int i = 2; i < 89; i++) {
             IsoValue<?> v = m200.getField(i);
             if (v == null) {
                 Assert.assertFalse(m400.hasField(i));
@@ -62,9 +62,23 @@ public class TestConfigParser {
         Assert.assertTrue(m.hasField(12));
         Assert.assertFalse(m.hasField(17));
         Assert.assertTrue(m.hasField(39));
-        //Composite fields
-        final String compositeMsg = "12000040000000000000018ALPHA05LLVAR12345X";
-        m = mfact.parseMessage(compositeMsg.getBytes(), 0);
+    }
+
+    @Test
+    public void testCompositeParsers() throws IOException, ParseException {
+        MessageFactory<IsoMessage> mfact = config("composites.xml");
+
+        IsoMessage m = mfact.parseMessage("01000040000000000000016one  03two12345.".getBytes(), 0);
+        Assert.assertNotNull(m);
+        CompositeField f = m.getObjectValue(10);
+        Assert.assertNotNull(f);
+        Assert.assertEquals(4, f.getValues().size());
+        Assert.assertEquals("one  ", f.getObjectValue(0));
+        Assert.assertEquals("two", f.getObjectValue(1));
+        Assert.assertEquals("12345", f.getObjectValue(2));
+        Assert.assertEquals(".", f.getObjectValue(3));
+
+        m = mfact.parseMessage("01000040000000000000018ALPHA05LLVAR12345X".getBytes(), 0);
         Assert.assertNotNull(m);
         Assert.assertTrue(m.hasField(10));
         CompositeField cf = m.getObjectValue(10);
@@ -77,7 +91,29 @@ public class TestConfigParser {
         Assert.assertEquals("LLVAR", cf.getField(1).getValue());
         Assert.assertEquals("12345", cf.getField(2).getValue());
         Assert.assertEquals("X", cf.getField(3).getValue());
-        m = mfact.newMessage(0x1200);
+
+        m = mfact.parseMessage("01010040000000000000019ALPHA11F1F205F03F4X".getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertTrue(m.hasField(10));
+        cf = m.getObjectValue(10);
+        Assert.assertNotNull(cf.getField(0));
+        Assert.assertNotNull(cf.getField(1));
+        Assert.assertNotNull(cf.getField(2));
+        Assert.assertNull(cf.getField(3));
+        Assert.assertEquals("ALPHA", cf.getField(0).getValue());
+        Assert.assertEquals("X", cf.getField(2).getValue());
+        /*cf = (CompositeField)cf.getField(2).getValue();
+        Assert.assertEquals("F1", cf.getField(0).getValue());
+        Assert.assertEquals("F2", cf.getField(1).getValue());
+        cf = (CompositeField)cf.getField(2).getValue();
+        Assert.assertEquals("F03", cf.getField(0).getValue());
+        Assert.assertEquals("F4", cf.getField(1).getValue());*/
+    }
+
+    @Test
+    public void testCompositeTemplates() throws IOException {
+        MessageFactory<IsoMessage> mfact = config("composites.xml");
+        IsoMessage m = mfact.newMessage(0x100);
         Assert.assertNotNull(m);
         Assert.assertTrue(m.hasField(10));
         Assert.assertFalse(m.hasField(1));
