@@ -1,5 +1,6 @@
 package com.solab.iso8583;
 
+import com.solab.iso8583.codecs.CompositeField;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,10 +15,15 @@ import java.text.ParseException;
  */
 public class TestConfigParser {
 
+    private MessageFactory<IsoMessage> config(String path) throws IOException {
+        MessageFactory<IsoMessage> mfact = new MessageFactory<>();
+        mfact.setConfigPath(path);
+        return mfact;
+    }
+
     @Test
     public void testParser() throws IOException, ParseException {
-        MessageFactory<IsoMessage> mfact = new MessageFactory<>();
-        mfact.setConfigPath("config.xml");
+        final MessageFactory<IsoMessage> mfact = config("config.xml");
         //Headers
         Assert.assertNotNull(mfact.getIsoHeader(0x800));
         Assert.assertNotNull(mfact.getIsoHeader(0x810));
@@ -56,12 +62,26 @@ public class TestConfigParser {
         Assert.assertTrue(m.hasField(12));
         Assert.assertFalse(m.hasField(17));
         Assert.assertTrue(m.hasField(39));
+        //Composite fields
+        final String compositeMsg = "12000040000000000000018ALPHA05LLVAR12345X";
+        m = mfact.parseMessage(compositeMsg.getBytes(), 0);
+        Assert.assertNotNull(m);
+        Assert.assertTrue(m.hasField(10));
+        CompositeField cf = m.getObjectValue(10);
+        Assert.assertNotNull(cf.getField(0));
+        Assert.assertNotNull(cf.getField(1));
+        Assert.assertNotNull(cf.getField(2));
+        Assert.assertNotNull(cf.getField(3));
+        Assert.assertNull(cf.getField(4));
+        Assert.assertEquals("ALPHA", cf.getField(0).getValue());
+        Assert.assertEquals("LLVAR", cf.getField(1).getValue());
+        Assert.assertEquals("12345", cf.getField(2).getValue());
+        Assert.assertEquals("X", cf.getField(3).getValue());
     }
 
     @Test //issue 34
     public void testMultilevelExtendParseGuides() throws IOException, ParseException {
-        MessageFactory<IsoMessage> mfact = new MessageFactory<>();
-        mfact.setConfigPath("issue34.xml");
+        final MessageFactory<IsoMessage> mfact = config("issue34.xml");
         //Parse a 200
         final String m200 = "0200422000000880800001X1231235959123456101010202020TERMINAL484";
         final String m210 = "0210422000000A80800001X123123595912345610101020202099TERMINAL484";
