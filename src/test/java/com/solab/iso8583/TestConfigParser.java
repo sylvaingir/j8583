@@ -65,7 +65,7 @@ public class TestConfigParser {
     }
 
     @Test
-    public void testCompositeParsers() throws IOException, ParseException {
+    public void testSimpleCompositeParsers() throws IOException, ParseException {
         MessageFactory<IsoMessage> mfact = config("composites.xml");
 
         IsoMessage m = mfact.parseMessage("01000040000000000000016one  03two12345.".getBytes(), 0);
@@ -91,11 +91,15 @@ public class TestConfigParser {
         Assert.assertEquals("LLVAR", f.getObjectValue(1));
         Assert.assertEquals("12345", f.getObjectValue(2));
         Assert.assertEquals("X", f.getObjectValue(3));
+    }
 
-        m = mfact.parseMessage("01010040000000000000019ALPHA11F1F205F03F4X".getBytes(), 0);
+    @Test
+    public void testNestedCompositeParser() throws IOException, ParseException {
+        MessageFactory<IsoMessage> mfact = config("composites.xml");
+        IsoMessage m = mfact.parseMessage("01010040000000000000019ALPHA11F1F205F03F4X".getBytes(), 0);
         Assert.assertNotNull(m);
         Assert.assertTrue(m.hasField(10));
-        f = m.getObjectValue(10);
+        CompositeField f = m.getObjectValue(10);
         Assert.assertNotNull(f.getField(0));
         Assert.assertNotNull(f.getField(1));
         Assert.assertNotNull(f.getField(2));
@@ -111,15 +115,43 @@ public class TestConfigParser {
     }
 
     @Test
-    public void testCompositeTemplates() throws IOException {
+    public void testSimpleCompositeTemplate() throws IOException {
         MessageFactory<IsoMessage> mfact = config("composites.xml");
         IsoMessage m = mfact.newMessage(0x100);
+        //Simple composite
         Assert.assertNotNull(m);
-        Assert.assertTrue(m.hasField(10));
         Assert.assertFalse(m.hasField(1));
         Assert.assertFalse(m.hasField(2));
         Assert.assertFalse(m.hasField(3));
         Assert.assertFalse(m.hasField(4));
+        CompositeField f = m.getObjectValue(10);
+        Assert.assertNotNull(f);
+        Assert.assertEquals(f.getObjectValue(0), "abcde");
+        Assert.assertEquals(f.getObjectValue(1), "llvar");
+        Assert.assertEquals(f.getObjectValue(2), "12345");
+        Assert.assertEquals(f.getObjectValue(3), "X");
+        Assert.assertFalse(m.hasField(4));
+    }
+
+    @Test
+    public void testNestedCompositeTemplate() throws IOException {
+        MessageFactory<IsoMessage> mfact = config("composites.xml");
+        IsoMessage m = mfact.newMessage(0x101);
+        Assert.assertNotNull(m);
+        Assert.assertFalse(m.hasField(1));
+        Assert.assertFalse(m.hasField(2));
+        Assert.assertFalse(m.hasField(3));
+        Assert.assertFalse(m.hasField(4));
+        CompositeField f = m.getObjectValue(10);
+        Assert.assertEquals(f.getObjectValue(0), "fghij");
+        Assert.assertEquals(f.getObjectValue(2), "67890");
+        Assert.assertEquals(f.getObjectValue(3), "Y");
+        f = f.getObjectValue(1);
+        Assert.assertEquals(f.getObjectValue(0), "KL");
+        Assert.assertEquals(f.getObjectValue(1), "mn");
+        f = f.getObjectValue(2);
+        Assert.assertEquals(f.getObjectValue(0), "123");
+        Assert.assertEquals(f.getObjectValue(1), "45");
     }
 
     @Test //issue 34
