@@ -28,6 +28,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.solab.iso8583.*;
 import com.solab.iso8583.codecs.CompositeField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,11 +38,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import com.solab.iso8583.CustomField;
-import com.solab.iso8583.IsoMessage;
-import com.solab.iso8583.IsoType;
-import com.solab.iso8583.MessageFactory;
 
 /** This class is used to parse a XML configuration file and configure
  * a MessageFactory with the values from it.
@@ -179,15 +175,12 @@ public class ConfigParser {
             for (int j = 0; j < fields.getLength(); j++) {
                 Element f = (Element)fields.item(j);
                 if (f.getParentNode()==elem) {
-                    int num = Integer.parseInt(f.getAttribute("num"));
-                    IsoType itype = IsoType.valueOf(f.getAttribute("type"));
-                    int length = 0;
-                    if (f.getAttribute("length").length() > 0) {
-                        length = Integer.parseInt(f.getAttribute("length"));
+                    final int num = Integer.parseInt(f.getAttribute("num"));
+                    IsoValue<?> v = getTemplateField(f, mfact, true);
+                    if (v != null) {
+                        v.setCharacterEncoding(mfact.getCharacterEncoding());
                     }
-                    String v = f.getChildNodes().item(0).getNodeValue();
-                    CustomField<Object> _cf = mfact.getCustomField(num);
-                    m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
+                    m.setField(num, v);
                 }
             }
             mfact.addMessageTemplate(m);
@@ -201,7 +194,7 @@ public class ConfigParser {
                             + elem.getAttribute("type") + " extends invalid template "
                             + elem.getAttribute("extends"));
                 }
-                T tref = mfact.getMessageTemplate(ref);
+                IsoMessage tref = mfact.getMessageTemplate(ref);
                 if (tref == null) {
                     throw new IllegalArgumentException("Message template "
                             + elem.getAttribute("type") + " extends nonexistent template "
@@ -220,23 +213,59 @@ public class ConfigParser {
                 for (int j = 0; j < fields.getLength(); j++) {
                     Element f = (Element)fields.item(j);
                     int num = Integer.parseInt(f.getAttribute("num"));
-                    final String typedef = f.getAttribute("type");
-                    if ("exclude".equals(typedef)) {
-                        m.setField(num, null);
-                    } else {
-                        IsoType itype = IsoType.valueOf(typedef);
-                        int length = 0;
-                        if (f.getAttribute("length").length() > 0) {
-                            length = Integer.parseInt(f.getAttribute("length"));
+                    if (f.getParentNode()==elem) {
+                        IsoValue<?> v = getTemplateField(f, mfact, true);
+                        if (v != null) {
+                            v.setCharacterEncoding(mfact.getCharacterEncoding());
                         }
-                        String v = f.getChildNodes().item(0).getNodeValue();
-                        CustomField<Object> _cf = mfact.getCustomField(num);
-                        m.setValue(num, _cf == null ? v : _cf.decodeField(v), _cf, itype, length);
+                        m.setField(num, v);
                     }
                 }
                 mfact.addMessageTemplate(m);
             }
         }
+    }
+
+    /** Creates an IsoValue from the XML definition in a message template.
+     * If it's for a toplevel field and the message factory has a codec for this field,
+     * that codec is assigned to that field. For nested fields, a CompositeField is
+     * created and populated. */
+    protected static <M extends IsoMessage> IsoValue<?> getTemplateField(
+            Element f, MessageFactory<M> mfact, boolean toplevel) {
+        final int num = Integer.parseInt(f.getAttribute("num"));
+        final String typedef = f.getAttribute("type");
+        if ("exclude".equals(typedef)) {
+            return null;
+        }
+        int length = 0;
+        if (f.getAttribute("length").length() > 0) {
+            length = Integer.parseInt(f.getAttribute("length"));
+        }
+        final IsoType itype = IsoType.valueOf(typedef);
+        final NodeList subs = f.getElementsByTagName("field");
+        if (subs != null && subs.getLength() > 0) {
+            //Composite field
+            final CompositeField cf = new CompositeField();
+            for (int j = 0; j < subs.getLength(); j++) {
+                Element sub = (Element)subs.item(j);
+                if (sub.getParentNode()==f) {
+                    IsoValue<?> sv = getTemplateField(sub, mfact, false);
+                    if (sv != null) {
+                        sv.setCharacterEncoding(mfact.getCharacterEncoding());
+                        cf.addValue(sv);
+                    }
+                }
+            }
+            return itype.needsLength() ? new IsoValue<>(itype, cf, length, cf) :
+                    new IsoValue<>(itype, cf, cf);
+        }
+        final String v = f.getChildNodes().item(0).getNodeValue();
+        final CustomField<Object> cf = toplevel ? mfact.getCustomField(num) : null;
+        if (cf == null) {
+            return itype.needsLength() ? new IsoValue<>(itype, v, length) : new IsoValue<>(itype, v);
+        }
+        return itype.needsLength() ? new IsoValue<>(itype, cf.decodeField(v), length, cf) :
+                new IsoValue<>(itype, cf.decodeField(v), cf);
     }
 
     protected static <T extends IsoMessage> FieldParseInfo getParser(
