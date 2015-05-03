@@ -506,4 +506,25 @@ public class IsoMessage {
             setField(i, null);
         }
     }
+
+    /** Returns true is the message contains all the specified fields.
+     * A convenience for m.hasField(x) && m.hasField(y) && m.hasField(z) && ... */
+    public boolean hasEveryField(int... idx) {
+        for (int i : idx) {
+            if (!hasField(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /** Returns true is the message contains at least one of the specified fields.
+     * A convenience for m.hasField(x) || m.hasField(y) || m.hasField(z) || ... */
+    public boolean hasAnyField(int... idx) {
+        for (int i : idx) {
+            if (hasField(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
