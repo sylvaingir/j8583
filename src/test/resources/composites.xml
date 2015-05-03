@@ -29,6 +29,22 @@
     	</field>
     </template>
 
+    <template type="102" extends="101">
+        <field num="12" type="LLLVAR">
+            <field num="1" type="ALPHA" length="5">fghij</field>
+            <field num="2" type="LLVAR">
+                <field num="1" type="ALPHA" length="2">KL</field>
+                <field num="2" type="ALPHA" length="2">mn</field>
+                <field num="3" type="LLVAR">
+                    <field num="1" type="ALPHA" length="3">123</field>
+                    <field num="2" type="ALPHA" length="2">45</field>
+                </field>
+            </field>
+            <field num="3" type="NUMERIC" length="5">67890</field>
+            <field num="4" type="ALPHA" length="1">Y</field>
+        </field>
+    </template>
+
     <parse type="100">
         <field num="10" type="LLLVAR">
             <field num="1" type="ALPHA" length="5" />
