@@ -133,16 +133,15 @@ public class TestConfigParser {
         Assert.assertFalse(m.hasField(4));
     }
 
-    @Test
-    public void testNestedCompositeTemplate() throws IOException {
+    private void testNestedCompositeTemplate(int type, int fnum) throws IOException {
         MessageFactory<IsoMessage> mfact = config("composites.xml");
-        IsoMessage m = mfact.newMessage(0x101);
+        IsoMessage m = mfact.newMessage(type);
         Assert.assertNotNull(m);
         Assert.assertFalse(m.hasField(1));
         Assert.assertFalse(m.hasField(2));
         Assert.assertFalse(m.hasField(3));
         Assert.assertFalse(m.hasField(4));
-        CompositeField f = m.getObjectValue(10);
+        CompositeField f = m.getObjectValue(fnum);
         Assert.assertEquals(f.getObjectValue(0), "fghij");
         Assert.assertEquals(f.getObjectValue(2), "67890");
         Assert.assertEquals(f.getObjectValue(3), "Y");
@@ -152,6 +151,17 @@ public class TestConfigParser {
         f = f.getObjectValue(2);
         Assert.assertEquals(f.getObjectValue(0), "123");
         Assert.assertEquals(f.getObjectValue(1), "45");
+    }
+
+    @Test
+    public void testNestedCompositeTemplate() throws IOException {
+        testNestedCompositeTemplate(0x101, 10);
+    }
+
+    @Test
+    public void testNestedCompositeFromExtendedTemplate() throws IOException {
+        testNestedCompositeTemplate(0x102, 10);
+        testNestedCompositeTemplate(0x102, 12);
     }
 
     @Test //issue 34
