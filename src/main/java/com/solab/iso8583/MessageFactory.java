@@ -413,7 +413,10 @@ public class MessageFactory<T extends IsoMessage> {
 		if (index == null) {
 			log.error(String.format("ISO8583 MessageFactory has no parsing guide for message type %04x [%s]",
 				type, new String(buf)));
-			return null;
+			throw new ParseException(String.format(
+					"ISO8583 MessageFactory has no parsing guide for message type %04x [%s]",
+					type,
+					new String(buf)), 0);
 		}
 		//First we check if the message contains fields not specified in the parsing template
 		boolean abandon = false;
@@ -424,7 +427,7 @@ public class MessageFactory<T extends IsoMessage> {
 			}
 		}
 		if (abandon) {
-			return m;
+			throw new ParseException("ISO8583 MessageFactory cannot parse fields", 0);
 		}
 		//Now we parse each field
 		if (useBinary) {
