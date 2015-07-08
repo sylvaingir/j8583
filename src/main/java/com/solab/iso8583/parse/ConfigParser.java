@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -34,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
@@ -336,9 +338,8 @@ public class ConfigParser {
                 }
                 HashMap<Integer,FieldParseInfo> child = new HashMap<>();
                 child.putAll(parent);
-                NodeList fields = elem.getElementsByTagName("field");
-                for (int j = 0; j < fields.getLength(); j++) {
-                    Element f = (Element)fields.item(j);
+                List<Element> fields = getDirectChildrenByTagName(elem, "field");
+                for (Element f : fields) {
                     int num = Integer.parseInt(f.getAttribute("num"));
                     String typedef = f.getAttribute("type");
                     if ("exclude".equals(typedef)) {
@@ -352,6 +353,20 @@ public class ConfigParser {
             }
         }
     }
+    
+	private static List<Element> getDirectChildrenByTagName(Element elem, String tagName) {
+		List<Element> childElementsByTagName = new ArrayList<Element>();
+		NodeList childNodes = elem.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			if (childNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+				Element childElem = (Element)childNodes.item(i);
+				if (childElem.getTagName().equals(tagName)) {
+					childElementsByTagName.add(childElem);
+				}
+			}
+		}
+		return childElementsByTagName;
+	}
 
 	/** Reads the XML from the stream and configures the message factory with its values.
 	 * @param mfact The message factory to be configured with the values read from the XML.
