@@ -79,7 +79,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
     public CompositeField decodeBinaryField(byte[] buf, int offset, int length) {
         @SuppressWarnings("rawtypes")
         List<IsoValue> vals = new ArrayList<>(parsers.size());
-        int pos = 0;
+        int pos = offset;
         try {
             for (FieldParseInfo fpi : parsers) {
                 IsoValue<?> v = fpi.parseBinary(0, buf, pos, fpi.getDecoder());

@@ -79,4 +79,19 @@ public class TestComposites {
         Assert.assertEquals("X", f.getValues().get(3).getValue());
     }
 
+    @Test
+    public void testDecodeBinaryWithOffset() {
+        final CompositeField dec = new CompositeField()
+                .addParser(new LlvarParseInfo())
+                .addParser(new NumericParseInfo(5))
+                .addParser(new AlphaParseInfo(1));
+        int offset = 5;
+        final CompositeField f = dec.decodeBinaryField(binaryData, offset, this.binaryData.length - offset);
+        Assert.assertNotNull(f);
+        Assert.assertEquals(3, f.getValues().size());
+        Assert.assertEquals("Two", f.getValues().get(0).getValue());
+        Assert.assertEquals(999l, f.getValues().get(1).getValue());
+        Assert.assertEquals("X", f.getValues().get(2).getValue());
+    }
+
 }
