@@ -74,7 +74,7 @@ public class LlllvarParseInfo  extends FieldParseInfo {
                     "Insufficient data for bin LLLLVAR header, field %d pos %d",
 					field, pos), pos);
 		}
-        final int len = ((buf[pos] & 0xf0) * 1000) + ((buf[pos] & 0x0f) * 100)
+        final int len = (((buf[pos] & 0xf0) >> 4) * 1000) + ((buf[pos] & 0x0f) * 100)
                 + (((buf[pos + 1] & 0xf0) >> 4) * 10) + (buf[pos + 1] & 0x0f);
 		if (len < 0) {
 			throw new ParseException(String.format(
