@@ -201,4 +201,23 @@ public class TestConfigParser {
         Assert.assertEquals("99", m.getObjectValue(39));
         Assert.assertEquals("X", m.getObjectValue(61));
     }
+    
+    @Test // issue 47
+    public void testExtendCompositeWithSameField() throws IOException, ParseException {
+    	final MessageFactory<IsoMessage> mfact = config("issue47.xml");
+    	
+    	final String m200 = "02001000000000000004000000100000013ABCDEFGHIJKLM";
+    	IsoMessage isoMessage = mfact.parseMessage(m200.getBytes(), 0);
+    	
+    	// check field num 4
+    	IsoValue<Object> field4 = isoMessage.getField(4);
+		Assert.assertEquals(IsoType.AMOUNT, field4.getType());
+    	Assert.assertEquals(IsoType.AMOUNT.getLength(), field4.getLength());
+		
+    	// check nested field num 4 from composite field 62
+		CompositeField compositeField62 = (CompositeField) isoMessage.<Object>getField(62).getValue();
+		IsoValue<Object> nestedField4 = compositeField62.getField(0); // first in list
+		Assert.assertEquals(IsoType.ALPHA, nestedField4.getType());
+		Assert.assertEquals(13, nestedField4.getLength());
+    }
 }
