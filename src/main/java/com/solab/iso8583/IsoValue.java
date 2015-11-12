@@ -277,7 +277,7 @@ public class IsoValue<T> implements Cloneable {
         }
         if (binary) {
             if (digits == 4) {
-                outs.write((((l % 1000) / 100) << 4) | ((l % 1000)/100));
+                outs.write((((l % 10000) / 1000) << 4) | ((l % 1000)/100));
             } else if (digits == 3) {
                 outs.write(l / 100); //00 to 09 automatically in BCD
             }
