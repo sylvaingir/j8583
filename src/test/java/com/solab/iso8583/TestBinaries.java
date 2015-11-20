@@ -3,6 +3,7 @@ package com.solab.iso8583;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 
 import org.junit.Assert;
@@ -104,4 +105,23 @@ public class TestBinaries {
         Assert.assertEquals(sub2, HexCodec.hexEncode(sub1, 0, sub1.length));
     }
 
+    @Test
+	public void test61() throws ParseException, UnsupportedEncodingException {
+		BigInteger bignum = new BigInteger("1234512345123451234");
+		IsoMessage iso1 = mfactBin.newMessage(0x201);
+		iso1.setValue(3, bignum, IsoType.NUMERIC, 19);
+        iso1.setField(7, null);
+        byte[] buf = iso1.writeData();
+        System.out.println(HexCodec.hexEncode(buf, 0, buf.length));
+		IsoMessage iso2 = mfactBin.parseMessage(buf, 0);
+		Assert.assertEquals(bignum, iso2.getObjectValue(3));
+        bignum = new BigInteger("1234512345123451234522");
+        iso1 = mfactBin.newMessage(0x202);
+        iso1.setValue(3, bignum, IsoType.NUMERIC, 22);
+        iso1.setField(7, null);
+        buf = iso1.writeData();
+        System.out.println(HexCodec.hexEncode(buf, 0, buf.length));
+		iso2 = mfactBin.parseMessage(buf, 0);
+		Assert.assertEquals(bignum, iso2.getObjectValue(3));
+	}
 }

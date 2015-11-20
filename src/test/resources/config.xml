@@ -132,4 +132,11 @@
     <field num="39" type="ALPHA" length="2"/>
 </parse>
 
+<parse type="0201">
+	<field num="3" type="NUMERIC" length="19" />
+</parse>
+<parse type="0202">
+	<field num="3" type="NUMERIC" length="22" />
+</parse>
+
 </j8583-config>
