@@ -220,4 +220,12 @@ public class TestConfigParser {
 		Assert.assertEquals(IsoType.ALPHA, nestedField4.getType());
 		Assert.assertEquals(13, nestedField4.getLength());
     }
+
+    @Test
+    public void testEmptyFields() throws IOException, ParseException {
+        final MessageFactory<IsoMessage> mfact = config("issue64.xml");
+        IsoMessage msg = mfact.newMessage(0x200);
+        Assert.assertEquals("", msg.getObjectValue(3));
+    }
+
 }
