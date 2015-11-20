@@ -21,6 +21,7 @@ package com.solab.iso8583.parse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -261,7 +262,12 @@ public class ConfigParser {
             return itype.needsLength() ? new IsoValue<>(itype, cf, length, cf) :
                     new IsoValue<>(itype, cf, cf);
         }
-        final String v = f.getChildNodes().item(0).getNodeValue();
+        final String v;
+        if (f.getChildNodes().getLength() == 0) {
+            v = "";
+        } else {
+            v = f.getChildNodes().item(0).getNodeValue();
+        }
         final CustomField<Object> cf = toplevel ? mfact.getCustomField(num) : null;
         if (cf == null) {
             return itype.needsLength() ? new IsoValue<>(itype, v, length) : new IsoValue<>(itype, v);
