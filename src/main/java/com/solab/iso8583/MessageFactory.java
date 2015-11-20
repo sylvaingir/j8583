@@ -389,7 +389,7 @@ public class MessageFactory<T extends IsoMessage> {
 							bs.set(pos++, ((bitmapBuffer[i] - 55) & 8) > 0);
 							bs.set(pos++, ((bitmapBuffer[i] - 55) & 4) > 0);
 							bs.set(pos++, ((bitmapBuffer[i] - 55) & 2) > 0);
-							bs.set(pos++, ((bitmapBuffer[i] - 5) & 1) > 0);
+							bs.set(pos++, ((bitmapBuffer[i] - 55) & 1) > 0);
 						} else if (bitmapBuffer[i] >= 'a' && bitmapBuffer[i] <= 'f') {
 							bs.set(pos++, ((bitmapBuffer[i] - 87) & 8) > 0);
 							bs.set(pos++, ((bitmapBuffer[i] - 87) & 4) > 0);
