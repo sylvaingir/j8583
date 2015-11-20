@@ -79,7 +79,12 @@ public final class Bcd {
             throws IndexOutOfBoundsException {
         char[] digits = new char[length];
         int start = 0;
-        for (int i = pos; i < pos + (length / 2) + (length % 2); i++) {
+        int i = pos;
+        if (length % 2 != 0) {
+            digits[start++] = (char)((buf[i] & 0x0f) + 48);
+            i++;
+        }
+        for (;i < pos + (length / 2) + (length % 2); i++) {
             digits[start++] = (char)(((buf[i] & 0xf0) >> 4) + 48);
             digits[start++] = (char)((buf[i] & 0x0f) + 48);
         }
