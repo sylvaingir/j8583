@@ -21,6 +21,7 @@ package com.solab.iso8583;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -199,10 +200,12 @@ public class IsoValue<T> implements Cloneable {
 		if (type == IsoType.NUMERIC || type == IsoType.AMOUNT) {
 			if (type == IsoType.AMOUNT) {
 				if (value instanceof BigDecimal) {
-					return type.format((BigDecimal)value, 12);
+					return type.format((BigDecimal) value, 12);
 				} else {
 					return type.format(value.toString(), 12);
 				}
+            } else if (value instanceof BigInteger) {
+                return type.format(encoder == null ? value.toString() : encoder.encodeField(value), length);
 			} else if (value instanceof Number) {
 				return type.format(((Number)value).longValue(), length);
 			} else {
