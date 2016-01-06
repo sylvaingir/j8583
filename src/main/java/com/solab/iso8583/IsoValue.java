@@ -333,7 +333,8 @@ public class IsoValue<T> implements Cloneable {
 				buf = new byte[(length / 2) + (length % 2)];
 			} else if (type == IsoType.AMOUNT) {
 				buf = new byte[6];
-			} else if (type == IsoType.DATE10 || type == IsoType.DATE4 || type == IsoType.DATE_EXP || type == IsoType.TIME) {
+			} else if (type == IsoType.DATE10 || type == IsoType.DATE4 ||
+					type == IsoType.DATE_EXP || type == IsoType.TIME || type == IsoType.DATE12) {
 				buf = new byte[length / 2];
 			}
 			//Encode in BCD if it's one of these types

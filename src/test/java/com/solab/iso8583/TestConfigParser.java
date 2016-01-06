@@ -215,7 +215,7 @@ public class TestConfigParser {
     	Assert.assertEquals(IsoType.AMOUNT.getLength(), field4.getLength());
 		
     	// check nested field num 4 from composite field 62
-		CompositeField compositeField62 = (CompositeField) isoMessage.<Object>getField(62).getValue();
+		CompositeField compositeField62 = isoMessage.<CompositeField>getField(62).getValue();
 		IsoValue<Object> nestedField4 = compositeField62.getField(0); // first in list
 		Assert.assertEquals(IsoType.ALPHA, nestedField4.getType());
 		Assert.assertEquals(13, nestedField4.getLength());

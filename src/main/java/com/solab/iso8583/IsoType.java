@@ -60,7 +60,9 @@ public enum IsoType {
     /** variable length with 4-digit header length. */
     LLLLVAR(false, 0),
     /** variable length byte array with 4-digit header length. */
-    LLLLBIN(false, 0);
+    LLLLBIN(false, 0),
+    /** Date in format yyMMddHHmmss. */
+   	DATE12(false,12);
 
 	private boolean needsLen;
 	private int length;
@@ -80,7 +82,7 @@ public enum IsoType {
 		return length;
 	}
 
-	/** Formats a Date if the receiver is DATE10, DATE4, DATE_EXP or TIME; throws an exception
+	/** Formats a Date if the receiver is DATE10, DATE4, DATE_EXP, DATE12 or TIME; throws an exception
 	 * otherwise. */
 	public String format(final Date value, final TimeZone tz) {
         final SimpleDateFormat sdf;
@@ -92,6 +94,8 @@ public enum IsoType {
             sdf = new SimpleDateFormat("yyMM");
 		} else if (this == TIME) {
             sdf = new SimpleDateFormat("HHmmss");
+        } else if (this == DATE12) {
+            sdf = new SimpleDateFormat("yyMMddHHmmss");
 		} else {
             throw new IllegalArgumentException("Cannot format date as " + this);
         }

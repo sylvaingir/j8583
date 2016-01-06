@@ -86,7 +86,8 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
                 if (v != null) {
                     if (v.getType() == IsoType.NUMERIC || v.getType() == IsoType.DATE10
                             || v.getType() == IsoType.DATE4 || v.getType() == IsoType.DATE_EXP
-                            || v.getType() == IsoType.AMOUNT || v.getType() == IsoType.TIME) {
+                            || v.getType() == IsoType.AMOUNT || v.getType() == IsoType.TIME
+                            || v.getType() == IsoType.DATE12) {
                         pos += (v.getLength() / 2) + (v.getLength() % 2);
                     } else {
                         pos += v.getLength();

@@ -48,4 +48,17 @@ public class TestDates {
 		Assert.assertEquals(comp.getValue().getTime(), bin.getValue().getTime());
 	}
 
+	@Test
+	public void testDate12FutureTolerance() throws ParseException, IOException {
+		Date soon = new Date(System.currentTimeMillis() + 50000);
+		byte[] buf = IsoType.DATE12.format(soon, null).getBytes();
+		IsoValue<Date> comp = new Date12ParseInfo().parse(0, buf, 0, null);
+		assert comp.getValue().after(new Date());
+		//Now with the binary
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		comp.write(bout, true, false);
+		IsoValue<Date> bin = new Date12ParseInfo().parseBinary(0, bout.toByteArray(), 0, null);
+		Assert.assertEquals(comp.getValue().getTime(), bin.getValue().getTime());
+	}
+
 }
