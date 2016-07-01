@@ -522,6 +522,7 @@ public class MessageFactory<T extends IsoMessage> {
 	 * @param header The optional ISO header that goes before the message type
 	 * @return IsoMessage
 	 */
+    @SuppressWarnings("unchecked")
 	protected T createIsoMessage(String header) {
         return (T)new IsoMessage(header);
 	}
@@ -532,6 +533,7 @@ public class MessageFactory<T extends IsoMessage> {
    	 * @param binHeader The optional ISO header that goes before the message type
    	 * @return IsoMessage
    	 */
+    @SuppressWarnings("unchecked")
     protected T createIsoMessageWithBinaryHeader(byte[] binHeader) {
         return (T)new IsoMessage(binHeader);
     }
