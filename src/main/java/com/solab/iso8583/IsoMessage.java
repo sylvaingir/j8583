@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583;
 
+import com.solab.iso8583.util.HexCodec;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,6 +49,7 @@ public class IsoMessage {
 	private IsoValue[] fields = new IsoValue[129];
     /** Stores the optional ISO header. */
     private String isoHeader;
+    private byte[] binIsoHeader;
     private int etx = -1;
     /** Flag to enforce secondary bitmap even if empty. */
     private boolean forceb2;
@@ -61,6 +64,10 @@ public class IsoMessage {
     /** Creates a new message with the specified ISO header. This will be prepended to the message. */
     protected IsoMessage(String header) {
     	isoHeader = header;
+    }
+    /** Creates a new message with the specified binary ISO header. This will be prepended to the message. */
+    protected IsoMessage(byte[] binaryHeader) {
+    	binIsoHeader = binaryHeader;
     }
 
     /** Tells the message to encode its bitmap in binary format, even if the message
@@ -109,11 +116,23 @@ public class IsoMessage {
     /** Sets the string to be sent as ISO header, that is, after the length header but before the message type.
      * This is useful in case an application needs some custom data in the ISO header of each message (very rare). */
     public void setIsoHeader(String value) {
-    	isoHeader = value;
+        isoHeader = value;
+        binIsoHeader = null;
     }
     /** Returns the ISO header that this message was created with. */
     public String getIsoHeader() {
     	return isoHeader;
+    }
+
+    /** Sets the string to be sent as ISO header, that is, after the length header but before the message type.
+     * This is useful in case an application needs some custom data in the ISO header of each message (very rare). */
+    public void setBinaryIsoHeader(byte[] binaryHeader) {
+        isoHeader = null;
+        binIsoHeader = binaryHeader;
+    }
+    /** Returns the binary ISO header that this message was created with. */
+    public byte[] getBinaryIsoHeader() {
+        return binIsoHeader;
     }
 
     /** Sets the ISO message type. Common values are 0x200, 0x210, 0x400, 0x410, 0x800, 0x810. */
@@ -350,7 +369,13 @@ public class IsoMessage {
     		} catch (IOException ex) {
     			//should never happen, writing to a ByteArrayOutputStream
     		}
-    	}
+    	} else if (binIsoHeader != null) {
+            try {
+                bout.write(binIsoHeader);
+            } catch (IOException ex) {
+                //should never happen, writing to a ByteArrayOutputStream
+            }
+        }
     	//Message Type
     	if (binary) {
         	bout.write((type & 0xff00) >> 8);
@@ -431,6 +456,8 @@ public class IsoMessage {
         StringBuilder sb = new StringBuilder();
         if (isoHeader != null) {
             sb.append(isoHeader);
+        } else if (binIsoHeader != null) {
+            sb.append("[0x").append(HexCodec.hexEncode(binIsoHeader, 0, binIsoHeader.length)).append("]");
         }
         sb.append(String.format("%04x", type));
 
