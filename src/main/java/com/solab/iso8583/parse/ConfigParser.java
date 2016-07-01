@@ -20,6 +20,7 @@ package com.solab.iso8583.parse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -84,7 +85,7 @@ public class ConfigParser {
         try (InputStream ins = loader.getResourceAsStream(path)) {
             if (ins != null) {
                 log.debug("ISO8583 Parsing config from classpath file {}", path);
-                parse(mfact, ins);
+                parse(mfact, new InputSource(ins));
             } else {
                 log.error("ISO8583 File not found in classpath: {}", path);
             }
@@ -96,10 +97,17 @@ public class ConfigParser {
 	public static MessageFactory<IsoMessage> createFromUrl(URL url) throws IOException {
 		MessageFactory<IsoMessage> mfact = new MessageFactory<>();
 		try (InputStream stream = url.openStream()) {
-			parse(mfact, stream);
+			parse(mfact, new InputSource(stream));
 		}
 		return mfact;
 	}
+
+    /** Creates a messageFactory from the XML contained in the specified Reader. */
+    public static MessageFactory<IsoMessage> createFromReader(Reader reader) throws IOException {
+        MessageFactory<IsoMessage> mfact = new MessageFactory<>();
+        parse(mfact, new InputSource(reader));
+        return mfact;
+    }
 
     protected static <T extends IsoMessage> void parseHeaders(
             final NodeList nodes, final MessageFactory<T> mfact) throws IOException {
@@ -376,9 +384,9 @@ public class ConfigParser {
 
 	/** Reads the XML from the stream and configures the message factory with its values.
 	 * @param mfact The message factory to be configured with the values read from the XML.
-	 * @param stream The InputStream containing the XML configuration. */
+	 * @param source The InputSource containing the XML configuration. */
 	protected static <T extends IsoMessage> void parse(
-            MessageFactory<T> mfact, InputStream stream) throws IOException {
+            MessageFactory<T> mfact, InputSource source) throws IOException {
 		final DocumentBuilderFactory docfact = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docb = null;
 		Document doc = null;
@@ -399,7 +407,7 @@ public class ConfigParser {
 					return null;
 				}
 			});
-			doc = docb.parse(stream);
+			doc = docb.parse(source);
 		} catch (ParserConfigurationException | SAXException ex) {
 			log.error("ISO8583 Cannot parse XML configuration", ex);
 			return;
@@ -428,7 +436,7 @@ public class ConfigParser {
 	public static <T extends IsoMessage> void configureFromUrl(
             MessageFactory<T> mfact, URL url) throws IOException {
 		try (InputStream stream = url.openStream()) {
-			parse(mfact, stream);
+			parse(mfact, new InputSource(stream));
 		}
 	}
 
@@ -440,12 +448,18 @@ public class ConfigParser {
         try (InputStream ins = mfact.getClass().getClassLoader().getResourceAsStream(path)) {
             if (ins != null) {
                 log.debug("ISO8583 Parsing config from classpath file {}", path);
-                parse(mfact, ins);
+                parse(mfact, new InputSource(ins));
             } else {
                 log.warn("ISO8583 File not found in classpath: {}", path);
             }
         }
 	}
+
+    /** Configures a MessageFactory using the XML data obtained from the specified Reader. */
+    public static <T extends IsoMessage> void configureFromReader(MessageFactory<T> mfact, Reader reader)
+            throws IOException {
+        parse(mfact, new InputSource(reader));
+    }
 
 	/** Parses a message type expressed as a hex string and returns the integer number.
 	 * For example, "0200" or "200" return the number 512 (0x200) */
