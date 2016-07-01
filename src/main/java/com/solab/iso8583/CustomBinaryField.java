@@ -28,8 +28,8 @@ package com.solab.iso8583;
  */
 public interface CustomBinaryField<T> extends CustomField<T> {
 
-    public T decodeBinaryField(byte[] value, int offset, int length);
+    T decodeBinaryField(byte[] value, int offset, int length);
 
-   	public byte[] encodeBinaryField(T value);
+   	byte[] encodeBinaryField(T value);
 
 }
