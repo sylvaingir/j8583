@@ -33,6 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import com.solab.iso8583.*;
 import com.solab.iso8583.codecs.CompositeField;
+import com.solab.iso8583.util.HexCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -128,10 +129,16 @@ public class ConfigParser {
                 else throw new IOException("Invalid ISO8583 header element");
             } else {
                 String header = elem.getChildNodes().item(0).getNodeValue();
+                boolean binHeader = "true".equals(elem.getAttribute("binary"));
                 if (log.isTraceEnabled()) {
-                    log.trace("Adding ISO8583 header for type {}: {}", elem.getAttribute("type"), header);
+                    log.trace("Adding {}ISO8583 header for type {}: {}",
+                            binHeader?"binary ":"", elem.getAttribute("type"), header);
                 }
-                mfact.setIsoHeader(type, header);
+                if (binHeader) {
+                    mfact.setBinaryIsoHeader(type, HexCodec.hexDecode(header));
+                } else {
+                    mfact.setIsoHeader(type, header);
+                }
             }
         }
         if (refs != null) {
