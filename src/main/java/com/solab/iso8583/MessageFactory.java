@@ -58,6 +58,7 @@ public class MessageFactory<T extends IsoMessage> {
 	private TraceNumberGenerator traceGen;
 	/** The ISO header to be included in each message type. */
 	private Map<Integer, String> isoHeaders = new HashMap<>();
+    private Map<Integer, byte[]> binIsoHeaders = new HashMap<>();
 	/** A map for the custom field encoder/decoders, keyed by field number. */
 	@SuppressWarnings("rawtypes")
 	private Map<Integer, CustomField> customFields = new HashMap<>();
@@ -211,7 +212,12 @@ public class MessageFactory<T extends IsoMessage> {
 	 * messages, then the returned message will be written using binary coding.
 	 * @param type The message type, for example 0x200, 0x400, etc. */
 	public T newMessage(int type) {
-		T m = createIsoMessage(isoHeaders.get(type));
+		T m;
+        if (binIsoHeaders.get(type) != null) {
+            m = createIsoMessageWithBinaryHeader(binIsoHeaders.get(type));
+        } else {
+            m = createIsoMessage(isoHeaders.get(type));
+        }
 		m.setType(type);
 		m.setEtx(etx);
 		m.setBinary(useBinary);
@@ -286,20 +292,33 @@ public class MessageFactory<T extends IsoMessage> {
                 field, messageType);
     }
 
+    /** Convenience for parseMessage(buf, isoHeaderLength, false) */
+    public T parseMessage(byte[] buf, int isoHeaderLength)
+           	throws ParseException, UnsupportedEncodingException {
+        return parseMessage(buf, isoHeaderLength, false);
+    }
+
 	/** Creates a new message instance from the buffer, which must contain a valid ISO8583
 	 * message. If the factory is set to use binary messages then it will try to parse
 	 * a binary message.
 	 * @param buf The byte buffer containing the message. Must not include the length header.
 	 * @param isoHeaderLength The expected length of the ISO header, after which the message type
 	 * and the rest of the message must come. */
-	public T parseMessage(byte[] buf, int isoHeaderLength)
-	throws ParseException, UnsupportedEncodingException {
+	public T parseMessage(byte[] buf, int isoHeaderLength, boolean binaryIsoHeader)
+        	throws ParseException, UnsupportedEncodingException {
 		final int minlength = isoHeaderLength+(useBinary?2:4)+(binBitmap||useBinary ? 8:16);
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
-		final T m = createIsoMessage(isoHeaderLength > 0 ?
-				new String(buf, 0, isoHeaderLength, encoding) : null);
+		final T m;
+        if (binaryIsoHeader && isoHeaderLength > 0) {
+            byte[] _bih = new byte[isoHeaderLength];
+            System.arraycopy(buf, 0, _bih, 0, isoHeaderLength);
+            m = createIsoMessageWithBinaryHeader(_bih);
+        } else {
+            m = createIsoMessage(isoHeaderLength > 0 ?
+    				new String(buf, 0, isoHeaderLength, encoding) : null);
+        }
 		m.setCharacterEncoding(encoding);
 		final int type;
 		if (useBinary) {
@@ -503,12 +522,21 @@ public class MessageFactory<T extends IsoMessage> {
 	 * @param header The optional ISO header that goes before the message type
 	 * @return IsoMessage
 	 */
-    @SuppressWarnings("unchecked")
 	protected T createIsoMessage(String header) {
         return (T)new IsoMessage(header);
 	}
 
-        /** Sets whether the factory should set the current date on newly created messages,
+    /** Creates a Iso message with the specified binary ISO header.
+     * Override this method in the subclass to provide your
+   	 * own implementations of IsoMessage.
+   	 * @param binHeader The optional ISO header that goes before the message type
+   	 * @return IsoMessage
+   	 */
+    protected T createIsoMessageWithBinaryHeader(byte[] binHeader) {
+        return (T)new IsoMessage(binHeader);
+    }
+
+    /** Sets whether the factory should set the current date on newly created messages,
 	 * in field 7. Default is false. */
 	public void setAssignDate(boolean flag) {
 		setDate = flag;
@@ -545,6 +573,7 @@ public class MessageFactory<T extends IsoMessage> {
 			isoHeaders.remove(type);
 		} else {
 			isoHeaders.put(type, value);
+            binIsoHeaders.remove(type);
 		}
 	}
 
@@ -552,6 +581,22 @@ public class MessageFactory<T extends IsoMessage> {
 	public String getIsoHeader(int type) {
 		return isoHeaders.get(type);
 	}
+
+    /** Sets the ISO header for a specific message type, in binary format.
+   	 * @param type The message type, for example 0x200.
+   	 * @param value The ISO header, or NULL to remove any headers for this message type. */
+    public void setBinaryIsoHeader(int type, byte[] value) {
+        if (value == null) {
+            binIsoHeaders.remove(type);
+        } else {
+            binIsoHeaders.put(type, value);
+            isoHeaders.remove(type);
+        }
+    }
+    /** Returns the binary ISO header used for the specified type. */
+    public byte[] getBinaryIsoHeader(int type) {
+        return binIsoHeaders.get(type);
+    }
 
 	/** Adds a message template to the factory. If there was a template for the same
 	 * message type as the new one, it is overwritten. */
@@ -579,6 +624,7 @@ public class MessageFactory<T extends IsoMessage> {
 		parseMap = Collections.unmodifiableMap(parseMap);
 		parseOrder = Collections.unmodifiableMap(parseOrder);
 		isoHeaders = Collections.unmodifiableMap(isoHeaders);
+        binIsoHeaders = Collections.unmodifiableMap(binIsoHeaders);
 		customFields = Collections.unmodifiableMap(customFields);
 	}
 
