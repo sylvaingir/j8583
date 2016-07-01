@@ -3,6 +3,7 @@
 <!ELEMENT header ( #PCDATA ) >
 <!ATTLIST header type NMTOKEN #REQUIRED >
 <!ATTLIST header ref NMTOKEN #IMPLIED >
+<!ATTLIST header binary ( true | false ) #IMPLIED >
 
 <!ELEMENT template ( field* ) >
 <!ATTLIST template type NMTOKEN #REQUIRED >
