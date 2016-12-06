@@ -66,6 +66,7 @@ public class MessageFactory<T extends IsoMessage> {
 	private boolean setDate;
 	/** Indicates if the factory should create binary messages and also parse binary messages. */
 	private boolean useBinary;
+	private boolean useBinaryBody;
 	private int etx = -1;
 	/** Flag to specify if missing fields should be ignored as long as they're at
 	 * the end of the message. */
@@ -197,6 +198,13 @@ public class MessageFactory<T extends IsoMessage> {
 		return useBinary;
 	}
 
+	public void setUseBinaryBody(boolean flag) {
+		useBinaryBody = flag;
+	}
+	public boolean getUseBinaryBody() {
+		return useBinaryBody;
+	}
+
 	/** Sets the ETX character to be sent at the end of the message. This is optional and the
 	 * default is -1, which means nothing should be sent as terminator.
 	 * @param value The ASCII value of the ETX character or -1 to indicate no terminator should be used. */
@@ -221,6 +229,7 @@ public class MessageFactory<T extends IsoMessage> {
 		m.setType(type);
 		m.setEtx(etx);
 		m.setBinary(useBinary);
+		m.setBinaryBody(useBinaryBody);
 		m.setForceSecondaryBitmap(forceb2);
         m.setBinaryBitmap(binBitmap);
 		m.setCharacterEncoding(encoding);
@@ -513,6 +522,7 @@ public class MessageFactory<T extends IsoMessage> {
 			}
 		}
 		m.setBinary(useBinary);
+		m.setBinaryBody(useBinaryBody);
         m.setBinaryBitmap(binBitmap);
 		return m;
 	}

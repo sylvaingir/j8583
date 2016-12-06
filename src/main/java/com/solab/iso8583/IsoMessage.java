@@ -42,8 +42,10 @@ public class IsoMessage {
 
 	/** The message type. */
     private int type;
-    /** Indicates if the message is binary-coded. */
+    /** Indicates if the MTI is binary-coded. */
     private boolean binary;
+    /** Indicates if the message body is binary-coded. */
+    private boolean binBody;
     /** This is where the values are stored. */
     @SuppressWarnings("rawtypes")
 	private IsoValue[] fields = new IsoValue[129];
@@ -153,6 +155,13 @@ public class IsoMessage {
     /** Returns true if the message is binary coded; default is false. */
     public boolean isBinary() {
     	return binary;
+    }
+
+    public void setBinaryBody(boolean flag) {
+        binBody = flag;
+    }
+    public boolean isBinaryBody() {
+        return binBody;
     }
 
     /** Sets the ETX character, which is sent at the end of the message as a terminator.
@@ -441,7 +450,7 @@ public class IsoMessage {
     		IsoValue<?> v = fields[i];
     		if (v != null) {
         		try {
-        			v.write(bout, binary, forceStringEncoding);
+        			v.write(bout, binBody, forceStringEncoding);
         		} catch (IOException ex) {
         			//should never happen, writing to a ByteArrayOutputStream
         		}
