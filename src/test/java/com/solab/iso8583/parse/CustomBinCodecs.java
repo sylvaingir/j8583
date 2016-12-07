@@ -59,6 +59,7 @@ public class CustomBinCodecs {
         final BigIntBcdCodec bigintCodec = new BigIntBcdCodec();
         final LongBcdCodec longCodec = new LongBcdCodec();
         final MessageFactory<IsoMessage> mfact = new MessageFactory<IsoMessage>();
+        mfact.setUseBinaryBody(true);
         IsoMessage tmpl = new IsoMessage();
         tmpl.setBinary(true);
         tmpl.setType(0x200);

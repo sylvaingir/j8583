@@ -22,6 +22,7 @@ public class TestLlll {
     public void setup() throws IOException {
         mfact.setConfigPath("issue36.xml");
         mfact.setAssignDate(false);
+        mfact.setUseBinaryBody(true);
     }
 
     @Test

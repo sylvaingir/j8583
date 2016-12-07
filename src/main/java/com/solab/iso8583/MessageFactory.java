@@ -66,7 +66,7 @@ public class MessageFactory<T extends IsoMessage> {
 	private boolean setDate;
 	/** Indicates if the factory should create binary messages and also parse binary messages. */
 	private boolean useBinary;
-	private boolean useBinaryBody;
+	private boolean useBinaryBody = false;
 	private int etx = -1;
 	/** Flag to specify if missing fields should be ignored as long as they're at
 	 * the end of the message. */

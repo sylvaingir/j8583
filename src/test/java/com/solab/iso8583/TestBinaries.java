@@ -23,10 +23,12 @@ public class TestBinaries {
 		mfactAscii.setCharacterEncoding("UTF-8");
 		mfactAscii.setConfigPath("config.xml");
 		mfactAscii.setAssignDate(true);
+
 		mfactBin.setCharacterEncoding("UTF-8");
 		mfactBin.setConfigPath("config.xml");
 		mfactBin.setAssignDate(true);
 		mfactBin.setUseBinaryMessages(true);
+		mfactBin.setUseBinaryBody(true);
 	}
 
 	void testParsed(IsoMessage m) {
