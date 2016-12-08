@@ -74,7 +74,7 @@ public class TestBinaries {
 	public void testMessages() throws ParseException, UnsupportedEncodingException {
 		//Create a message with both factories
 		IsoMessage ascii = mfactAscii.newMessage(0x600);
-		IsoMessage bin = mfactBinMtiAsciiBody.newMessage(0x600);
+		IsoMessage bin = mfactBin.newMessage(0x600);
         Assert.assertFalse(ascii.isBinary() || ascii.isBinaryBitmap());
         Assert.assertTrue(bin.isBinary());
 		//HEXencode the binary message, headers should be similar to the ASCII version
@@ -90,7 +90,7 @@ public class TestBinaries {
 		IsoMessage ascii2 = mfactAscii.parseMessage(asciiBuf, 0);
 		testParsed(ascii2);
 		Assert.assertEquals(ascii.getObjectValue(7).toString(), ascii2.getObjectValue(7).toString());
-		IsoMessage bin2 = mfactBinMtiAsciiBody.parseMessage(bin.writeData(), 0);
+		IsoMessage bin2 = mfactBin.parseMessage(bin.writeData(), 0);
 		//Compare values, should be the same
 		testParsed(bin2);
 		Assert.assertEquals(bin.getObjectValue(7).toString(), bin2.getObjectValue(7).toString());
@@ -120,20 +120,20 @@ public class TestBinaries {
     @Test
 	public void test61() throws ParseException, UnsupportedEncodingException {
 		BigInteger bignum = new BigInteger("1234512345123451234");
-		IsoMessage iso1 = mfactBinMtiAsciiBody.newMessage(0x201);
+		IsoMessage iso1 = mfactBin.newMessage(0x201);
 		iso1.setValue(3, bignum, IsoType.NUMERIC, 19);
         iso1.setField(7, null);
         byte[] buf = iso1.writeData();
         System.out.println(HexCodec.hexEncode(buf, 0, buf.length));
-		IsoMessage iso2 = mfactBinMtiAsciiBody.parseMessage(buf, 0);
+		IsoMessage iso2 = mfactBin.parseMessage(buf, 0);
 		Assert.assertEquals(bignum, iso2.getObjectValue(3));
         bignum = new BigInteger("1234512345123451234522");
-        iso1 = mfactBinMtiAsciiBody.newMessage(0x202);
+        iso1 = mfactBin.newMessage(0x202);
         iso1.setValue(3, bignum, IsoType.NUMERIC, 22);
         iso1.setField(7, null);
         buf = iso1.writeData();
         System.out.println(HexCodec.hexEncode(buf, 0, buf.length));
-		iso2 = mfactBinMtiAsciiBody.parseMessage(buf, 0);
+		iso2 = mfactBin.parseMessage(buf, 0);
 		Assert.assertEquals(bignum, iso2.getObjectValue(3));
 	}
 
