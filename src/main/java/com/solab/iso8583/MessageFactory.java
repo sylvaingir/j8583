@@ -458,7 +458,7 @@ public class MessageFactory<T extends IsoMessage> {
 			throw new ParseException("ISO8583 MessageFactory cannot parse fields", 0);
 		}
 		//Now we parse each field
-		if (useBinary) {
+		if (useBinaryBody) {
 			for (Integer i : index) {
 				FieldParseInfo fpi = parseGuide.get(i);
 				if (bs.get(i - 1)) {

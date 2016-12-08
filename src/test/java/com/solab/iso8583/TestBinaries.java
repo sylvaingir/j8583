@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,6 +20,7 @@ public class TestBinaries {
 
 	private MessageFactory<IsoMessage> mfactAscii = new MessageFactory<IsoMessage>();
 	private MessageFactory<IsoMessage> mfactBin = new MessageFactory<IsoMessage>();
+	private MessageFactory<IsoMessage> mfactBinMtiAsciiBody = new MessageFactory<IsoMessage>();
 
 	@Before
 	public void setup() throws IOException {
@@ -29,6 +33,12 @@ public class TestBinaries {
 		mfactBin.setAssignDate(true);
 		mfactBin.setUseBinaryMessages(true);
 		mfactBin.setUseBinaryBody(true);
+
+		mfactBinMtiAsciiBody.setCharacterEncoding(StandardCharsets.US_ASCII.name());
+		mfactBinMtiAsciiBody.setConfigPath("config800.xml");
+		mfactBinMtiAsciiBody.setUseBinaryMessages(true);
+		mfactBinMtiAsciiBody.setUseBinaryBitmap(true);
+		mfactBinMtiAsciiBody.setUseBinaryBody(false);
 	}
 
 	void testParsed(IsoMessage m) {
@@ -64,7 +74,7 @@ public class TestBinaries {
 	public void testMessages() throws ParseException, UnsupportedEncodingException {
 		//Create a message with both factories
 		IsoMessage ascii = mfactAscii.newMessage(0x600);
-		IsoMessage bin = mfactBin.newMessage(0x600);
+		IsoMessage bin = mfactBinMtiAsciiBody.newMessage(0x600);
         Assert.assertFalse(ascii.isBinary() || ascii.isBinaryBitmap());
         Assert.assertTrue(bin.isBinary());
 		//HEXencode the binary message, headers should be similar to the ASCII version
@@ -80,7 +90,7 @@ public class TestBinaries {
 		IsoMessage ascii2 = mfactAscii.parseMessage(asciiBuf, 0);
 		testParsed(ascii2);
 		Assert.assertEquals(ascii.getObjectValue(7).toString(), ascii2.getObjectValue(7).toString());
-		IsoMessage bin2 = mfactBin.parseMessage(bin.writeData(), 0);
+		IsoMessage bin2 = mfactBinMtiAsciiBody.parseMessage(bin.writeData(), 0);
 		//Compare values, should be the same
 		testParsed(bin2);
 		Assert.assertEquals(bin.getObjectValue(7).toString(), bin2.getObjectValue(7).toString());
@@ -110,20 +120,34 @@ public class TestBinaries {
     @Test
 	public void test61() throws ParseException, UnsupportedEncodingException {
 		BigInteger bignum = new BigInteger("1234512345123451234");
-		IsoMessage iso1 = mfactBin.newMessage(0x201);
+		IsoMessage iso1 = mfactBinMtiAsciiBody.newMessage(0x201);
 		iso1.setValue(3, bignum, IsoType.NUMERIC, 19);
         iso1.setField(7, null);
         byte[] buf = iso1.writeData();
         System.out.println(HexCodec.hexEncode(buf, 0, buf.length));
-		IsoMessage iso2 = mfactBin.parseMessage(buf, 0);
+		IsoMessage iso2 = mfactBinMtiAsciiBody.parseMessage(buf, 0);
 		Assert.assertEquals(bignum, iso2.getObjectValue(3));
         bignum = new BigInteger("1234512345123451234522");
-        iso1 = mfactBin.newMessage(0x202);
+        iso1 = mfactBinMtiAsciiBody.newMessage(0x202);
         iso1.setValue(3, bignum, IsoType.NUMERIC, 22);
         iso1.setField(7, null);
         buf = iso1.writeData();
         System.out.println(HexCodec.hexEncode(buf, 0, buf.length));
-		iso2 = mfactBin.parseMessage(buf, 0);
+		iso2 = mfactBinMtiAsciiBody.parseMessage(buf, 0);
 		Assert.assertEquals(bignum, iso2.getObjectValue(3));
+	}
+
+	@Test
+	public void test0810() throws ParseException, UnsupportedEncodingException {
+		Date date = new Date();
+
+		IsoMessage iso1 = mfactBinMtiAsciiBody.newMessage(0x810);
+		iso1.setField(7, IsoType.DATE10.value(IsoType.DATE10.format(date, null)));
+		iso1.setField(11, IsoType.NUMERIC.value(562040, 6));
+		iso1.setField(70, IsoType.NUMERIC.value(1,3));
+
+		IsoMessage iso2 = mfactBinMtiAsciiBody.parseMessage(iso1.writeData(), 0);
+
+		Assert.assertEquals(date.toString(), iso2.getObjectValue(7).toString());
 	}
 }

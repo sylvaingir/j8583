@@ -1,7 +1,7 @@
 apply plugin:'java'
 apply plugin: 'maven'
 defaultTasks 'build'
-version='1.12.0'
+version='1.12.0-CARTA'
 description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
 sourceCompatibility=7
 targetCompatibility=7
@@ -52,47 +52,12 @@ signing {
 
 uploadArchives {
 	repositories {
-		project.ext.deployer=repositories.mavenDeployer {
-			beforeDeployment { MavenDeployment deployment ->
-				signing.signPom(deployment)
+		mavenDeployer {
+			snapshotRepository(url: "http://artifacts.transferwise.com/artifactory/ext-snapshot-local") {
+				authentication(userName:  artifactoryUser, password: artifactoryPassword)
 			}
-			repository(url:'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-				authentication(userName:nexusUsername, password:nexusPassword)
-			}
-			pom.project {
-				name 'j8583'
-				packaging 'jar'
-				description project.description
-				url 'http://j8583.sourceforge.net/'
-				inceptionYear '2007'
-				scm {
-					url 'https://github.com/chochos/j8583'
-					connection 'scm:git://github.com/chochos/j8583.git'
-					developerConnection 'scm:git@github.com:chochos/j8583.git'
-				}
-				licenses {
-					license {
-						name 'GNU Lesser General Public License, version 2.1'
-						url 'http://www.gnu.org/licenses/lgpl-2.1.html'
-						distribution 'repo'
-					}
-				}
-				developers {
-					developer {
-						id 'chochos'
-						name 'Enrique Zamudio Lopez'
-						email 'chochos@users.sourceforge.net'
-						url 'http://javamexico.org/blogs/ezamudio'
-						roles {
-							role 'Architect'
-							role 'Developer'
-						}
-						properties {
-							twitter 'chochosmx'
-						}
-						timezone 'America/Mexico_City'
-					}
-				}
+			repository(url: "http://artifacts.transferwise.com/artifactory/ext-release-local") {
+				authentication(userName:  artifactoryUser, password: artifactoryPassword)
 			}
 		}
 	}
