@@ -220,12 +220,7 @@ public class MessageFactory<T extends IsoMessage> {
 	 * messages, then the returned message will be written using binary coding.
 	 * @param type The message type, for example 0x200, 0x400, etc. */
 	public T newMessage(int type) {
-		T m;
-        if (binIsoHeaders.get(type) != null) {
-            m = createIsoMessageWithBinaryHeader(binIsoHeaders.get(type));
-        } else {
-            m = createIsoMessage(isoHeaders.get(type));
-        }
+		T m = createIsoMessage(type);
 		m.setType(type);
 		m.setEtx(etx);
 		m.setBinary(useBinary);
@@ -260,7 +255,7 @@ public class MessageFactory<T extends IsoMessage> {
 	 * overwriting fields from the template if they overlap.
 	 * @param request An ISO8583 message with a request type (ending in 00). */
 	public T createResponse(T request) {
-		T resp = createIsoMessage(isoHeaders.get(request.getType() + 16));
+		T resp = createIsoMessage(request.getType() + 16);
 		resp.setCharacterEncoding(request.getCharacterEncoding());
 		resp.setBinary(request.isBinary());
         resp.setBinaryBitmap(request.isBinaryBitmap());
@@ -524,6 +519,20 @@ public class MessageFactory<T extends IsoMessage> {
 		m.setBinary(useBinary);
 		m.setBinaryBody(useBinaryBody);
         m.setBinaryBitmap(binBitmap);
+		return m;
+	}
+
+	/** Creates a Iso message
+	 * @param type - message type
+	 * @return IsoMessage
+	 */
+	public T createIsoMessage(int type){
+		T m;
+		if (binIsoHeaders.get(type) != null) {
+			m = createIsoMessageWithBinaryHeader(binIsoHeaders.get(type));
+		} else {
+			m = createIsoMessage(isoHeaders.get(type));
+		}
 		return m;
 	}
 
