@@ -222,25 +222,20 @@ public class MessageFactory<T extends IsoMessage> {
 	public T newMessage(int type) {
 		T m = createIsoMessage(type);
 		m.setType(type);
+		configureMessage(m);
+
+		return copyTemplateData(m);
+	}
+
+	public T configureMessage(T m) {
 		m.setEtx(etx);
 		m.setBinary(useBinary);
 		m.setBinaryBody(useBinaryBody);
 		m.setForceSecondaryBitmap(forceb2);
-        m.setBinaryBitmap(binBitmap);
+		m.setBinaryBitmap(binBitmap);
 		m.setCharacterEncoding(encoding);
-        m.setForceStringEncoding(forceStringEncoding);
+		m.setForceStringEncoding(forceStringEncoding);
 
-		//Copy the values from the template
-		IsoMessage templ = typeTemplates.get(type);
-		if (templ != null) {
-			for (int i = 2; i <= 128; i++) {
-				if (templ.hasField(i)) {
-					//We could detect here if there's a custom object with a CustomField,
-					//but we can't copy the value so there's no point.
-					m.setField(i, templ.getField(i).clone());
-				}
-			}
-		}
 		if (traceGen != null) {
 			m.setValue(11, traceGen.nextTrace(), IsoType.NUMERIC, 6);
 		}
@@ -248,6 +243,27 @@ public class MessageFactory<T extends IsoMessage> {
 			m.setValue(7, new Date(), IsoType.DATE10, 10);
 		}
 		return m;
+	}
+
+	public T copyMessageData(T m, IsoMessage templ) {
+		//Copy the values from the template
+		if (templ != null) {
+			for (int i = 2; i <= 128; i++) {
+				//Do not replace any existing values
+				if (templ.hasField(i) && m.getField(i) == null) {
+					//We could detect here if there's a custom object with a CustomField,
+					//but we can't copy the value so there's no point.
+					m.setField(i, templ.getField(i).clone());
+				}
+			}
+		}
+
+		return m;
+	}
+
+	public T copyTemplateData(T m) {
+		IsoMessage templ = typeTemplates.get(m.getType());
+		return copyMessageData(m, templ);
 	}
 
 	/** Creates a message to respond to a request. Increments the message type by 16,
@@ -262,23 +278,10 @@ public class MessageFactory<T extends IsoMessage> {
 		resp.setType(request.getType() + 16);
 		resp.setEtx(etx);
 		resp.setForceSecondaryBitmap(forceb2);
-		//Copy the values from the template or the request (request has preference)
-		IsoMessage templ = typeTemplates.get(resp.getType());
-		if (templ == null) {
-			for (int i = 2; i < 128; i++) {
-				if (request.hasField(i)) {
-					resp.setField(i, request.getField(i).clone());
-				}
-			}
-		} else {
-			for (int i = 2; i < 128; i++) {
-				if (request.hasField(i)) {
-					resp.setField(i, request.getField(i).clone());
-				} else if (templ.hasField(i)) {
-					resp.setField(i, templ.getField(i).clone());
-				}
-			}
-		}
+
+		copyMessageData(resp, request);
+		copyTemplateData(resp);
+
 		return resp;
 	}
 

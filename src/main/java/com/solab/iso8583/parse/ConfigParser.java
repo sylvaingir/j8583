@@ -187,7 +187,7 @@ public class ConfigParser {
             }
             @SuppressWarnings("unchecked")
 
-            T m = (T) mfact.createIsoMessage(type);
+            T m = mfact.createIsoMessage(type);
             m.setType(type);
             m.setCharacterEncoding(mfact.getCharacterEncoding());
             NodeList fields = elem.getElementsByTagName("field");
@@ -220,7 +220,7 @@ public class ConfigParser {
                             + elem.getAttribute("extends"));
                 }
                 @SuppressWarnings("unchecked")
-                T m = (T) mfact.createIsoMessage(type);
+                T m = mfact.createIsoMessage(type);
                 m.setType(type);
                 m.setCharacterEncoding(mfact.getCharacterEncoding());
                 for (int i = 2; i < 128; i++) {
