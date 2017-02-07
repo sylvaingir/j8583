@@ -635,6 +635,11 @@ public class MessageFactory<T extends IsoMessage> {
 		typeTemplates.remove(type);
 	}
 
+	/** Removes all the message templates */
+	public void removeAllMessageTemplates() {
+		typeTemplates.clear();
+	}
+
 	/** Returns the template for the specified message type. This allows templates to be modified
 	 * programmatically. */
 	public T getMessageTemplate(int type) {

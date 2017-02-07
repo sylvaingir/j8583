@@ -60,4 +60,12 @@ public class TestIssue4 {
                 bb.array(), bbp.array());
     }
 
+    @Test
+    public void testRemoveAllMessageTemplates() throws IOException, ParseException {
+        MessageFactory<IsoMessage> mf = new MessageFactory<IsoMessage>();
+        ConfigParser.configureFromClasspathConfig(mf, "issue4.xml");
+        mf.removeAllMessageTemplates();
+        Assert.assertNull(mf.getMessageTemplate(0x800));
+    }
+
 }
