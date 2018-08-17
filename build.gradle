@@ -53,10 +53,10 @@ signing {
 uploadArchives {
 	repositories {
 		mavenDeployer {
-			snapshotRepository(url: "http://artifacts.transferwise.com/artifactory/ext-snapshot-local") {
+			snapshotRepository(url: "http://arti.tw.ee/artifactory/ext-snapshot-local") {
 				authentication(userName:  artifactoryUser, password: artifactoryPassword)
 			}
-			repository(url: "http://artifacts.transferwise.com/artifactory/ext-release-local") {
+			repository(url: "http://arti.tw.ee/artifactory/ext-release-local") {
 				authentication(userName:  artifactoryUser, password: artifactoryPassword)
 			}
 		}
