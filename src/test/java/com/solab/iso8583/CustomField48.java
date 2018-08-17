@@ -1,6 +1,4 @@
-package j8583;
-
-import com.solab.iso8583.CustomField;
+package com.solab.iso8583;
 
 /** This is an example of a custom field codec, which converts between strings and instances of this same class.
  * It's used to test the encoding and decoding of custom fields by the message factory.

@@ -35,27 +35,34 @@ public abstract class AlphaNumericFieldParseInfo extends FieldParseInfo {
 		super(t, len);
 	}
 
-	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException, UnsupportedEncodingException {
+    @Override
+	public <T> IsoValue<?> parse(final int field, final byte[] buf, final int pos,
+                             final CustomField<T> custom)
+            throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid ALPHA/NUM position %d", pos), pos);
+			throw new ParseException(String.format("Invalid ALPHA/NUM field %d position %d",
+                    field, pos), pos);
 		} else if (pos+length > buf.length) {
-			throw new ParseException(String.format("Insufficient data for %s field of length %d, pos %d",
-				type, length, pos), pos);
+			throw new ParseException(String.format("Insufficient data for %s field %d of length %d, pos %d",
+				type, field, length, pos), pos);
 		}
-		String _v = new String(buf, pos, length, getCharacterEncoding());
-		if (_v.length() != length) {
-			_v = new String(buf, pos, buf.length-pos, getCharacterEncoding()).substring(0, length);
-		}
-		if (custom == null) {
-			return new IsoValue<String>(type, _v, length, null);
-		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(_v), length, custom);
-			if (v.getValue() == null) {
-				return new IsoValue<String>(type, _v, length, null);
-			}
-			return v;
-		}
+        try {
+            String _v = new String(buf, pos, length, getCharacterEncoding());
+            if (_v.length() != length) {
+                _v = new String(buf, pos, buf.length-pos, getCharacterEncoding()).substring(0, length);
+            }
+            if (custom == null) {
+                return new IsoValue<>(type, _v, length, null);
+            } else {
+                T decoded = custom.decodeField(_v);
+                return decoded == null ? new IsoValue<>(type, _v, length, null) :
+                    new IsoValue<>(type, decoded, length, custom);
+            }
+        } catch (StringIndexOutOfBoundsException ex) {
+            throw new ParseException(String.format(
+                    "Insufficient data for %s field %d of length %d, pos %d",
+                    type, field, length, pos), pos);
+        }
 	}
 
 }

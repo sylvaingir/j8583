@@ -1,18 +1,14 @@
-package j8583;
+package com.solab.iso8583.util;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
-
-import com.solab.iso8583.util.HexCodec;
-
 
 public class TestHexCodec {
 
 	public void encodeDecode(String hex) {
 		byte[] buf = HexCodec.hexDecode(hex);
 		Assert.assertEquals((hex.length() / 2) + (hex.length() % 2), buf.length);
-		String reenc = HexCodec.hexEncode(buf);
+		String reenc = HexCodec.hexEncode(buf, 0, buf.length);
 		if (reenc.startsWith("0") && !hex.startsWith("0")) {
 			Assert.assertEquals(reenc.substring(1), hex);
 		} else {
@@ -40,5 +36,11 @@ public class TestHexCodec {
 		Assert.assertEquals(0xbc, (buf[1] & 0xff));
 		encodeDecode("ABC");
 	}
+
+    @Test
+    public void testPartial() {
+        Assert.assertEquals("FF01", HexCodec.hexEncode(new byte[]{0, (byte)0xff, 1, 2, 3, 4},
+                1, 2));
+    }
 
 }

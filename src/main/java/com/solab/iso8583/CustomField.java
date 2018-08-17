@@ -24,8 +24,8 @@ package com.solab.iso8583;
  */
 public interface CustomField<T> {
 
-	public T decodeField(String value);
+	T decodeField(String value);
 
-	public String encodeField(T value);
+	String encodeField(T value);
 
 }

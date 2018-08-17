@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -30,19 +31,23 @@ import com.solab.iso8583.IsoValue;
  * 
  * @author Enrique Zamudio
  */
-public class Date4ParseInfo extends FieldParseInfo {
+public class Date4ParseInfo extends DateTimeParseInfo {
 
 	public Date4ParseInfo() {
 		super(IsoType.DATE4, 4);
 	}
 
 	@Override
-	public IsoValue<Date> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public <T> IsoValue<Date> parse(final int field, final byte[] buf, final int pos,
+                                final CustomField<T> custom)
+            throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid DATE4 position %d", pos), pos);
+			throw new ParseException(String.format("Invalid DATE4 field %d position %d",
+                    field, pos), pos);
 		}
 		if (pos+4 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for DATE4 field, pos %d", pos), pos);
+			throw new ParseException(String.format(
+                    "Insufficient data for DATE4 field %d, pos %d", field, pos), pos);
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -50,16 +55,30 @@ public class Date4ParseInfo extends FieldParseInfo {
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		//Set the month in the date
-		cal.set(Calendar.MONTH, ((buf[pos] - 48) * 10) + buf[pos + 1] - 49);
-		cal.set(Calendar.DATE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
+        if (forceStringDecoding) {
+            cal.set(Calendar.MONTH, Integer.parseInt(new String(buf, pos, 2, getCharacterEncoding()), 10)-1);
+            cal.set(Calendar.DATE, Integer.parseInt(new String(buf, pos+2, 2, getCharacterEncoding()), 10));
+        } else {
+            cal.set(Calendar.MONTH, ((buf[pos] - 48) * 10) + buf[pos + 1] - 49);
+            cal.set(Calendar.DATE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
+        }
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
 		Date10ParseInfo.adjustWithFutureTolerance(cal);
-		return new IsoValue<Date>(type, cal.getTime(), null);
+		return new IsoValue<>(type, cal.getTime(), null);
 	}
 
 	@Override
-	public IsoValue<Date> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public <T> IsoValue<Date> parseBinary(final int field, final byte[] buf, final int pos,
+                                      final CustomField<T> custom) throws ParseException {
 		int[] tens = new int[2];
 		int start = 0;
+        if (buf.length-pos < 2) {
+            throw new ParseException(String.format(
+                    "Insufficient data to parse binary DATE4 field %d pos %d",
+                    field, pos), pos);
+        }
 		for (int i = pos; i < pos + tens.length; i++) {
 			tens[start++] = (((buf[i] & 0xf0) >> 4) * 10) + (buf[i] & 0x0f);
 		}
@@ -71,8 +90,11 @@ public class Date4ParseInfo extends FieldParseInfo {
 		cal.set(Calendar.MONTH, tens[0] - 1);
 		cal.set(Calendar.DATE, tens[1]);
 		cal.set(Calendar.MILLISECOND,0);
-		Date10ParseInfo.adjustWithFutureTolerance(cal);
-		return new IsoValue<Date>(type, cal.getTime(), null);
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
+		DateTimeParseInfo.adjustWithFutureTolerance(cal);
+		return new IsoValue<>(type, cal.getTime(), null);
 	}
 
 }

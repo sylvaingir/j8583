@@ -1,0 +1,19 @@
+	-----
+	Simple ISO8583 message parser
+	-----
+
+Simple ISO8583 message parser
+
+  The j8583 jar contains a simple program to parse ISO8583 messages, using
+  a config file specified in the command line.
+
+  To use this program, set up your classpath to include SLF4J and j8583, invoke
+  the <<com.solab.iso8583.util.SimpleParser>> and pass it the full path to your
+  j8583 configuration file. For example:
+
++-----
+java -cp lib/slf4j-api-1.7.7.jar:lib/slf4j-simple-1.7.7.jar:lib/j8583-1.10.2.jar com.solab.iso8583.util.SimpleParser /tmp/j8583-config.xml
++-----
+
+  You can paste an ISO8583 message encoded as text and the program will parse it, showing
+  the message type, bitmap and the value of each field.

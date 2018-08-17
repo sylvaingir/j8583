@@ -2,7 +2,7 @@
 	Introduction to j8583
 	-----
 
-What it j8583?
+What is j8583?
 
   Simply put, j8583 is a Java library to generate and read ISO8583 messages. It does not handle sending or
   reading them over a network connection, but it does parse the data you have read and can generate the
@@ -41,6 +41,6 @@ ISO header (optional)|Message Type|primary bitmap|secondary bitmap (optional)|da
   by IsoMessage objects, which store IsoValue instances for their data fields. You can work with the IsoValues
   or use the convenience methods of IsoMessage to work directly with the stored values.
 
-  j8583 can directly handle the basic data types: numeric values, strings, and dates. If you want to encode
-  a custom object in a field, you can implement a custom field encoder. More information is available in the
-  {{{guide.html}user's guide}}.
+  j8583 can directly handle the basic data types: numeric values, strings, amounts, dates and byte arrays.
+  If you want to encode a custom object in a field, you can implement a custom field encoder. More information
+  is available in the {{{guide.html}user's guide}}.

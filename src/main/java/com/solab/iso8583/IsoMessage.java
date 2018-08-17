@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583;
 
+import com.solab.iso8583.util.HexCodec;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -40,16 +42,21 @@ public class IsoMessage {
 
 	/** The message type. */
     private int type;
-    /** Indicates if the message is binary-coded. */
+    /** Indicates if the MTI is binary-coded. */
     private boolean binary;
+    /** Indicates if the message body is binary-coded. */
+    private boolean binBody;
     /** This is where the values are stored. */
     @SuppressWarnings("rawtypes")
 	private IsoValue[] fields = new IsoValue[129];
     /** Stores the optional ISO header. */
     private String isoHeader;
+    private byte[] binIsoHeader;
     private int etx = -1;
     /** Flag to enforce secondary bitmap even if empty. */
     private boolean forceb2;
+    private boolean binBitmap;
+    private boolean forceStringEncoding;
     private String encoding = System.getProperty("file.encoding");
 
     /** Creates a new empty message with no values set. */
@@ -57,33 +64,77 @@ public class IsoMessage {
     }
 
     /** Creates a new message with the specified ISO header. This will be prepended to the message. */
-    IsoMessage(String header) {
+    protected IsoMessage(String header) {
     	isoHeader = header;
+    }
+    /** Creates a new message with the specified binary ISO header. This will be prepended to the message. */
+    protected IsoMessage(byte[] binaryHeader) {
+    	binIsoHeader = binaryHeader;
+    }
+
+    /** Tells the message to encode its bitmap in binary format, even if the message
+     * itself is encoded as text. This has no effect if the binary flag is set, which means
+     * binary messages will always encode their bitmap in binary format. */
+    public void setBinaryBitmap(boolean flag) {
+        binBitmap = flag;
+    }
+    /** Returns true if the message's bitmap is encoded in binary format, when the message
+     * is encoded as text. Default is false. */
+    public boolean isBinaryBitmap() {
+        return binBitmap;
     }
 
     /** If set, this flag will cause the secondary bitmap to be written even if it's not needed. */
     public void setForceSecondaryBitmap(boolean flag) {
     	forceb2 = flag;
     }
+    /** Returns true if the secondary bitmap is always included in the message, even
+     * if it's not needed. Default is false. */
     public boolean getForceSecondaryBitmap() {
     	return forceb2;
     }
 
+    /** Sets the encoding to use. */
     public void setCharacterEncoding(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Cannot set null encoding.");
+        }
     	encoding = value;
     }
+    /** Returns the character encoding for Strings inside the message. Default
+     * is taken from the file.encoding system property. */
     public String getCharacterEncoding() {
     	return encoding;
     }
 
-    /** Sets the string to be sent as ISO header, that is, after the length header but before the message type. 
+    /** Specified whether the variable-length fields should encode their length
+     * headers using string conversion with the proper character encoding. Default
+     * is false, which is the old behavior (encoding as ASCII). This is only useful
+     * for text format. */
+    public void setForceStringEncoding(boolean flag) {
+        forceStringEncoding = flag;
+    }
+
+    /** Sets the string to be sent as ISO header, that is, after the length header but before the message type.
      * This is useful in case an application needs some custom data in the ISO header of each message (very rare). */
     public void setIsoHeader(String value) {
-    	isoHeader = value;
+        isoHeader = value;
+        binIsoHeader = null;
     }
     /** Returns the ISO header that this message was created with. */
     public String getIsoHeader() {
     	return isoHeader;
+    }
+
+    /** Sets the string to be sent as ISO header, that is, after the length header but before the message type.
+     * This is useful in case an application needs some custom data in the ISO header of each message (very rare). */
+    public void setBinaryIsoHeader(byte[] binaryHeader) {
+        isoHeader = null;
+        binIsoHeader = binaryHeader;
+    }
+    /** Returns the binary ISO header that this message was created with. */
+    public byte[] getBinaryIsoHeader() {
+        return binIsoHeader;
     }
 
     /** Sets the ISO message type. Common values are 0x200, 0x210, 0x400, 0x410, 0x800, 0x810. */
@@ -95,13 +146,22 @@ public class IsoMessage {
     	return type;
     }
 
-    /** Indicates whether the message should be binary. Default is false. */
+    /** Indicates whether the message should be binary. Default is false.
+     * To encode the message as text but the bitmap in binary format, you can set the
+     * binaryBitmap flag. */
     public void setBinary(boolean flag) {
     	binary = flag;
     }
     /** Returns true if the message is binary coded; default is false. */
     public boolean isBinary() {
     	return binary;
+    }
+
+    public void setBinaryBody(boolean flag) {
+        binBody = flag;
+    }
+    public boolean isBinaryBody() {
+        return binBody;
     }
 
     /** Sets the ETX character, which is sent at the end of the message as a terminator.
@@ -175,14 +235,33 @@ public class IsoMessage {
     	} else {
     		IsoValue<T> v = null;
     		if (t.needsLength()) {
-    			v = new IsoValue<T>(t, value, length, encoder);
+    			v = new IsoValue<>(t, value, length, encoder);
     		} else {
-    			v = new IsoValue<T>(t, value, encoder);
+    			v = new IsoValue<>(t, value, encoder);
     		}
     		v.setCharacterEncoding(encoding);
     		fields[index] = v;
     	}
     	return this;
+    }
+
+    /** A convenience method to set new values in fields that already contain values.
+     * The field's type, length and custom encoder are taken from the current value.
+     * This method can only be used with fields that have been previously set,
+     * usually from a template in the MessageFactory.
+     * @param index The field's index
+     * @param value The new value to be set in that field.
+     * @return The message itself.
+     * @throws IllegalArgumentException if there is no current field at the specified index. */
+    public <T> IsoMessage updateValue(int index, T value) {
+        IsoValue<T> current = getField(index);
+        if (current == null) {
+            throw new IllegalArgumentException("Value-only field setter can only be used on existing fields");
+        } else {
+            setValue(index, value, current.getEncoder(), current.getType(), current.getLength());
+            getField(index).setCharacterEncoding(current.getCharacterEncoding());
+        }
+        return this;
     }
 
     /** Returns true is the message has a value in the specified field.
@@ -250,22 +329,16 @@ public class IsoMessage {
     		if (etx > -1) {
     			l++;
     		}
-    		byte[] bbuf = new byte[lengthBytes];
-    		int pos = 0;
     		if (lengthBytes == 4) {
-    			bbuf[0] = (byte)((l & 0xff000000) >> 24);
-    			pos++;
+                buf.put((byte)((l & 0xff000000) >> 24));
     		}
     		if (lengthBytes > 2) {
-    			bbuf[pos] = (byte)((l & 0xff0000) >> 16);
-    			pos++;
+                buf.put((byte)((l & 0xff0000) >> 16));
     		}
     		if (lengthBytes > 1) {
-    			bbuf[pos] = (byte)((l & 0xff00) >> 8);
-    			pos++;
+                buf.put((byte)((l & 0xff00) >> 8));
     		}
-    		bbuf[pos] = (byte)(l & 0xff);
-    		buf.put(bbuf);
+            buf.put((byte)(l & 0xff));
     	}
     	buf.put(data);
     	//ETX
@@ -276,47 +349,58 @@ public class IsoMessage {
     	return buf;
     }
 
-    /** This calls writeInternal(), allowing applications to get the byte buffer containing the
-     * message data, without the length header. */
+    /** Creates a BitSet for the bitmap. */
+    protected BitSet createBitmapBitSet() {
+        BitSet bs = new BitSet(forceb2 ? 128 : 64);
+        for (int i = 2 ; i < 129; i++) {
+            if (fields[i] != null) {
+                bs.set(i - 1);
+            }
+        }
+        if (forceb2) {
+            bs.set(0);
+        } else if (bs.length() > 64) {
+            //Extend to 128 if needed
+            BitSet b2 = new BitSet(128);
+            b2.or(bs);
+            bs = b2;
+            bs.set(0);
+        }
+        return bs;
+    }
+
+    /** Writes the message to a memory stream and returns a byte array with the result. */
     public byte[] writeData() {
     	ByteArrayOutputStream bout = new ByteArrayOutputStream();
     	if (isoHeader != null) {
     		try {
-    			bout.write(isoHeader.getBytes());
+    			bout.write(isoHeader.getBytes(encoding));
     		} catch (IOException ex) {
     			//should never happen, writing to a ByteArrayOutputStream
     		}
-    	}
+    	} else if (binIsoHeader != null) {
+            try {
+                bout.write(binIsoHeader);
+            } catch (IOException ex) {
+                //should never happen, writing to a ByteArrayOutputStream
+            }
+        }
     	//Message Type
     	if (binary) {
         	bout.write((type & 0xff00) >> 8);
         	bout.write(type & 0xff);
     	} else {
     		try {
-    			bout.write(String.format("%04x", type).getBytes());
+    			bout.write(String.format("%04x", type).getBytes(encoding));
     		} catch (IOException ex) {
     			//should never happen, writing to a ByteArrayOutputStream
     		}
     	}
 
     	//Bitmap
-    	BitSet bs = new BitSet(forceb2 ? 128 : 64);
-    	for (int i = 2 ; i < 129; i++) {
-    		if (fields[i] != null) {
-        		bs.set(i - 1);
-    		}
-    	}
-    	if (forceb2) {
-    		bs.set(0);
-    	} else if (bs.length() > 64) {
-        	//Extend to 128 if needed
-    		BitSet b2 = new BitSet(128);
-    		b2.or(bs);
-    		bs = b2;
-    		bs.set(0);
-    	}
+        BitSet bs = createBitmapBitSet();
     	//Write bitmap to stream
-    	if (binary) {
+    	if (binary || binBitmap) {
     		int pos = 128;
     		int b = 0;
     		for (int i = 0; i < bs.size(); i++) {
@@ -331,6 +415,11 @@ public class IsoMessage {
     			}
     		}
     	} else {
+            ByteArrayOutputStream bout2 = null;
+            if (forceStringEncoding) {
+                bout2 = bout;
+                bout = new ByteArrayOutputStream();
+            }
             int pos = 0;
             int lim = bs.size() / 4;
             for (int i = 0; i < lim; i++) {
@@ -345,6 +434,15 @@ public class IsoMessage {
                     nibble |= 1;
                 bout.write(HEX[nibble]);
             }
+            if (forceStringEncoding) {
+                final String _hb = new String(bout.toByteArray());
+                bout = bout2;
+                try {
+                    bout.write(_hb.getBytes(encoding));
+                } catch (IOException ignore) {
+                    //never happen
+                }
+            }
     	}
 
     	//Fields
@@ -352,7 +450,7 @@ public class IsoMessage {
     		IsoValue<?> v = fields[i];
     		if (v != null) {
         		try {
-        			v.write(bout, binary);
+        			v.write(bout, binBody, forceStringEncoding);
         		} catch (IOException ex) {
         			//should never happen, writing to a ByteArrayOutputStream
         		}
@@ -361,9 +459,55 @@ public class IsoMessage {
     	return bout.toByteArray();
     }
 
+    /** Returns a string representation of the message, as if it were encoded
+     * in ASCII with no binary bitmap. */
+    public String debugString() {
+        StringBuilder sb = new StringBuilder();
+        if (isoHeader != null) {
+            sb.append(isoHeader);
+        } else if (binIsoHeader != null) {
+            sb.append("[0x").append(HexCodec.hexEncode(binIsoHeader, 0, binIsoHeader.length)).append("]");
+        }
+        sb.append(String.format("%04x", type));
+
+        //Bitmap
+        BitSet bs = createBitmapBitSet();
+        int pos = 0;
+        int lim = bs.size() / 4;
+        for (int i = 0; i < lim; i++) {
+            int nibble = 0;
+            if (bs.get(pos++))
+               nibble |= 8;
+            if (bs.get(pos++))
+               nibble |= 4;
+            if (bs.get(pos++))
+               nibble |= 2;
+            if (bs.get(pos++))
+               nibble |= 1;
+            sb.append(new String(HEX, nibble, 1));
+        }
+
+        //Fields
+        for (int i = 2; i < 129; i++) {
+            IsoValue<?> v = fields[i];
+            if (v != null) {
+                String desc = v.toString();
+                if (v.getType() == IsoType.LLBIN || v.getType() == IsoType.LLVAR) {
+                    sb.append(String.format("%02d", desc.length()));
+                } else if (v.getType() == IsoType.LLLBIN || v.getType() == IsoType.LLLVAR) {
+                    sb.append(String.format("%03d", desc.length()));
+                } else if (v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLVAR) {
+                    sb.append(String.format("%04d", desc.length()));
+                }
+                sb.append(desc);
+            }
+        }
+        return sb.toString();
+    }
+
     //These are for Groovy compat
     /** Sets the specified value in the specified field, just like {@link #setField(int, IsoValue)}. */
-    public void putAt(int i, IsoValue<?> v) {
+    public <T> void putAt(int i, IsoValue<T> v) {
     	setField(i, v);
     }
     /** Returns the IsoValue in the specified field, just like {@link #getField(int)}. */
@@ -373,7 +517,7 @@ public class IsoMessage {
 
 	//These are for Scala compat
     /** Sets the specified value in the specified field, just like {@link #setField(int, IsoValue)}. */
-	public void update(int i, IsoValue<?> v) {
+	public <T> void update(int i, IsoValue<T> v) {
 		setField(i, v);
 	}
     /** Returns the IsoValue in the specified field, just like {@link #getField(int)}. */
@@ -392,4 +536,31 @@ public class IsoMessage {
     	}
     }
 
+    /** Remove the specified fields from the message. */
+    public void removeFields(int... idx) {
+        for (int i : idx) {
+            setField(i, null);
+        }
+    }
+
+    /** Returns true is the message contains all the specified fields.
+     * A convenience for m.hasField(x) && m.hasField(y) && m.hasField(z) && ... */
+    public boolean hasEveryField(int... idx) {
+        for (int i : idx) {
+            if (!hasField(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /** Returns true is the message contains at least one of the specified fields.
+     * A convenience for m.hasField(x) || m.hasField(y) || m.hasField(z) || ... */
+    public boolean hasAnyField(int... idx) {
+        for (int i : idx) {
+            if (hasField(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

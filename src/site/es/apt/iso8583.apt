@@ -19,8 +19,12 @@ Introducción al protocolo ISO8583
 | <<Tipo ISO>> | <<Tipo j8583>> | <<Descripción>> |
 *--------------*----------------*-----------------+
 | Numérico     | NUMERIC        | Valores numéricos de longitud fija, rellenos con ceros a la izquierda.
+| de longitud  |                |
+| fija         |                |
 *--------------*----------------*-----------------+
 | Alfanumérico | ALPHA          | Valores alfanuméricos de longitud fija, rellenos con espacios a la derecha.
+| de longitud  |                |
+| fija         |                |
 *--------------*----------------*-----------------+
 | Fecha        | DATE10         | Fecha en formato mmddHHMMSS, con longitud fija de 10.
 *--------------*----------------*-----------------+
@@ -35,7 +39,16 @@ Introducción al protocolo ISO8583
 | LLVAR        | LLVAR          | Valor alfanumérico de longitud variable, hasta 99 caracteres. La longitud del valor se codifica en los dos primeros caracteres del valor; por ejemplo "HOLA" se codifica como 04HOLA
 *--------------*----------------*-----------------+
 | LLLVAR       | LLLVAR         | Valor alfanumérico de longitud variable, hasta 999 caracteres. La longitud del valor se codifica en los dos primeros caracteres del valor; por ejemplo "HOLA" se codifica como 004HOLA
-*--------------*----------------*-----------------+
+*---------------*----------------*-----------------+
+| Binario de    |                | Similar al tipo ALPHA, pero maneja bytes directamente en vez de texto.
+| longitud fija | BINARY         |
+*---------------*----------------*-----------------+
+| LLVAR         | LLBIN          | Similar al tipo LLVAR, pero maneja bytes directamente en vez de texto.
+| binario       |                |
+*---------------*----------------*-----------------+
+| LLLVAR        | LLLBIN         | Similar al tipo LLLVAR, pero maneja bytes directamente en vez de texto.
+| binario       |                |
+*---------------*----------------*-----------------+
 Tipos de ISO8583 y sus contrapartes en j8583
 
 * Escenarios típicos
