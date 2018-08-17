@@ -36,7 +36,7 @@ public abstract class DateTimeParseInfo extends FieldParseInfo {
    		long now = System.currentTimeMillis();
    		long then = cal.getTimeInMillis();
    		if (then > now && then-now > FUTURE_TOLERANCE) {
-   			cal.add(Calendar.YEAR, -1);
+//   			cal.add(Calendar.YEAR, -1);
    		}
    	}
 
