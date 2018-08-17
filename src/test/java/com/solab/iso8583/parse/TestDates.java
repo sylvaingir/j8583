@@ -12,7 +12,7 @@ import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
 
 /** Test that the dates are formatted and parsed correctly.
- * 
+ *
  * @author Enrique Zamudio
  */
 public class TestDates {
@@ -61,4 +61,42 @@ public class TestDates {
 		Assert.assertEquals(comp.getValue().getTime(), bin.getValue().getTime());
 	}
 
+	@Test
+	public void testDate10OneHourInTheFuture() throws  ParseException, IOException {
+		Date soon = new Date(System.currentTimeMillis() + 3600000);
+		String soonIsoFormat = IsoType.DATE10.format(soon, null);
+
+		byte[] buf = soonIsoFormat.getBytes();
+		IsoValue<Date> comp = new Date10ParseInfo().parse(0, buf, 0, null);
+
+		assert comp.getValue().after(new Date());
+		Assert.assertEquals(comp.getValue().toString(), soon.toString());
+	}
+
+	@Test
+	public void testTime6OneHourInTheFuture() throws  ParseException, IOException {
+		Date soon = new Date(System.currentTimeMillis() + 3600000);
+		String soonIsoFormat = IsoType.TIME.format(soon, null);
+		byte[] buf = soonIsoFormat.getBytes();
+		IsoValue<Date> comp = new TimeParseInfo().parse(0, buf, 0, null);
+
+		assert comp.getValue().after(new Date());
+		Assert.assertEquals(comp.getValue().toString(), soon.toString());
+	}
+
+	@Test
+	public void testDate4OneHourInTheFuture() throws  ParseException, IOException {
+		GregorianCalendar today = new GregorianCalendar();
+		Date soon = new Date(today.getTime().getTime() + 3600000);
+		String soonIsoFormat = IsoType.DATE4.format(soon, null);
+
+		today.set(GregorianCalendar.HOUR,0);
+		today.set(GregorianCalendar.MINUTE,0);
+		today.set(GregorianCalendar.SECOND,0);
+		today.set(GregorianCalendar.MILLISECOND,0);
+		byte[] buf = soonIsoFormat.getBytes();
+
+		IsoValue<Date> comp = new Date4ParseInfo().parse(0, buf, 0, null);
+		Assert.assertEquals(comp.getValue(), today.getTime());
+	}
 }
