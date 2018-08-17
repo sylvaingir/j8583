@@ -11,23 +11,29 @@ Configuration via Spring
 
   The properties that you want to set up in the Spring config are:
 
-*------------+---------------------------------+
-| configPath | Specify the path to the XML configuration file with the message and parsing templates.
-*------------+---------------------------------+
-| customFields | A map with the CustomField implementations that should be used for each field (the keys are the field numbers).
-*------------+---------------------------------+
-| assignDate | Set it to true to have the MessageFactory set field 7 to a DATE10 with the date the message was created.
-*------------+---------------------------------+
-| etx        | Set it to the numeric value of the message terminator, or -1 if you don't want to use a terminator.
-*------------+---------------------------------+
-| forceSecondaryBitmap | If true, then the messages will include the secondary bitmap even if they don't contain any fields above 64. Some providers require this.
-*------------+---------------------------------+
+*------------------------+---------------------------------+
+| configPath             | Specify the path to the XML configuration file with the message and parsing templates.
+*------------------------+---------------------------------+
+| customFields           | A map with the CustomField implementations that should be used for each field (the keys are the field numbers).
+*------------------------+---------------------------------+
+| characterEncoding      | Sets the character encoding to use for parsing ALPHA, LLVAR and LLLVAR fields when it's different from the default platform encoding.
+*------------------------+---------------------------------+
+| assignDate             | Set it to true to have the MessageFactory set field 7 to a DATE10 with the date the message was created.
+*------------------------+---------------------------------+
+| etx                    | Set it to the numeric value of the message terminator, or -1 if you don't want to use a terminator.
+*------------------------+---------------------------------+
+| forceSecondaryBitmap   | If true, then the messages will include the secondary bitmap even if they don't contain any fields above 64. Some providers require this.
+*------------------------+---------------------------------+
+| forceStringEncoding    | By default, text messages are encoded and decoded using the byte array directly, for performance, but this can cause problems when using an encoding other than the default or if a field contains non-ASCII characters. Set this flag to force proper string encoding/decoding with the character encoding that has been configured.
+*------------------------+---------------------------------+
 | ignoreLastMissingField | If true, then the factory only logs a warning when parsing incomplete messages. By default it will throw a ParseException.
-*------------+---------------------------------+
-| useBinaryMessages | Can be true or false (default false). The factory passes this value to new messages so that they're encoded in binary or ASCII.
-*------------+---------------------------------+
-| traceNumberGenerator | Set to an implementation of TraceNumberGenerator so that the factory sets a new trace value in field 11 on new messages.
-*------------+---------------------------------+
+*------------------------+---------------------------------+
+| traceNumberGenerator   | Set to an implementation of TraceNumberGenerator so that the factory sets a new trace value in field 11 on new messages.
+*------------------------+---------------------------------+
+| useBinaryBitmap        | Set this flag to make newly created messages encode their bitmap in binary format, even if the rest of the message is encoded in text. This only works for text messages and has no effect on binary messages.
+*------------------------+---------------------------------+
+| useBinaryMessages      | Can be true or false (default false). The factory passes this value to new messages so that they're encoded in binary or ASCII.
+*------------------------+---------------------------------+
 
   Example:
 
@@ -45,3 +51,14 @@ Configuration via Spring
   <property name="configPath" value="/your-j8583.xml" />
 </bean>
 +-----
+
+  There are some other properties than can only be set programmatically:
+
+*------------------------+---------------------------------+
+| timezoneForParseGuide  | Sets the timezone for a certain field of a specific message type. This is useful if you need to encode/decode dates with a timezone other than the local one.
+*------------------------+---------------------------------+
+| customField            | Specifies a CustomField encoder to use in one field.
+*------------------------+---------------------------------+
+| isoHeader              | Sets the ISO header to use for a specific message type.
+*------------------------+---------------------------------+
+

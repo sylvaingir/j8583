@@ -1,10 +1,10 @@
 apply plugin:'java'
 apply plugin: 'maven'
 defaultTasks 'build'
-version='1.5.6'
+version='1.13.0-CARTA'
 description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
-sourceCompatibility=6
-targetCompatibility=6
+sourceCompatibility=7
+targetCompatibility=7
 group='net.sf.j8583'
 
 repositories {
@@ -17,14 +17,13 @@ configurations {
 }
 
 dependencies {
-	compile 'org.slf4j:slf4j-api:1.6.3'
-	testCompile 'junit:junit:4.10'
-	testRuntime 'org.slf4j:slf4j-simple:1.6.3'
-	//deployerJars 'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6'
+	compile 'org.slf4j:slf4j-api:1.7.21'
+	testCompile 'junit:junit:4.12'
+	testRuntime 'org.slf4j:slf4j-simple:1.7.21'
 }
 
 tasks.javadoc.options.use=true
-tasks.javadoc.options.links=['http://download.oracle.com/javase/6/docs/api/', 'http://slf4j.org/apidocs/' ]
+tasks.javadoc.options.links=['http://docs.oracle.com/javase/7/docs/api/', 'http://slf4j.org/apidocs/' ]
 
 task javadocJar(type:Jar, dependsOn:'javadoc') {
 	from javadoc.destinationDir
@@ -35,6 +34,11 @@ task sourcesJar(type:Jar) {
 	classifier='sources'
 }
 
+tasks.withType(AbstractCompile) { AbstractCompile compile ->
+	compile.options.debug = true
+	compile.options.compilerArgs = ['-Xlint:all']
+}
+
 artifacts {
 	archives javadocJar
 	archives sourcesJar
@@ -43,60 +47,22 @@ artifacts {
 apply plugin:'signing'
 signing {
 	sign configurations.archives
-	required = { gradle.taskGraph.hasTask('generateRelease') }
+	required { gradle.taskGraph.hasTask('generateRelease') }
 }
-deployUsernameProperty = "nexusUsername"
-deployPasswordProperty = "nexusPassword"
 
-uploadPublished {
+uploadArchives {
 	repositories {
-		project.deployer=repositories.mavenDeployer {
-			beforeDeployment { MavenDeployment deployment ->
-				def signedPomArtifact=signing.signPom(deployment)
-				deployment.addArtifact(signedPomArtifact)
+		mavenDeployer {
+			snapshotRepository(url: "http://arti.tw.ee/artifactory/ext-snapshot-local") {
+				authentication(userName:  artifactoryUser, password: artifactoryPassword)
 			}
-			repository(url:'http://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-				authentication(userName:nexusUsername, password:nexusPassword)
-			}
-			pom.project {
-				name 'j8583'
-				packaging 'jar'
-				description project.description
-				url 'http://j8583.sourceforge.net/'
-				inceptionYear '2007'
-				scm {
-					url 'http://j8583.svn.sourceforge.net/viewvc/j8583/j8583'
-						connection 'scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583'
-						developerConnection 'scm:svn:https://j8583.svn.sourceforge.net/svnroot/j8583/j8583'
-				}
-				licenses {
-					license {
-						name 'GNU Lesser General Public License, version 2.1'
-						url 'http://www.gnu.org/licenses/lgpl-2.1.html'
-						distribution 'repo'
-					}
-				}
-				developers {
-					developer {
-						id 'chochos'
-						name 'Enrique Zamudio Lopez'
-						email 'chochos@users.sourceforge.net'
-						url 'http://javamexico.org/blogs/ezamudio'
-						roles {
-							role 'Architect'
-							role 'Developer'
-						}
-						properties {
-							twitter 'chochosmx'
-						}
-						timezone 'America/Mexico_City'
-					}
-				}
+			repository(url: "http://arti.tw.ee/artifactory/ext-release-local") {
+				authentication(userName:  artifactoryUser, password: artifactoryPassword)
 			}
 		}
 	}
 }
 
-task generateRelease(dependsOn:uploadPublished, group: "Release artifact",
+task generateRelease(dependsOn:uploadArchives, group: "Release artifact",
   description: "Generates and uploads a final release to Sonatype Nexus")
 

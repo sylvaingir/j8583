@@ -61,7 +61,7 @@ message.setValue(4, amount, IsoType.AMOUNT, 12)
   .setValue(11, trace, IsoType.NUMERIC, 6);
 +-----
 
-  Of course it can be more succing in Groovy or Scala:
+  Of course it can be more succint in Groovy or Scala:
 
 +-----
 message.setField(4, IsoType.AMOUNT(amount))

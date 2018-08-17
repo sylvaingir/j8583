@@ -1,21 +1,44 @@
+/*
+ * j8583 A Java implementation of the ISO8583 protocol
+ * Copyright (C) 2007 Enrique Zamudio Lopez
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ */
 package com.solab.iso8583.util;
 
-/** Utility class to perform HEX encoding/decoding of values. */
-public class HexCodec {
+/** Utility class to perform HEX encoding/decoding of values.
+ * @author Enrique Zamudio
+ */
+public final class HexCodec {
 
-	static final char[] HEX = new char[]{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	static final char[] HEX = "0123456789ABCDEF".toCharArray();
 
-	public static String hexEncode(byte[] buffer) {
+    private HexCodec(){}
+
+	public static String hexEncode(byte[] buffer, int start, int length) {
 		if (buffer.length == 0) {
 			return "";
 		}
 		int holder = 0;
-		char[] chars = new char[buffer.length * 2];
-		for (int i = 0; i < buffer.length; i++) {
+		char[] chars = new char[length * 2];
+        int pos = -1;
+		for (int i = start; i < start+length; i++) {
 			holder = (buffer[i] & 0xf0) >> 4;
-			chars[i * 2] = HEX[holder];
+			chars[++pos * 2] = HEX[holder];
 			holder = buffer[i] & 0x0f;
-			chars[(i * 2) + 1] = HEX[holder];
+			chars[(pos * 2) + 1] = HEX[holder];
 		}
 		return new String(chars);
 	}

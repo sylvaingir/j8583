@@ -17,8 +17,10 @@ Introduction to ISO8583
 *--------------*----------------*-----------------+
 | <<ISO type>> | <<j8583 type>> | <<Description >> |
 *--------------*----------------*-----------------+
+| Fixed-length |                |
 | Numeric      | NUMERIC        | Fixed-width numeric values, padded with zeroes to the left.|
 *--------------*----------------*-----------------+
+| Fixed-length |                |
 | Alphanumeric | ALPHA          | Fixed-width alphanumeric values, padded with spaces to the right.|
 *--------------*----------------*-----------------+
 | Date         | DATE10         | Date in format mmddHHMMSS, fixed width of 10. |
@@ -34,6 +36,15 @@ Introduction to ISO8583
 | LLVAR        | LLVAR          | Variable-width alphanumeric value, up to 99 characters long. The length of the value is encoded in the first 2 characters of the value, for example "HEY" is encoded as 03HEY |
 *--------------*----------------*-----------------+
 | LLLVAR       | LLLVAR         | Variable-width alphanumeric value, up to 999 characters long. The length of the value is encoded in the first 3 characters of the value, for example "HEY" is encoded as 003HEY |
+*--------------*----------------*-----------------+
+| Fixed-length |                | Similar to ALPHA, but stores byte arrays directly instead of text.
+| binary       | BINARY         |
+*--------------*----------------*-----------------+
+| Binary       | LLBIN          | Similar to LLVAR, but stores byte arrays directly instead of text.
+| LLVAR        |                |
+*--------------*----------------*-----------------+
+| Binary       | LLLBIN         | Similar to LLLVAR, but stores byte arrays directly instead of text.
+| LLLVAR       |                |
 *--------------*----------------*-----------------+
 ISO 8583 types and their corresponding j8583 types
 

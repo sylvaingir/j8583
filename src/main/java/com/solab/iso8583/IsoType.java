@@ -19,7 +19,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 package com.solab.iso8583;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /** Defines the possible values types that can be used in the fields.
  * Some types required the length of the value to be specified (NUMERIC
@@ -54,7 +56,13 @@ public enum IsoType {
 	/** Similar to LLVAR but holds byte arrays instead of strings. */
 	LLBIN(false, 0),
 	/** Similar to LLLVAR but holds byte arrays instead of strings. */
-	LLLBIN(false, 0);
+	LLLBIN(false, 0),
+    /** variable length with 4-digit header length. */
+    LLLLVAR(false, 0),
+    /** variable length byte array with 4-digit header length. */
+    LLLLBIN(false, 0),
+    /** Date in format yyMMddHHmmss. */
+   	DATE12(false,12);
 
 	private boolean needsLen;
 	private int length;
@@ -74,19 +82,27 @@ public enum IsoType {
 		return length;
 	}
 
-	/** Formats a Date if the receiver is DATE10, DATE4, DATE_EXP or TIME; throws an exception
+	/** Formats a Date if the receiver is DATE10, DATE4, DATE_EXP, DATE12 or TIME; throws an exception
 	 * otherwise. */
-	public String format(Date value) {
+	public String format(final Date value, final TimeZone tz) {
+        final SimpleDateFormat sdf;
 		if (this == DATE10) {
-			return String.format("%Tm%<Td%<TH%<TM%<TS", value);
+            sdf = new SimpleDateFormat("MMddHHmmss");
 		} else if (this == DATE4) {
-			return String.format("%Tm%<Td", value);
+            sdf = new SimpleDateFormat("MMdd");
 		} else if (this == DATE_EXP) {
-			return String.format("%Ty%<Tm", value);
+            sdf = new SimpleDateFormat("yyMM");
 		} else if (this == TIME) {
-			return String.format("%TH%<TM%<TS", value);
-		}
-		throw new IllegalArgumentException("Cannot format date as " + this);
+            sdf = new SimpleDateFormat("HHmmss");
+        } else if (this == DATE12) {
+            sdf = new SimpleDateFormat("yyMMddHHmmss");
+		} else {
+            throw new IllegalArgumentException("Cannot format date as " + this);
+        }
+        if (tz != null) {
+            sdf.setTimeZone(tz);
+        }
+        return sdf.format(value);
 	}
 
 	/** Formats the string to the given length (length is only useful if type is ALPHA, NUMERIC or BINARY). */
@@ -102,7 +118,7 @@ public enum IsoType {
 	        } else {
 	        	return String.format(String.format("%%-%ds", length), value);
 	        }
-		} else if (this == LLVAR || this == LLLVAR) {
+		} else if (this == LLVAR || this == LLLVAR || this == LLLLVAR) {
 			return value;
 		} else if (this == NUMERIC) {
 	        char[] c = new char[length];
@@ -140,7 +156,7 @@ public enum IsoType {
 	        }
 	        return new String(c);
 
-		} else if (this == LLBIN || this == LLLBIN) {
+		} else if (this == LLBIN || this == LLLBIN || this == LLLLBIN) {
 			return value;
 		}
 		throw new IllegalArgumentException("Cannot format String as " + this);
@@ -154,11 +170,11 @@ public enum IsoType {
 	        	throw new IllegalArgumentException("Numeric value is larger than intended length: " + value + " LEN " + length);
 	        }
 	        return x;
-		} else if (this == ALPHA || this == LLVAR || this == LLLVAR) {
+		} else if (this == ALPHA || this == LLVAR || this == LLLVAR || this == LLLLVAR) {
 			return format(Long.toString(value), length);
 		} else if (this == AMOUNT) {
 			return String.format("%010d00", value);
-		} else if (this == BINARY || this == LLBIN || this == LLLBIN) {
+		} else if (this == BINARY || this == LLBIN || this == LLLBIN || this == LLLLBIN) {
 			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format number as " + this);
@@ -170,35 +186,35 @@ public enum IsoType {
 			return String.format("%012d", value.movePointRight(2).longValue());
 		} else if (this == NUMERIC) {
 			return format(value.longValue(), length);
-		} else if (this == ALPHA || this == LLVAR || this == LLLVAR) {
+		} else if (this == ALPHA || this == LLVAR || this == LLLVAR || this == LLLLVAR) {
 			return format(value.toString(), length);
-		} else if (this == BINARY || this == LLBIN || this == LLLBIN) {
+		} else if (this == BINARY || this == LLBIN || this == LLLBIN || this == LLLLBIN) {
 			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format BigDecimal as " + this);
 	}
 
-	public IsoValue<Object> value(Object val, int len) {
-		return new IsoValue<Object>(this, val, len);
+	public <T> IsoValue<T> value(T val, int len) {
+		return new IsoValue<>(this, val, len);
 	}
 
-	public IsoValue<Object> value(Object val) {
-		return new IsoValue<Object>(this, val);
+	public <T> IsoValue<T> value(T val) {
+		return new IsoValue<>(this, val);
 	}
 
-	public IsoValue<Object> call(Object val, int len) {
-		return new IsoValue<Object>(this, val, len);
+	public <T> IsoValue<T> call(T val, int len) {
+		return new IsoValue<>(this, val, len);
 	}
 
-	public IsoValue<Object> call(Object val) {
-		return new IsoValue<Object>(this, val);
+	public <T> IsoValue<T> call(T val) {
+		return new IsoValue<>(this, val);
 	}
 
-	public IsoValue<Object> apply(Object val, int len) {
-		return new IsoValue<Object>(this, val, len);
+	public <T> IsoValue<T> apply(T val, int len) {
+		return new IsoValue<>(this, val, len);
 	}
-	public IsoValue<Object> apply(Object val) {
-		return new IsoValue<Object>(this, val);
+	public <T> IsoValue<T> apply(T val) {
+		return new IsoValue<>(this, val);
 	}
 
 }

@@ -18,8 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583.parse;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
+import com.solab.iso8583.CustomBinaryField;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
@@ -37,58 +39,91 @@ public class LlbinParseInfo extends FieldParseInfo {
 	}
 
 	@Override
-	public IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public <T> IsoValue<?> parse(final int field, final byte[] buf,
+                             final int pos, final CustomField<T> custom)
+            throws ParseException, UnsupportedEncodingException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid LLBIN position %d", pos), pos);
+			throw new ParseException(String.format("Invalid LLBIN field %d position %d",
+                    field, pos), pos);
 		} else if (pos+2 > buf.length) {
-			throw new ParseException("Insufficient LLBIN header", pos);
+			throw new ParseException(String.format("Insufficient LLBIN header field %d",
+                    field), pos);
 		}
-		length = ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
-		if (length < 0) {
-			throw new ParseException(String.format("Invalid LLBIN length %d pos %d", length, pos), pos);
+		final int len = decodeLength(buf, pos, 2);
+		if (len < 0) {
+			throw new ParseException(String.format("Invalid LLBIN field %d length %d pos %d",
+                    field, len, pos), pos);
 		}
-		if (length+pos+2 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for LLBIN field, pos %d (LEN states '%s')", pos, new String(buf, pos, 2)), pos);
+		if (len+pos+2 > buf.length) {
+			throw new ParseException(String.format(
+                    "Insufficient data for LLBIN field %d, pos %d (LEN states '%s')",
+                    field, pos, new String(buf, pos, 2)), pos);
 		}
-		byte[] binval = length == 0 ? new byte[0] : HexCodec.hexDecode(new String(buf, pos + 2, length));
+		byte[] binval = len == 0 ? new byte[0] : HexCodec.hexDecode(
+                new String(buf, pos + 2, len));
 		if (custom == null) {
-			return new IsoValue<byte[]>(type, binval, binval.length, null);
+			return new IsoValue<>(type, binval, binval.length, null);
+        } else if (custom instanceof CustomBinaryField) {
+            try {
+                T dec = ((CustomBinaryField<T>)custom).decodeBinaryField(buf, pos + 2, len);
+                return dec == null ? new IsoValue<>(type, binval, binval.length, null) :
+                        new IsoValue<>(type, dec, 0, custom);
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ParseException(String.format(
+                        "Insufficient data for LLBIN field %d, pos %d (LEN states '%s')",
+                        field, pos, new String(buf, pos, 2)), pos);
+            }
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(
-				new String(buf, pos + 2, length)), binval.length, custom);
-			if (v.getValue() == null) {
-				return new IsoValue<byte[]>(type, binval, binval.length, null);
-			}
-			return v;
+            try {
+                T dec = custom.decodeField(new String(buf, pos + 2, len));
+                return dec == null ? new IsoValue<>(type, binval, binval.length, null) :
+                        new IsoValue<>(type, dec, binval.length, custom);
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ParseException(String.format(
+                        "Insufficient data for LLBIN field %d, pos %d (LEN states '%s')",
+                        field, pos, new String(buf, pos, 2)), pos);
+            }
 		}
 	}
 
 	@Override
-	public IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom) throws ParseException {
+	public <T> IsoValue<?> parseBinary(final int field, final byte[] buf,
+                                   final int pos, final CustomField<T> custom)
+            throws ParseException {
 		if (pos < 0) {
-			throw new ParseException(String.format("Invalid bin LLBIN position %d", pos), pos);
+			throw new ParseException(String.format("Invalid bin LLBIN field %d position %d",
+                    field, pos), pos);
 		} else if (pos+1 > buf.length) {
-			throw new ParseException("Insufficient bin LLBIN header", pos);
+			throw new ParseException(String.format("Insufficient bin LLBIN header field %d",
+                    field), pos);
 		}
-		length = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
-		if (length < 0) {
-			throw new ParseException(String.format("Invalid bin LLBIN length %d pos %d", length, pos), pos);
+		final int l = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
+		if (l < 0) {
+			throw new ParseException(String.format("Invalid bin LLBIN length %d pos %d", l, pos), pos);
 		}
-		if (length+pos+1 > buf.length) {
-			throw new ParseException(String.format("Insufficient data for bin LLBIN field, pos %d", pos), pos);
+		if (l+pos+1 > buf.length) {
+			throw new ParseException(String.format(
+                    "Insufficient data for bin LLBIN field %d, pos %d: need %d, only %d available",
+                    field, pos, l, buf.length), pos);
 		}
-		byte[] _v = new byte[length];
-		System.arraycopy(buf, pos+1, _v, 0, length);
+		byte[] _v = new byte[l];
+		System.arraycopy(buf, pos+1, _v, 0, l);
 		if (custom == null) {
-			return new IsoValue<byte[]>(type, _v, null);
+			return new IsoValue<>(type, _v, null);
+        } else if (custom instanceof CustomBinaryField) {
+            try {
+                T dec = ((CustomBinaryField<T>)custom).decodeBinaryField(buf, pos + 1, l);
+                return dec == null ? new IsoValue<>(type, _v, _v.length, null) :
+                        new IsoValue<>(type, dec, l, custom);
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ParseException(String.format(
+                        "Insufficient data for LLBIN field %d, pos %d length %d",
+                        field, pos, l), pos);
+            }
 		} else {
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			IsoValue<?> v = new IsoValue(type, custom.decodeField(HexCodec.hexEncode(_v)), custom);
-			if (v.getValue() == null) {
-				return new IsoValue<byte[]>(type, _v, null);
-			}
-			return v;
+            T dec = custom.decodeField(HexCodec.hexEncode(_v, 0, _v.length));
+            return dec == null ? new IsoValue<>(type, _v, null) :
+                    new IsoValue<>(type, dec, custom);
 		}
 	}
 

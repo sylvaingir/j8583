@@ -32,8 +32,10 @@ import com.solab.iso8583.IsoValue;
 public abstract class FieldParseInfo {
 
 	protected IsoType type;
-	protected int length;
+	protected final int length;
 	private String encoding = System.getProperty("file.encoding");
+    protected boolean forceStringDecoding;
+    private CustomField<?> decoder;
 
 	/** Creates a new instance that parses a value of the specified type, with the specified length.
 	 * The length is only useful for ALPHA and NUMERIC types.
@@ -46,6 +48,13 @@ public abstract class FieldParseInfo {
 		type = t;
 		length = len;
 	}
+
+    /** Specified whether length headers for variable-length fields in text mode should
+     * be decoded using proper string conversion with the character encoding. Default is false,
+     * which means use the old behavior of decoding as ASCII. */
+    public void setForceStringDecoding(boolean flag) {
+        forceStringDecoding = flag;
+    }
 
 	public void setCharacterEncoding(String value) {
 		encoding = value;
@@ -64,15 +73,32 @@ public abstract class FieldParseInfo {
 		return type;
 	}
 
+    public void setDecoder(CustomField<?> value) {
+        decoder = value;
+    }
+    public CustomField<?> getDecoder() {
+         return decoder;
+    }
+
 	/** Parses the character data from the buffer and returns the
-	 * IsoValue with the correct data type in it. */
-	public abstract IsoValue<?> parse(byte[] buf, int pos, CustomField<?> custom)
-	throws ParseException, UnsupportedEncodingException;
+	 * IsoValue with the correct data type in it.
+     * @param field The field index, useful for error reporting.
+     * @param buf The full ISO message buffer.
+     * @param pos The starting position for the field data.
+     * @param custom A CustomField to decode the field. */
+	public abstract <T> IsoValue<?> parse(final int field, byte[] buf, int pos,
+                                      CustomField<T> custom)
+            throws ParseException, UnsupportedEncodingException;
 
 	/** Parses binary data from the buffer, creating and returning an IsoValue of the configured
-	 * type and length. */
-	public abstract IsoValue<?> parseBinary(byte[] buf, int pos, CustomField<?> custom)
-	throws ParseException, UnsupportedEncodingException;
+	 * type and length.
+     * @param field The field index, useful for error reporting.
+     * @param buf The full ISO message buffer.
+     * @param pos The starting position for the field data.
+     * @param custom A CustomField to decode the field. */
+	public abstract <T> IsoValue<?> parseBinary(final int field, byte[] buf, int pos,
+                                            CustomField<T> custom)
+            throws ParseException, UnsupportedEncodingException;
 
 	/** Returns a new FieldParseInfo instance that can parse the specified type. */
 	public static FieldParseInfo getInstance(IsoType t, int len, String encoding) {
@@ -85,6 +111,8 @@ public abstract class FieldParseInfo {
 			fpi = new BinaryParseInfo(len);
 		} else if (t == IsoType.DATE10) {
 			fpi = new Date10ParseInfo();
+		} else if (t == IsoType.DATE12) {
+			fpi = new Date12ParseInfo();
 		} else if (t == IsoType.DATE4) {
 			fpi = new Date4ParseInfo();
 		} else if (t == IsoType.DATE_EXP) {
@@ -101,12 +129,34 @@ public abstract class FieldParseInfo {
 			fpi = new NumericParseInfo(len);
 		} else if (t == IsoType.TIME) {
 			fpi = new TimeParseInfo();
-		}
+		} else if (t == IsoType.LLLLVAR) {
+            fpi = new LlllvarParseInfo();
+        } else if (t == IsoType.LLLLBIN) {
+            fpi = new LlllbinParseInfo();
+        }
 		if (fpi == null) {
 	 		throw new IllegalArgumentException(String.format("Cannot parse type %s", t));
 		}
 		fpi.setCharacterEncoding(encoding);
 		return fpi;
 	}
+
+    protected int decodeLength(byte[] buf, int pos, int digits) throws UnsupportedEncodingException {
+        if (forceStringDecoding) {
+            return Integer.parseInt(new String(buf, pos, digits, encoding), 10);
+        } else {
+            switch(digits) {
+                case 2:
+                    return ((buf[pos] - 48) * 10) + (buf[pos + 1] - 48);
+                case 3:
+                    return ((buf[pos] - 48) * 100) + ((buf[pos + 1] - 48) * 10)
+                            + (buf[pos + 2] - 48);
+                case 4:
+                    return ((buf[pos] - 48) * 1000) + ((buf[pos + 1] - 48) * 100)
+                            + ((buf[pos + 2] - 48) * 10) + (buf[pos + 3] - 48);
+            }
+        }
+        return -1;
+    }
 
 }
