@@ -29,7 +29,7 @@ import com.solab.iso8583.util.Bcd;
 import com.solab.iso8583.util.HexCodec;
 
 /** This class is used to parse fields of type LLBIN.
- * 
+ *
  * @author Enrique Zamudio
  */
 public class LlbinParseInfo extends FieldParseInfo {
@@ -138,7 +138,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 
 	private int getFieldLength(final byte b) {
 		return forceHexadecimalLength ?
-				b
+				b & 0xff
 				:
 				Bcd.parseBcdLength(b);
 	}

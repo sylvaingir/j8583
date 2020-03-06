@@ -34,7 +34,7 @@ import com.solab.iso8583.util.HexCodec;
  * so that the value can be padded to the specified length. LLVAR and LLLVAR
  * values do not need a length specification because the length is calculated
  * from the stored value.
- * 
+ *
  * @author Enrique Zamudio
  */
 public class IsoValue<T> implements Cloneable {
@@ -299,7 +299,11 @@ public class IsoValue<T> implements Cloneable {
         }
         if (binary) {
 			if (forceHexadecimalLength) {
-				outs.write(BigInteger.valueOf(l).toByteArray());
+				if (digits == 2) {
+					outs.write(new byte[]{(byte) (l & 0xff)});
+				} else {
+					outs.write(BigInteger.valueOf(l).toByteArray());
+				}
 			} else {
 				if (digits == 4) {
 					outs.write((((l % 10000) / 1000) << 4) | ((l % 1000)/100));
