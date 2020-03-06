@@ -7,6 +7,9 @@ sourceCompatibility=7
 targetCompatibility=7
 group='net.sf.j8583'
 
+ext.artifactoryUser = "$System.env.ARTIFACTORY_USER"
+ext.artifactoryPassword = "$System.env.ARTIFACTORY_PASSWORD"
+
 repositories {
 	mavenCentral()
 }
@@ -54,10 +57,10 @@ uploadArchives {
 	repositories {
 		mavenDeployer {
 			snapshotRepository(url: "http://arti.tw.ee/artifactory/ext-snapshot-local") {
-				authentication(userName:  artifactoryUser, password: artifactoryPassword)
+				authentication(userName: System.getenv("ARTIFACTORY_USER") ?: artifactoryUser, password: System.getenv("ARTIFACTORY_PASSWORD") ?: artifactoryPassword)
 			}
 			repository(url: "http://arti.tw.ee/artifactory/ext-release-local") {
-				authentication(userName:  artifactoryUser, password: artifactoryPassword)
+				authentication(userName: System.getenv("ARTIFACTORY_USER") ?: artifactoryUser, password: System.getenv("ARTIFACTORY_PASSWORD") ?: artifactoryPassword)
 			}
 		}
 	}
