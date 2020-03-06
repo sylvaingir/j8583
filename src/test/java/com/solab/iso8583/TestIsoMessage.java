@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** These are very simple tests for creating and manipulating messages.
- * 
+ *
  * @author Enrique Zamudio
  */
 public class TestIsoMessage {
@@ -72,7 +72,9 @@ public class TestIsoMessage {
 			//Either both have the field or neither have it
 			if (m1.hasField(i) && m2.hasField(i)) {
 				Assert.assertEquals(m1.getField(i).getType(), m2.getField(i).getType());
-				Assert.assertEquals(m1.getObjectValue(i), m2.getObjectValue(i));
+                Object objectValue = m1.getObjectValue(i);
+                Object actual = m2.getObjectValue(i);
+                Assert.assertEquals(objectValue, actual);
 			} else {
                 Assert.assertFalse(m1.hasField(i));
                 Assert.assertFalse(m2.hasField(i));
@@ -114,7 +116,7 @@ public class TestIsoMessage {
 		IsoMessage iso1 = mf.newMessage(0x200);
 		IsoMessage iso2 = mf.newMessage(0x200);
         Assert.assertNotSame(iso1, iso2);
-        Assert.assertEquals(iso1.getObjectValue(3), iso2.getObjectValue(3));
+        Assert.assertSame(iso1.getObjectValue(3), iso2.getObjectValue(3));
         Assert.assertNotSame(iso1.getField(3), iso2.getField(3));
         Assert.assertNotSame(iso1.getField(48), iso2.getField(48));
 		CustomField48 cf48_1 = iso1.getObjectValue(48);

@@ -5,7 +5,7 @@ Copyright (C) 2007 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,14 +18,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 package com.solab.iso8583;
 
-/** Defines the behavior for a custom field value encoder/decoder
+/** Defines the behavior for a custom field value encoder/decoder. This
+ * is just an intersection of CustomFieldEncoder and CustomFieldDecoder.
  * 
  * @author Enrique Zamudio
  */
-public interface CustomField<T> {
-
-	T decodeField(String value);
-
-	String encodeField(T value);
-
+public interface CustomField<DataType>
+		extends CustomFieldEncoder<DataType>, CustomFieldDecoder<DataType> {
 }

@@ -5,7 +5,7 @@ Copyright (C) 2007 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -64,9 +64,13 @@ public class MessageFactory<T extends IsoMessage> {
 	private Map<Integer, CustomField> customFields = new HashMap<>();
 	/** Indicates if the current date should be set on new messages (field 7). */
 	private boolean setDate;
-	/** Indicates if the factory should create binary messages and also parse binary messages. */
-	private boolean useBinary;
-	private boolean useBinaryBody = false;
+
+	/** Indicates that the header should be written/parsed as binary */
+	private boolean binaryHeader;
+
+	/** Indicates that the fields should be written/parsed as binary */
+	private boolean binaryFields;
+
 	private int etx = -1;
 	/** Flag to specify if missing fields should be ignored as long as they're at
 	 * the end of the message. */
@@ -74,6 +78,8 @@ public class MessageFactory<T extends IsoMessage> {
 	private boolean forceb2;
     private boolean binBitmap;
     private boolean forceStringEncoding;
+    /* Flag specifying that variable length fields have the length header encoded in hexadecimal format */
+    private boolean variableLengthFieldsInHex;
 	private String encoding = System.getProperty("file.encoding");
 
     /** This flag gets passed on to newly created messages and also sets this value for all
@@ -89,6 +95,21 @@ public class MessageFactory<T extends IsoMessage> {
     public boolean isForceStringEncoding() {
         return forceStringEncoding;
     }
+
+	/** This flag gets passed on to newly created messages and also sets this value for all
+	 * field parsers in parsing guides. */
+	public void setVariableLengthFieldsInHex(boolean flag) {
+		this.variableLengthFieldsInHex = flag;
+		for (Map<Integer,FieldParseInfo> pm : parseMap.values()) {
+			for (FieldParseInfo parser : pm.values()) {
+				parser.setForceHexadecimalLength(flag);
+			}
+		}
+	}
+
+	public boolean isVariableLengthFieldsInHex() {
+		return variableLengthFieldsInHex;
+	}
 
     /** Tells the factory to create messages that encode their bitmaps in binary format
      * even when they're encoded as text. Has no effect on binary messages. */
@@ -188,22 +209,45 @@ public class MessageFactory<T extends IsoMessage> {
 	}
 
 	/** Tells the receiver to create and parse binary messages if the flag is true.
-	 * Default is false, that is, create and parse ASCII messages. */
+	 * Default is false, that is, create and parse ASCII messages. Sets both binaryHeader and fields to the flag.
+	 */
 	public void setUseBinaryMessages(boolean flag) {
-		useBinary = flag;
+		binaryHeader = binaryFields = flag;
 	}
-	/** Returns true is the factory is set to create and parse binary messages,
-	 * false if it uses ASCII messages. Default is false. */
+    /** Returns true is the factory is set to create and parse binary messages,
+     * false if it uses ASCII messages. Default is false. True if both binaryHeader &amp; binaryFields
+     * are set to true
+     * @deprecated Check the new flags binaryHeader and binaryFields instead.
+     */
+    @Deprecated
 	public boolean getUseBinaryMessages() {
-		return useBinary;
+		return binaryHeader && binaryFields;
 	}
 
-	public void setUseBinaryBody(boolean flag) {
-		useBinaryBody = flag;
+	/** header portion of the message is written/parsed in binary, default is false */
+	public void setBinaryHeader(boolean flag){
+		binaryHeader = flag;
 	}
-	public boolean getUseBinaryBody() {
-		return useBinaryBody;
+
+	/** header portion of the message is written/parsed in binary, default is false */
+	public boolean isBinaryHeader(){
+		return binaryHeader;
 	}
+
+	/** fields portion of the message is written/parsed in binary, default is false */
+	public void setBinaryFields(boolean flag){
+		binaryFields = flag;
+	}
+
+	/** fields portion of the message is written/parsed in binary, default is false */
+	public boolean isBinaryFields(){
+		return binaryFields;
+	}
+
+
+
+	/** fields portion of the message is written/parsed in binary */
+
 
 	/** Sets the ETX character to be sent at the end of the message. This is optional and the
 	 * default is -1, which means nothing should be sent as terminator.
@@ -220,73 +264,111 @@ public class MessageFactory<T extends IsoMessage> {
 	 * messages, then the returned message will be written using binary coding.
 	 * @param type The message type, for example 0x200, 0x400, etc. */
 	public T newMessage(int type) {
-		T m = createIsoMessage(type);
+		T m;
+        if (binIsoHeaders.get(type) != null) {
+            m = createIsoMessageWithBinaryHeader(binIsoHeaders.get(type));
+        } else {
+            m = createIsoMessage(isoHeaders.get(type));
+        }
 		m.setType(type);
-		configureMessage(m);
-
-		return copyTemplateData(m);
-	}
-
-	public T configureMessage(T m) {
 		m.setEtx(etx);
-		m.setBinary(useBinary);
-		m.setBinaryBody(useBinaryBody);
+		m.setBinaryHeader(isBinaryHeader());
+		m.setBinaryFields(isBinaryFields());
 		m.setForceSecondaryBitmap(forceb2);
-		m.setBinaryBitmap(binBitmap);
+        m.setBinaryBitmap(binBitmap);
 		m.setCharacterEncoding(encoding);
-		m.setForceStringEncoding(forceStringEncoding);
+        m.setForceStringEncoding(forceStringEncoding);
+        m.setEncodeVariableLengthFieldsInHex(variableLengthFieldsInHex);
 
-		if (traceGen != null) {
-			m.setValue(11, traceGen.nextTrace(), IsoType.NUMERIC, 6);
-		}
-		if (setDate) {
-			m.setValue(7, new Date(), IsoType.DATE10, 10);
-		}
-		return m;
-	}
-
-	public T copyMessageData(T m, IsoMessage templ) {
 		//Copy the values from the template
+		IsoMessage templ = typeTemplates.get(type);
 		if (templ != null) {
 			for (int i = 2; i <= 128; i++) {
-				//Do not replace any existing values
-				if (templ.hasField(i) && m.getField(i) == null) {
+				if (templ.hasField(i)) {
 					//We could detect here if there's a custom object with a CustomField,
 					//but we can't copy the value so there's no point.
 					m.setField(i, templ.getField(i).clone());
 				}
 			}
 		}
-
+		if (traceGen != null) {
+			m.setValue(11, traceGen.nextTrace(), IsoType.NUMERIC, 6);
+		}
+        if (setDate) {
+            if (m.hasField(7)) {
+                //We may have a field with a timezone but no value
+                m.updateValue(7, new Date());
+            } else {
+                IsoValue<Date> now = new IsoValue<>(IsoType.DATE10, new Date());
+                if (DateTimeParseInfo.getDefaultTimeZone() != null) {
+                    now.setTimeZone(DateTimeParseInfo.getDefaultTimeZone());
+                }
+                m.setField(7, now);
+            }
+        }
 		return m;
 	}
 
-	public T copyTemplateData(T m) {
-		IsoMessage templ = typeTemplates.get(m.getType());
-		return copyMessageData(m, templ);
+	/** Creates a response message by calling {@link #createResponse(IsoMessage, boolean)}
+	 * with true as the second parameter.
+	 */
+	public T createResponse(T request) {
+		return createResponse(request, true);
 	}
 
 	/** Creates a message to respond to a request. Increments the message type by 16,
-	 * sets all fields from the template if there is one, and copies all values from the request,
-	 * overwriting fields from the template if they overlap.
-	 * @param request An ISO8583 message with a request type (ending in 00). */
-	public T createResponse(T request) {
-		T resp = createIsoMessage(request.getType() + 16);
+	 * sets all fields from the template if there is one,
+	 * and either copies all values from the request or only the ones already in the template,
+	 * depending on the value of copyAllFields flag.
+	 * @param request An ISO8583 message with a request type (ending in 00).
+	 * @param copyAllFields If true, copies all fields from the request to the response,
+	 *                      overwriting any values already set from the template; otherwise
+	 *                      it only overwrites values for existing fields from the template.
+	 *                      If the template for a response does not exist, then all fields from
+	 *                      the request are copied even in this flag is false.
+	 */
+	public T createResponse(T request, boolean copyAllFields) {
+		T resp = createIsoMessage(isoHeaders.get(request.getType() + 16));
 		resp.setCharacterEncoding(request.getCharacterEncoding());
-		resp.setBinary(request.isBinary());
+		resp.setBinaryHeader(request.isBinaryHeader());
+		resp.setBinaryFields(request.isBinaryFields());
         resp.setBinaryBitmap(request.isBinaryBitmap());
 		resp.setType(request.getType() + 16);
 		resp.setEtx(etx);
 		resp.setForceSecondaryBitmap(forceb2);
-
-		copyMessageData(resp, request);
-		copyTemplateData(resp);
-
+		resp.setEncodeVariableLengthFieldsInHex(request.isEncodeVariableLengthFieldsInHex());
+		//Copy the values from the template or the request (request has preference)
+		IsoMessage templ = typeTemplates.get(resp.getType());
+		if (templ == null) {
+			for (int i = 2; i < 128; i++) {
+				if (request.hasField(i)) {
+					resp.setField(i, request.getField(i).clone());
+				}
+			}
+		} else if (copyAllFields) {
+			for (int i = 2; i < 128; i++) {
+				if (request.hasField(i)) {
+					resp.setField(i, request.getField(i).clone());
+				} else if (templ.hasField(i)) {
+					resp.setField(i, templ.getField(i).clone());
+				}
+			}
+		} else {
+			for (int i = 2; i < 128; i++) {
+				if (templ.hasField(i)) {
+					IsoMessage srcmsg = request.hasField(i) ? request : templ;
+					resp.setField(i, srcmsg.getField(i).clone());
+				}
+			}
+		}
 		return resp;
 	}
 
     /** Sets the timezone for the specified FieldParseInfo, if it's needed for parsing dates. */
     public void setTimezoneForParseGuide(int messageType, int field, TimeZone tz) {
+        if (field == 0) {
+            DateTimeParseInfo.setDefaultTimeZone(tz);
+        }
         Map<Integer, FieldParseInfo> guide = parseMap.get(messageType);
         if (guide != null) {
             FieldParseInfo fpi = guide.get(field);
@@ -313,7 +395,7 @@ public class MessageFactory<T extends IsoMessage> {
 	 * and the rest of the message must come. */
 	public T parseMessage(byte[] buf, int isoHeaderLength, boolean binaryIsoHeader)
         	throws ParseException, UnsupportedEncodingException {
-		final int minlength = isoHeaderLength+(useBinary?2:4)+(binBitmap||useBinary ? 8:16);
+		final int minlength = isoHeaderLength+(binaryHeader?2:4)+(binBitmap||binaryHeader ? 8:16);
 		if (buf.length < minlength) {
 			throw new ParseException("Insufficient buffer length, needs to be at least " + minlength, 0);
 		}
@@ -328,22 +410,22 @@ public class MessageFactory<T extends IsoMessage> {
         }
 		m.setCharacterEncoding(encoding);
 		final int type;
-		if (useBinary) {
+		if (binaryHeader) {
 			type = ((buf[isoHeaderLength] & 0xff) << 8) | (buf[isoHeaderLength + 1] & 0xff);
         } else if (forceStringEncoding) {
             type = Integer.parseInt(new String(buf, isoHeaderLength, 4, encoding), 16);
 		} else {
 			type = ((buf[isoHeaderLength] - 48) << 12)
-			| ((buf[isoHeaderLength + 1] - 48) << 8)
-			| ((buf[isoHeaderLength + 2] - 48) << 4)
-			| (buf[isoHeaderLength + 3] - 48);
+					| ((buf[isoHeaderLength + 1] - 48) << 8)
+                    | ((buf[isoHeaderLength + 2] - 48) << 4)
+                    | (buf[isoHeaderLength + 3] - 48);
 		}
 		m.setType(type);
 		//Parse the bitmap (primary first)
 		final BitSet bs = new BitSet(64);
 		int pos = 0;
-		if (useBinary || binBitmap) {
-            final int bitmapStart = isoHeaderLength + (useBinary ? 2 : 4);
+		if (binaryHeader || binBitmap) {
+            final int bitmapStart = isoHeaderLength + (binaryHeader ? 2 : 4);
 			for (int i = bitmapStart; i < 8+bitmapStart; i++) {
 				int bit = 128;
 				for (int b = 0; b < 8; b++) {
@@ -448,7 +530,8 @@ public class MessageFactory<T extends IsoMessage> {
 		boolean abandon = false;
 		for (int i = 1; i < bs.length(); i++) {
 			if (bs.get(i) && !index.contains(i+1)) {
-				log.warn("ISO8583 MessageFactory cannot parse field {}: unspecified in parsing guide", i+1);
+                log.warn("ISO8583 MessageFactory cannot parse field {}: unspecified in parsing guide for type {}",
+                        i+1, Integer.toString(type, 16));
 				abandon = true;
 			}
 		}
@@ -456,7 +539,7 @@ public class MessageFactory<T extends IsoMessage> {
 			throw new ParseException("ISO8583 MessageFactory cannot parse fields", 0);
 		}
 		//Now we parse each field
-		if (useBinaryBody) {
+		if (binaryFields) {
 			for (Integer i : index) {
 				FieldParseInfo fpi = parseGuide.get(i);
 				if (bs.get(i - 1)) {
@@ -472,20 +555,27 @@ public class MessageFactory<T extends IsoMessage> {
 						m.setField(i, val);
 						if (val != null) {
 							if (val.getType() == IsoType.NUMERIC || val.getType() == IsoType.DATE10
-									|| val.getType() == IsoType.DATE4 || val.getType() == IsoType.DATE12
+									|| val.getType() == IsoType.DATE4
+									|| val.getType() == IsoType.DATE12
+									|| val.getType() == IsoType.DATE14
+									|| val.getType() == IsoType.DATE6
 									|| val.getType() == IsoType.DATE_EXP
 									|| val.getType() == IsoType.AMOUNT
 									|| val.getType() == IsoType.TIME) {
 								pos += (val.getLength() / 2) + (val.getLength() % 2);
-							} else {
-								pos += val.getLength();
-							}
-							if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN) {
+                            } else if (val.getType() == IsoType.LLBCDBIN || val.getType() == IsoType.LLLBCDBIN || val.getType() == IsoType.LLLLBCDBIN) {
+								pos += val.getLength() / 2 + ((val.getLength() % 2 == 0) ? 0 : 1);
+                            } else {
+							    pos += val.getLength();
+                            }
+							if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN || val.getType() == IsoType.LLBCDBIN ) {
 								pos++;
 							} else if (val.getType() == IsoType.LLLVAR
 									|| val.getType() == IsoType.LLLBIN
+									|| val.getType() == IsoType.LLLBCDBIN
                                     || val.getType() == IsoType.LLLLVAR
-									|| val.getType() == IsoType.LLLLBIN) {
+									|| val.getType() == IsoType.LLLLBIN
+									|| val.getType() == IsoType.LLLLBCDBIN) {
                                 pos += 2;
                             }
 						}
@@ -508,34 +598,21 @@ public class MessageFactory<T extends IsoMessage> {
 						m.setField(i, val);
 						//To get the correct next position, we need to get the number of bytes, not chars
 						pos += val.toString().getBytes(fpi.getCharacterEncoding()).length;
-						if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN) {
+						if (val.getType() == IsoType.LLVAR || val.getType() == IsoType.LLBIN || val.getType() == IsoType.LLBCDBIN) {
 							pos += 2;
-						} else if (val.getType() == IsoType.LLLVAR || val.getType() == IsoType.LLLBIN) {
+						} else if (val.getType() == IsoType.LLLVAR || val.getType() == IsoType.LLLBIN || val.getType() == IsoType.LLLBCDBIN) {
 							pos += 3;
-						} else if (val.getType() == IsoType.LLLLVAR || val.getType() == IsoType.LLLLBIN) {
+						} else if (val.getType() == IsoType.LLLLVAR || val.getType() == IsoType.LLLLBIN || val.getType() == IsoType.LLLLBCDBIN) {
                             pos += 4;
                         }
 					}
 				}
 			}
 		}
-		m.setBinary(useBinary);
-		m.setBinaryBody(useBinaryBody);
+		m.setBinaryHeader(binaryHeader);
+		m.setBinaryFields(binaryFields);
         m.setBinaryBitmap(binBitmap);
-		return m;
-	}
-
-	/** Creates a Iso message
-	 * @param type - message type
-	 * @return IsoMessage
-	 */
-	public T createIsoMessage(int type){
-		T m;
-		if (binIsoHeaders.get(type) != null) {
-			m = createIsoMessageWithBinaryHeader(binIsoHeaders.get(type));
-		} else {
-			m = createIsoMessage(isoHeaders.get(type));
-		}
+        m.setEncodeVariableLengthFieldsInHex(variableLengthFieldsInHex);
 		return m;
 	}
 
@@ -633,11 +710,6 @@ public class MessageFactory<T extends IsoMessage> {
 	/** Removes the message template for the specified type. */
 	public void removeMessageTemplate(int type) {
 		typeTemplates.remove(type);
-	}
-
-	/** Removes all the message templates */
-	public void removeAllMessageTemplates() {
-		typeTemplates.clear();
 	}
 
 	/** Returns the template for the specified message type. This allows templates to be modified

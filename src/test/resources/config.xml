@@ -145,5 +145,14 @@
 <parse type="0280">
 	<field num="3" type="NUMERIC" length="2" />
 </parse>
+<parse type="0281">
+    <field num="3" type="LLBCDBIN"/>
+</parse>
+<parse type="0282">
+    <field num="3" type="LLLBCDBIN"/>
+</parse>
+<parse type="0283">
+    <field num="3" type="LLLLBCDBIN"/>
+</parse>
 
 </j8583-config>

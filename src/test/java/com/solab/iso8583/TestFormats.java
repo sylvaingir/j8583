@@ -17,20 +17,28 @@ public class TestFormats {
 
 	@Test
 	public void testDateFormats() {
+		TimeZone defaulTz = TimeZone.getDefault();
+		TimeZone.setDefault(TimeZone.getTimeZone("GMT-0600"));
+		try {
+			Assert.assertEquals("0125213456", IsoType.DATE10.format(date, null));
+			Assert.assertEquals("0125", IsoType.DATE4.format(date, null));
+			Assert.assertEquals("7301", IsoType.DATE_EXP.format(date, null));
+			Assert.assertEquals("213456", IsoType.TIME.format(date, null));
+			Assert.assertEquals("730125213456", IsoType.DATE12.format(date, null));
+			Assert.assertEquals("19730125213456", IsoType.DATE14.format(date, null));
+		}
+		finally {
+			TimeZone.setDefault(defaulTz);
+		}
 
-		TimeZone gmt = TimeZone.getTimeZone("GMT-6:00");
-		Assert.assertEquals("0125213456", IsoType.DATE10.format(date, gmt));
-        Assert.assertEquals("0125", IsoType.DATE4.format(date, gmt));
-        Assert.assertEquals("7301", IsoType.DATE_EXP.format(date, gmt));
-        Assert.assertEquals("213456", IsoType.TIME.format(date, gmt));
-        Assert.assertEquals("730125213456", IsoType.DATE12.format(date, gmt));
         //Now with GMT
-        gmt = TimeZone.getTimeZone("GMT");
+        TimeZone gmt = TimeZone.getTimeZone("GMT");
         Assert.assertEquals("0126033456", IsoType.DATE10.format(date, gmt));
         Assert.assertEquals("0126", IsoType.DATE4.format(date, gmt));
         Assert.assertEquals("7301", IsoType.DATE_EXP.format(date, gmt));
         Assert.assertEquals("033456", IsoType.TIME.format(date, gmt));
         Assert.assertEquals("730126033456", IsoType.DATE12.format(date, gmt));
+		Assert.assertEquals("19730126033456", IsoType.DATE14.format(date, gmt));
         //And now with GMT+1
         gmt = TimeZone.getTimeZone("GMT+0100");
         Assert.assertEquals("0126043456", IsoType.DATE10.format(date, gmt));
@@ -38,6 +46,7 @@ public class TestFormats {
         Assert.assertEquals("7301", IsoType.DATE_EXP.format(date, gmt));
         Assert.assertEquals("043456", IsoType.TIME.format(date, gmt));
         Assert.assertEquals("730126043456", IsoType.DATE12.format(date, gmt));
+		Assert.assertEquals("19730126043456", IsoType.DATE14.format(date, gmt));
 	}
 
 	@Test

@@ -5,7 +5,7 @@ Copyright (C) 2007 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -41,10 +41,11 @@ public class IsoValue<T> implements Cloneable {
 
 	private IsoType type;
 	private T value;
-	private CustomField<T> encoder;
+	private CustomFieldEncoder<T> encoder;
 	private int length;
 	private String encoding;
     private TimeZone tz;
+    private boolean variableLengthFieldsInHex;
 
 	public IsoValue(IsoType t, T value) {
 		this(t, value, null);
@@ -55,9 +56,9 @@ public class IsoValue<T> implements Cloneable {
 	 * like DATE10, DATE4, AMOUNT, etc.
 	 * @param t the ISO type.
 	 * @param value The value to be stored.
-	 * @param custom An optional CustomField to encode/decode a custom value.
+	 * @param custom An optional CustomFieldEncoder for the value.
 	 */
-	public IsoValue(IsoType t, T value, CustomField<T> custom) {
+	public IsoValue(IsoType t, T value, CustomFieldEncoder<T> custom) {
 		if (t.needsLength()) {
 			throw new IllegalArgumentException("Fixed-value types must use constructor that specifies length");
 		}
@@ -74,13 +75,7 @@ public class IsoValue<T> implements Cloneable {
 				}
 				length = enc.length();
 			}
-			if (t == IsoType.LLVAR && length > 99) {
-				throw new IllegalArgumentException("LLVAR can only hold values up to 99 chars");
-			} else if (t == IsoType.LLLVAR && length > 999) {
-				throw new IllegalArgumentException("LLLVAR can only hold values up to 999 chars");
-			} else if (t == IsoType.LLLLVAR && length > 9999) {
-                throw new IllegalArgumentException("LLLLVAR can only hold values up to 9999 chars");
-            }
+			validateTypeWithVariableLength();
 		} else if (type == IsoType.LLBIN || type == IsoType.LLLBIN || type == IsoType.LLLLBIN) {
 			if (custom == null) {
 				if (value instanceof byte[]) {
@@ -97,13 +92,14 @@ public class IsoValue<T> implements Cloneable {
 				}
 				length = enc.length();
 			}
-			if (t == IsoType.LLBIN && length > 99) {
-				throw new IllegalArgumentException("LLBIN can only hold values up to 99 chars");
-			} else if (t == IsoType.LLLBIN && length > 999) {
-				throw new IllegalArgumentException("LLLBIN can only hold values up to 999 chars");
-            } else if (t == IsoType.LLLLBIN && length > 9999) {
-                throw new IllegalArgumentException("LLLLBIN can only hold values up to 9999 chars");
+			validateTypeWithVariableLength();
+		} else if (type == IsoType.LLBCDBIN || type == IsoType.LLLBCDBIN || type == IsoType.LLLLBCDBIN) {
+			if (value instanceof byte[]) {
+                length = ((byte[])value).length * 2;
+			} else {
+				length = value.toString().length();
 			}
+			validateTypeWithVariableLength();
 		} else {
 			length = type.getLength();
 		}
@@ -113,17 +109,27 @@ public class IsoValue<T> implements Cloneable {
 		this(t, val, len, null);
 	}
 
+	public IsoValue(IsoType t, T val, int len, boolean hexa) {
+		this(t, val, len, hexa, null);
+	}
+
+	public IsoValue(IsoType t, T val, int len, CustomFieldEncoder<T> custom) {
+		this(t, val, len, false, custom);
+	}
+
 	/** Creates a new instance that stores the specified value as the specified type.
 	 * Useful for storing fixed-length value types.
 	 * @param t The ISO8583 type for this field.
 	 * @param val The value to store in the field.
 	 * @param len The length for the value.
-	 * @param custom An optional CustomField to encode/decode a custom value.
+	 * @param hexa Flag if length is encoded as hexadecimal value
+	 * @param custom An optional CustomFieldEncoder for the value.
 	 */
-	public IsoValue(IsoType t, T val, int len, CustomField<T> custom) {
+	public IsoValue(IsoType t, T val, int len, boolean hexa, CustomFieldEncoder<T> custom) {
 		type = t;
 		value = val;
 		length = len;
+		variableLengthFieldsInHex = hexa;
 		encoder = custom;
 		if (length == 0 && t.needsLength()) {
 			throw new IllegalArgumentException(String.format("Length must be greater than zero for type %s (value '%s')", t, val));
@@ -131,13 +137,7 @@ public class IsoValue<T> implements Cloneable {
 			if (len == 0) {
 				length = custom == null ? val.toString().length() : custom.encodeField(value).length();
 			}
-			if (t == IsoType.LLVAR && length > 99) {
-				throw new IllegalArgumentException("LLVAR can only hold values up to 99 chars");
-			} else if (t == IsoType.LLLVAR && length > 999) {
-				throw new IllegalArgumentException("LLLVAR can only hold values up to 999 chars");
-            } else if (t == IsoType.LLLLVAR && length > 9999) {
-                throw new IllegalArgumentException("LLLLVAR can only hold values up to 9999 chars");
-			}
+			validateTypeWithVariableLength();
 		} else if (t == IsoType.LLBIN || t == IsoType.LLLBIN || t == IsoType.LLLLBIN) {
 			if (len == 0) {
                 if (custom == null) {
@@ -149,13 +149,16 @@ public class IsoValue<T> implements Cloneable {
                 }
 				length = custom == null ? ((byte[])val).length : custom.encodeField(value).length();
 			}
-			if (t == IsoType.LLBIN && length > 99) {
-				throw new IllegalArgumentException("LLBIN can only hold values up to 99 chars");
-			} else if (t == IsoType.LLLBIN && length > 999) {
-				throw new IllegalArgumentException("LLLBIN can only hold values up to 999 chars");
-            } else if (t == IsoType.LLLLBIN && length > 9999) {
-                throw new IllegalArgumentException("LLLLBIN can only hold values up to 9999 chars");
+			validateTypeWithVariableLength();
+		} else if (t == IsoType.LLBCDBIN || t == IsoType.LLLBCDBIN || t == IsoType.LLLLBCDBIN) {
+			if (len == 0) {
+				if (value instanceof byte[]) {
+					length = ((byte[]) value).length * 2;
+				} else {
+					length = value.toString().length();
+				}
 			}
+			validateTypeWithVariableLength();
 		}
 	}
 
@@ -214,7 +217,7 @@ public class IsoValue<T> implements Cloneable {
 		} else if (type == IsoType.ALPHA) {
 			return type.format(encoder == null ? value.toString() : encoder.encodeField(value), length);
 		} else if (type == IsoType.LLVAR || type == IsoType.LLLVAR || type == IsoType.LLLLVAR) {
-			return encoder == null ? value.toString() : encoder.encodeField(value);
+			return getStringEncoded();
 		} else if (value instanceof Date) {
 			return type.format((Date)value, tz);
 		} else if (type == IsoType.BINARY) {
@@ -229,10 +232,25 @@ public class IsoValue<T> implements Cloneable {
                 final byte[] _v = (byte[])value;
 				return encoder == null ? HexCodec.hexEncode(_v, 0, _v.length) : encoder.encodeField(value);
 			} else {
-				final String _s = encoder == null ? value.toString() : encoder.encodeField(value);
+				final String _s = getStringEncoded();
 				return (_s.length() % 2 == 1) ? String.format("0%s", _s) : _s;
 			}
+		} else if (type == IsoType.LLBCDBIN || type == IsoType.LLLBCDBIN || type == IsoType.LLLLBCDBIN) {
+			if (value instanceof byte[]) {
+				final byte[] _v = (byte[])value;
+				final String val = encoder == null ? HexCodec.hexEncode(_v, 0, _v.length) : encoder.encodeField(value);
+				if (length == val.length() - 1) {
+					return val.substring(1);
+				}
+				return val;
+			} else {
+				return getStringEncoded();
+			}
 		}
+		return getStringEncoded();
+	}
+
+	private String getStringEncoded() {
 		return encoder == null ? value.toString() : encoder.encodeField(value);
 	}
 
@@ -262,30 +280,35 @@ public class IsoValue<T> implements Cloneable {
 		return value == null ? 0 : toString().hashCode();
 	}
 
-	/** Returns the CustomField encoder for this value. */
-	public CustomField<T> getEncoder() {
+	/** Returns the CustomFieldEncoder for this value. */
+	public CustomFieldEncoder<T> getEncoder() {
 		return encoder;
 	}
 
     protected void writeLengthHeader(final int l, final OutputStream outs, final IsoType type,
-                                     final boolean binary, final boolean forceStringEncoding)
+                                     final boolean binary, final boolean forceStringEncoding,
+									 final boolean forceHexadecimalLength)
             throws IOException {
         final int digits;
-        if (type == IsoType.LLLLBIN || type == IsoType.LLLLVAR) {
+        if (type == IsoType.LLLLBIN || type == IsoType.LLLLVAR || type == IsoType.LLLLBCDBIN) {
             digits = 4;
-        } else if (type == IsoType.LLLBIN || type == IsoType.LLLVAR) {
+        } else if (type == IsoType.LLLBIN || type == IsoType.LLLVAR || type == IsoType.LLLBCDBIN) {
             digits = 3;
         } else {
             digits = 2;
         }
         if (binary) {
-            if (digits == 4) {
-                outs.write((((l % 10000) / 1000) << 4) | ((l % 1000)/100));
-            } else if (digits == 3) {
-                outs.write(l / 100); //00 to 09 automatically in BCD
-            }
-            //BCD encode the rest of the length
-            outs.write((((l % 100) / 10) << 4) | (l % 10));
+			if (forceHexadecimalLength) {
+				outs.write(BigInteger.valueOf(l).toByteArray());
+			} else {
+				if (digits == 4) {
+					outs.write((((l % 10000) / 1000) << 4) | ((l % 1000)/100));
+				} else if (digits == 3) {
+					outs.write(l / 100); //00 to 09 automatically in BCD
+				}
+				//BCD encode the rest of the length
+				outs.write((((l % 100) / 10) << 4) | (l % 10));
+			}
         } else if (forceStringEncoding) {
             String lhead = Integer.toString(l);
             final int ldiff = digits - lhead.length();
@@ -314,6 +337,10 @@ public class IsoValue<T> implements Cloneable {
         }
     }
 
+	public void write(final OutputStream outs, final boolean binary, final boolean forceStringEncoding) throws IOException {
+		write(outs, binary, forceStringEncoding, false);
+	}
+
 	/** Writes the formatted value to a stream, with the length header
 	 * if it's a variable length type.
      * @param outs The stream to which the value will be written.
@@ -321,11 +348,14 @@ public class IsoValue<T> implements Cloneable {
      * @param forceStringEncoding When using text format, force the encoding of length headers
      * for variable-length fields to be done with the proper character encoding. When false,
      * the length headers are encoded as ASCII; this used to be the only behavior. */
-	public void write(final OutputStream outs, final boolean binary, final boolean forceStringEncoding) throws IOException {
+	public void write(final OutputStream outs, final boolean binary, final boolean forceStringEncoding,
+					  final boolean forceHexadecimalLength) throws IOException {
 		if (type == IsoType.LLLVAR || type == IsoType.LLVAR || type == IsoType.LLLLVAR) {
-            writeLengthHeader(length, outs, type, binary, forceStringEncoding);
+            writeLengthHeader(length, outs, type, binary, forceStringEncoding, forceHexadecimalLength);
 		} else if (type == IsoType.LLBIN || type == IsoType.LLLBIN || type == IsoType.LLLLBIN) {
-            writeLengthHeader(binary ? length : length*2, outs, type, binary, forceStringEncoding);
+			writeLengthHeader(binary ? length : length*2, outs, type, binary, forceStringEncoding, forceHexadecimalLength);
+		} else if (type == IsoType.LLBCDBIN || type == IsoType.LLLBCDBIN || type == IsoType.LLLLBCDBIN) {
+            writeLengthHeader(length, outs, type, binary, forceStringEncoding, forceHexadecimalLength);
 		} else if (binary) {
 			//numeric types in binary are coded like this
 			byte[] buf = null;
@@ -334,7 +364,8 @@ public class IsoValue<T> implements Cloneable {
 			} else if (type == IsoType.AMOUNT) {
 				buf = new byte[6];
 			} else if (type == IsoType.DATE10 || type == IsoType.DATE4 ||
-					type == IsoType.DATE_EXP || type == IsoType.TIME || type == IsoType.DATE12) {
+					type == IsoType.DATE_EXP || type == IsoType.TIME ||
+					type == IsoType.DATE12 || type == IsoType.DATE14) {
 				buf = new byte[length / 2];
 			}
 			//Encode in BCD if it's one of these types
@@ -344,8 +375,8 @@ public class IsoValue<T> implements Cloneable {
 				return;
 			}
 		}
-		if (binary && (type == IsoType.BINARY || type == IsoType.LLBIN || type == IsoType.LLLBIN || type == IsoType.LLLLBIN)) {
-			int missing = 0;
+		if (binary && (type == IsoType.BINARY || IsoType.VARIABLE_LENGTH_BIN_TYPES.contains(type))) {
+			int missing;
 			if (value instanceof byte[]) {
 				outs.write((byte[])value);
 				missing = length - ((byte[])value).length;
@@ -365,6 +396,72 @@ public class IsoValue<T> implements Cloneable {
 			}
 		} else {
 			outs.write(encoding == null ? toString().getBytes() : toString().getBytes(encoding));
+		}
+	}
+
+	private void validateTypeWithVariableLength() {
+		if (variableLengthFieldsInHex) {
+			validateHexadecimalVariableLength();
+		} else {
+			validateDecimalVariableLength();
+		}
+	}
+
+	private void validateHexadecimalVariableLength() {
+		switch (type) {
+			case LLVAR:
+			case LLBIN:
+				validateMaxLength(255);
+				break;
+			case LLLVAR:
+			case LLLBIN:
+				validateMaxLength(4095);
+				break;
+			case LLLLVAR:
+			case LLLLBIN:
+				validateMaxLength(65535);
+				break;
+			case LLBCDBIN:
+				validateMaxLength(128);
+				break;
+			case LLLBCDBIN:
+				validateMaxLength(2048);
+				break;
+			case LLLLBCDBIN:
+				validateMaxLength(32768);
+				break;
+		}
+	}
+
+	private void validateDecimalVariableLength() {
+		switch (type) {
+			case LLVAR:
+			case LLBIN:
+				validateMaxLength(99);
+				break;
+			case LLLVAR:
+			case LLLBIN:
+				validateMaxLength(999);
+				break;
+			case LLLLVAR:
+			case LLLLBIN:
+				validateMaxLength(9999);
+				break;
+			case LLBCDBIN:
+				validateMaxLength(50);
+				break;
+			case LLLBCDBIN:
+				validateMaxLength(500);
+				break;
+			case LLLLBCDBIN:
+				validateMaxLength(5000);
+				break;
+		}
+	}
+
+	private void validateMaxLength(int maxLength) {
+		if (length > maxLength) {
+			throw new IllegalArgumentException(type.name() + " can only hold values up to " + maxLength + " chars");
 		}
 	}
 
