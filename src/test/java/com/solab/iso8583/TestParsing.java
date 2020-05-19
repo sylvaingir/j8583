@@ -24,7 +24,7 @@ public class TestParsing {
 
 	@Before
 	public void init() throws IOException {
-		mf = new MessageFactory<IsoMessage>();
+		mf = new MessageFactory<>();
 		mf.setCharacterEncoding("UTF-8");
 		mf.setCustomField(48, new CustomField48());
 		mf.setConfigPath("config.xml");
@@ -110,30 +110,54 @@ public class TestParsing {
 
     @Test
     public void testDates() throws ParseException, UnsupportedEncodingException {
+		com.solab.iso8583.parse.DateTimeParseInfo.setDefaultTimeZone(TimeZone.getTimeZone("GMT-0700"));
+		Calendar cal = new GregorianCalendar();
+
         IsoMessage m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
         Assert.assertNotNull(m);
         Date f = m.getObjectValue(7);
         Assert.assertNotNull(f);
-        GregorianCalendar cal = new GregorianCalendar();
-        cal.setTime(f);
+
+		cal.setTimeZone(TimeZone.getTimeZone("GMT-0700"));
+		cal.setTime(f);
         Assert.assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
-        Assert.assertEquals(25, cal.get(Calendar.DATE));
-        Assert.assertEquals(21, cal.get(Calendar.HOUR_OF_DAY));
+        Assert.assertEquals("Date", 25, cal.get(Calendar.DATE));
+        Assert.assertEquals("Hour of Day", 21, cal.get(Calendar.HOUR_OF_DAY));
 		Assert.assertEquals("debug string should match", "060002000000000000000125213456", m.debugString());
-        mf.setTimezoneForParseGuide(0x600, 7, TimeZone.getTimeZone("GMT"));
-        m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
+
+		com.solab.iso8583.parse.DateTimeParseInfo.setDefaultTimeZone(null);
+		TimeZone utcTz = TimeZone.getTimeZone("UTC");
+		mf.setTimezoneForParseGuide(0x600, 7, utcTz);
+
+
+		m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
         f = m.getObjectValue(7);
-        cal.setTime(f);
-        Assert.assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
+		cal.setTimeZone(TimeZone.getTimeZone("GMT-0600"));
+		cal.setTime(f);
+
+		Assert.assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
         Assert.assertEquals(25, cal.get(Calendar.DATE));
-        //Assert.assertEquals(15, cal.get(Calendar.HOUR_OF_DAY));
+        Assert.assertEquals("Hour of day mismatch", 15, cal.get(Calendar.HOUR_OF_DAY));
+        Assert.assertEquals(TimeZone.getTimeZone("UTC"), m.getField(7).getTimeZone());
         mf.setTimezoneForParseGuide(0x600, 7, TimeZone.getTimeZone("GMT+0100"));
         m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
         f = m.getObjectValue(7);
         cal.setTime(f);
         Assert.assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
         Assert.assertEquals(25, cal.get(Calendar.DATE));
-        //Assert.assertEquals(14, cal.get(Calendar.HOUR_OF_DAY));
+        Assert.assertEquals("Hour of day mismatch", 14, cal.get(Calendar.HOUR_OF_DAY));
+        Assert.assertEquals(TimeZone.getTimeZone("GMT+0100"), m.getField(7).getTimeZone());
     }
 
+    @Test
+    public void testTimezoneInResponse() throws ParseException, IOException {
+        mf.setTimezoneForParseGuide(0x600, 7, TimeZone.getTimeZone("UTC"));
+        IsoMessage m = mf.parseMessage("060002000000000000000125213456".getBytes(), 0);
+        Assert.assertEquals(TimeZone.getTimeZone("UTC"), m.getField(7).getTimeZone());
+        IsoMessage r = mf.createResponse(m);
+        Assert.assertEquals(0x610, r.getType());
+        Assert.assertTrue(r.hasField(7));
+        Assert.assertTrue(m.getField(7) != r.getField(7));
+        Assert.assertEquals(TimeZone.getTimeZone("UTC"), r.getField(7).getTimeZone());
+    }
 }

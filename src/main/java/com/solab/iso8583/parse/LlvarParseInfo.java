@@ -5,7 +5,7 @@ Copyright (C) 2011 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,6 +24,7 @@ import java.text.ParseException;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.util.Bcd;
 
 /** This class is used to parse fields of type LLVAR.
  * 
@@ -52,14 +53,16 @@ public class LlvarParseInfo extends FieldParseInfo {
                     "Invalid LLVAR length %d, field %d pos %d", len, field, pos), pos);
 		} else if (len+pos+2 > buf.length) {
 			throw new ParseException(String.format(
-                    "Insufficient data for LLVAR field %d, pos %d", field, pos), pos);
+                    "Insufficient data for LLVAR field %d, pos %d len %d",
+                    field, pos, len), pos);
 		}
 		String _v;
         try {
             _v = len == 0 ? "" : new String(buf, pos + 2, len, getCharacterEncoding());
         } catch (IndexOutOfBoundsException ex) {
             throw new ParseException(String.format(
-                    "Insufficient data for LLVAR header, field %d pos %d", field, pos), pos);
+                    "Insufficient data for LLVAR header, field %d pos %d len %d",
+                    field, pos, len), pos);
         }
 		//This is new: if the String's length is different from the specified
 		// length in the buffer, there are probably some extended characters.
@@ -90,7 +93,7 @@ public class LlvarParseInfo extends FieldParseInfo {
                     "Insufficient data for bin LLVAR header, field %d pos %d",
 					field, pos), pos);
 		}
-		final int len = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
+		final int len = Bcd.parseBcdLength(buf[pos]);
 		if (len < 0) {
 			throw new ParseException(String.format(
                     "Invalid bin LLVAR length %d, field %d pos %d", len, field, pos), pos);

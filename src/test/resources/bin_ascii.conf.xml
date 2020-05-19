@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE j8583-config PUBLIC "-//J8583//DTD CONFIG 1.0//EN"
+	"http://j8583.sourceforge.net/j8583.dtd">
+<j8583-config>
+    <parse type="100">
+	    <field num="2" type="LLVAR" />
+        <field num="3" type="ALPHA" length="6" />
+        <field num="4" type="ALPHA" length="12" />
+        <field num="6" type="ALPHA" length="12" />
+        <field num="7" type="ALPHA" length="10" />
+        <field num="10" type="ALPHA" length="8" />
+        <field num="11" type="ALPHA" length="6" />
+        <field num="12" type="ALPHA" length="6" />
+        <field num="13" type="ALPHA" length="4" />
+        <field num="15" type="ALPHA" length="4" />
+        <field num="16" type="ALPHA" length="4" />
+        <field num="18" type="ALPHA" length="4" />
+        <field num="22" type="ALPHA" length="3" />
+        <field num="32" type="LLVAR"/>
+        <field num="37" type="ALPHA" length="12" />
+        <field num="41" type="ALPHA" length="8" />
+        <field num="42" type="ALPHA" length="15" />
+        <field num="43" type="ALPHA" length="40" />
+        <field num="48" type="LLVAR" />
+        <field num="49" type="ALPHA" length="3" />
+        <field num="51" type="ALPHA" length="3" />
+        <field num="61" type="LLLVAR" />
+    </parse>
+    <parse type="810">
+        <field num="7" type="DATE10" />
+        <field num="11" type="ALPHA" length="6" />
+        <field num="37" type="ALPHA" length="12" />
+        <field num="39" type="ALPHA" length="2" />
+        <field num="53" type="LLLVAR"  />
+        <field num="70" type="ALPHA" length="3" />
+    </parse>
+</j8583-config>

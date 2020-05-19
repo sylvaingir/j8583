@@ -5,7 +5,7 @@ Copyright (C) 2011 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,6 +26,7 @@ import java.util.Date;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.util.Bcd;
 
 /** This class is used to parse fields of type DATE10.
  * 
@@ -67,11 +68,7 @@ public class Date10ParseInfo extends DateTimeParseInfo {
             cal.set(Calendar.SECOND, ((buf[pos + 8] - 48) * 10) + buf[pos + 9] - 48);
         }
         cal.set(Calendar.MILLISECOND,0);
-        if (tz != null) {
-            cal.setTimeZone(tz);
-        }
-		adjustWithFutureTolerance(cal);
-		return new IsoValue<>(type, cal.getTime(), null);
+        return createValue(cal, true);
 	}
 
 	@Override
@@ -89,7 +86,7 @@ public class Date10ParseInfo extends DateTimeParseInfo {
 		int[] tens = new int[5];
 		int start = 0;
 		for (int i = pos; i < pos + tens.length; i++) {
-			tens[start++] = (((buf[i] & 0xf0) >> 4) * 10) + (buf[i] & 0x0f);
+			tens[start++] = Bcd.parseBcdLength(buf[i]);
 		}
 		Calendar cal = Calendar.getInstance();
 		//A SimpleDateFormat in the case of dates won't help because of the missing data
@@ -101,11 +98,7 @@ public class Date10ParseInfo extends DateTimeParseInfo {
 		cal.set(Calendar.MINUTE, tens[3]);
 		cal.set(Calendar.SECOND, tens[4]);
 		cal.set(Calendar.MILLISECOND,0);
-        if (tz != null) {
-            cal.setTimeZone(tz);
-        }
-		adjustWithFutureTolerance(cal);
-		return new IsoValue<>(type, cal.getTime(), null);
+        return createValue(cal, true);
 	}
 
 }

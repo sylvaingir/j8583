@@ -5,7 +5,7 @@ Copyright (C) 2007 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -42,10 +42,10 @@ public class IsoMessage {
 
 	/** The message type. */
     private int type;
-    /** Indicates if the MTI is binary-coded. */
-    private boolean binary;
-    /** Indicates if the message body is binary-coded. */
-    private boolean binBody;
+
+    private boolean binaryHeader;
+    private boolean binaryFields;
+
     /** This is where the values are stored. */
     @SuppressWarnings("rawtypes")
 	private IsoValue[] fields = new IsoValue[129];
@@ -57,6 +57,7 @@ public class IsoMessage {
     private boolean forceb2;
     private boolean binBitmap;
     private boolean forceStringEncoding;
+    private boolean encodeVariableLengthFieldsInHex;
     private String encoding = System.getProperty("file.encoding");
 
     /** Creates a new empty message with no values set. */
@@ -115,6 +116,16 @@ public class IsoMessage {
         forceStringEncoding = flag;
     }
 
+    /** Specified whether the variable-length fields should encode their length
+     * headers using hexadecimal values. This is only useful for binary format. */
+    public void setEncodeVariableLengthFieldsInHex(boolean flag) {
+        this.encodeVariableLengthFieldsInHex = flag;
+    }
+
+    public boolean isEncodeVariableLengthFieldsInHex() {
+        return encodeVariableLengthFieldsInHex;
+    }
+
     /** Sets the string to be sent as ISO header, that is, after the length header but before the message type.
      * This is useful in case an application needs some custom data in the ISO header of each message (very rare). */
     public void setIsoHeader(String value) {
@@ -150,18 +161,35 @@ public class IsoMessage {
      * To encode the message as text but the bitmap in binary format, you can set the
      * binaryBitmap flag. */
     public void setBinary(boolean flag) {
-    	binary = flag;
-    }
-    /** Returns true if the message is binary coded; default is false. */
-    public boolean isBinary() {
-    	return binary;
+    	binaryHeader = binaryFields = flag;
     }
 
-    public void setBinaryBody(boolean flag) {
-        binBody = flag;
+    /** Returns true if the message is binary coded (both header and fields); default is false.
+     * @deprecated Use the new flags isBinaryHeader and isBinaryFields instead.
+     */
+    @Deprecated
+    public boolean isBinary() {
+    	return binaryHeader && binaryFields;
     }
-    public boolean isBinaryBody() {
-        return binBody;
+
+    /** header information is binary encoded */
+    public void setBinaryHeader(boolean flag) {
+        binaryHeader = flag;
+    }
+
+    /** header information is binary encoded */
+    public boolean isBinaryHeader(){
+        return binaryHeader;
+    }
+
+    /** field data is binary encoded */
+    public void setBinaryFields(boolean flag){
+        binaryFields = flag;
+    }
+
+    /** field data is binary encoded */
+    public boolean isBinaryFields(){
+       return binaryFields;
     }
 
     /** Sets the ETX character, which is sent at the end of the message as a terminator.
@@ -221,12 +249,12 @@ public class IsoMessage {
     /** Sets the specified value in the specified field, creating an IsoValue internally.
      * @param index The field number (2 to 128)
      * @param value The value to be stored.
-     * @param encoder An optional CustomField to encode/decode the value.
+     * @param encoder An optional CustomFieldEncoder for the value.
      * @param t The ISO type.
      * @param length The length of the field, used for ALPHA and NUMERIC values only, ignored
      * with any other type.
      * @return The receiver (useful for setting several values in sequence). */
-    public <T> IsoMessage setValue(int index, T value, CustomField<T> encoder, IsoType t, int length) {
+    public <T> IsoMessage setValue(int index, T value, CustomFieldEncoder<T> encoder, IsoType t, int length) {
     	if (index < 2 || index > 128) {
     		throw new IndexOutOfBoundsException("Field index must be between 2 and 128");
     	}
@@ -260,6 +288,7 @@ public class IsoMessage {
         } else {
             setValue(index, value, current.getEncoder(), current.getType(), current.getLength());
             getField(index).setCharacterEncoding(current.getCharacterEncoding());
+            getField(index).setTimeZone(current.getTimeZone());
         }
         return this;
     }
@@ -386,7 +415,7 @@ public class IsoMessage {
             }
         }
     	//Message Type
-    	if (binary) {
+    	if (binaryHeader) {
         	bout.write((type & 0xff00) >> 8);
         	bout.write(type & 0xff);
     	} else {
@@ -400,7 +429,7 @@ public class IsoMessage {
     	//Bitmap
         BitSet bs = createBitmapBitSet();
     	//Write bitmap to stream
-    	if (binary || binBitmap) {
+    	if (binaryHeader || binBitmap) {
     		int pos = 128;
     		int b = 0;
     		for (int i = 0; i < bs.size(); i++) {
@@ -450,7 +479,7 @@ public class IsoMessage {
     		IsoValue<?> v = fields[i];
     		if (v != null) {
         		try {
-        			v.write(bout, binBody, forceStringEncoding);
+        			v.write(bout, binaryFields, forceStringEncoding, encodeVariableLengthFieldsInHex);
         		} catch (IOException ex) {
         			//should never happen, writing to a ByteArrayOutputStream
         		}
@@ -492,11 +521,11 @@ public class IsoMessage {
             IsoValue<?> v = fields[i];
             if (v != null) {
                 String desc = v.toString();
-                if (v.getType() == IsoType.LLBIN || v.getType() == IsoType.LLVAR) {
+                if (v.getType() == IsoType.LLBIN || v.getType() == IsoType.LLBCDBIN || v.getType() == IsoType.LLVAR) {
                     sb.append(String.format("%02d", desc.length()));
-                } else if (v.getType() == IsoType.LLLBIN || v.getType() == IsoType.LLLVAR) {
+                } else if (v.getType() == IsoType.LLLBIN || v.getType() == IsoType.LLLBCDBIN || v.getType() == IsoType.LLLVAR) {
                     sb.append(String.format("%03d", desc.length()));
-                } else if (v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLVAR) {
+                } else if (v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLBCDBIN || v.getType() == IsoType.LLLLVAR) {
                     sb.append(String.format("%04d", desc.length()));
                 }
                 sb.append(desc);
@@ -544,7 +573,7 @@ public class IsoMessage {
     }
 
     /** Returns true is the message contains all the specified fields.
-     * A convenience for m.hasField(x) && m.hasField(y) && m.hasField(z) && ... */
+     * A convenience for m.hasField(x) &amp;&amp; m.hasField(y) &amp;&amp; m.hasField(z) &amp;&amp; ... */
     public boolean hasEveryField(int... idx) {
         for (int i : idx) {
             if (!hasField(i)) {

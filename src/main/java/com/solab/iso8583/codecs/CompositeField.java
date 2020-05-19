@@ -1,3 +1,21 @@
+/*
+ * j8583 A Java implementation of the ISO8583 protocol
+ * Copyright (C) 2007 Enrique Zamudio Lopez
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ */
 package com.solab.iso8583.codecs;
 
 import com.solab.iso8583.CustomBinaryField;
@@ -87,15 +105,15 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
                     if (v.getType() == IsoType.NUMERIC || v.getType() == IsoType.DATE10
                             || v.getType() == IsoType.DATE4 || v.getType() == IsoType.DATE_EXP
                             || v.getType() == IsoType.AMOUNT || v.getType() == IsoType.TIME
-                            || v.getType() == IsoType.DATE12) {
+                            || v.getType() == IsoType.DATE12 || v.getType() == IsoType.DATE14) {
                         pos += (v.getLength() / 2) + (v.getLength() % 2);
                     } else {
                         pos += v.getLength();
                     }
-                    if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
+                    if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN || v.getType() == IsoType.LLBCDBIN ) {
                         pos++;
-                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN
-                            || v.getType() == IsoType.LLLLVAR || v.getType() == IsoType.LLLLBIN) {
+                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN || v.getType() == IsoType.LLLBCDBIN
+                            || v.getType() == IsoType.LLLLVAR || v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLBCDBIN) {
                         pos+=2;
                     }
                     vals.add(v);
@@ -104,12 +122,9 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
             final CompositeField f = new CompositeField();
             f.setValues(vals);
             return f;
-        } catch (ParseException ex) {
+        } catch (ParseException | UnsupportedEncodingException ex) {
             log.error("Decoding binary CompositeField", ex);
-            return null;
-        } catch (UnsupportedEncodingException ex) {
-            log.error("Decoding binary CompositeField", ex);
-            return null;
+            throw new IllegalArgumentException(ex.getMessage(), ex);
         }
     }
 
@@ -124,11 +139,11 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
                 IsoValue<?> v = fpi.parse(0, buf, pos, fpi.getDecoder());
                 if (v != null) {
                     pos += v.toString().getBytes(fpi.getCharacterEncoding()).length;
-                    if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN) {
+                    if (v.getType() == IsoType.LLVAR || v.getType() == IsoType.LLBIN || v.getType() == IsoType.LLBCDBIN) {
                         pos+=2;
-                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN) {
+                    } else if (v.getType() == IsoType.LLLVAR || v.getType() == IsoType.LLLBIN || v.getType() == IsoType.LLLBCDBIN) {
                         pos+=3;
-                    } else if (v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLVAR) {
+                    } else if (v.getType() == IsoType.LLLLBIN || v.getType() == IsoType.LLLLBCDBIN || v.getType() == IsoType.LLLLVAR) {
                         pos+=4;
                     }
                     vals.add(v);
@@ -139,7 +154,7 @@ public class CompositeField implements CustomBinaryField<CompositeField> {
             return f;
         } catch (ParseException | UnsupportedEncodingException ex) {
             log.error("Decoding CompositeField", ex);
-            return null;
+            throw new IllegalArgumentException(ex.getMessage(), ex);
         }
     }
 

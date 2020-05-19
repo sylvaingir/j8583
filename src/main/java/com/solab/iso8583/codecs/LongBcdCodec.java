@@ -5,7 +5,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,16 +30,30 @@ import com.solab.iso8583.util.Bcd;
  */
 public class LongBcdCodec implements CustomBinaryField<Long> {
 
+    private final boolean rightPadded;
+
+    public LongBcdCodec() {
+        this(false);
+    }
+    public LongBcdCodec(boolean rightPadding) {
+        rightPadded = rightPadding;
+    }
+
     @Override
     public Long decodeBinaryField(byte[] value, int pos, int length) {
-        return Bcd.decodeToLong(value, pos, length*2);
+        return rightPadded ? Bcd.decodeRightPaddedToLong(value, pos, length*2)
+                : Bcd.decodeToLong(value, pos, length*2);
     }
 
     @Override
     public byte[] encodeBinaryField(Long value) {
         final String s = Long.toString(value, 10);
         final byte[] buf = new byte[s.length() / 2 + s.length() % 2];
-        Bcd.encode(s, buf);
+        if (rightPadded) {
+            Bcd.encodeRightPadded(s, buf);
+        } else {
+            Bcd.encode(s, buf);
+        }
         return buf;
     }
 

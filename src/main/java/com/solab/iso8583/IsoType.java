@@ -5,7 +5,7 @@ Copyright (C) 2007 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,7 +20,10 @@ package com.solab.iso8583;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.TimeZone;
 
 /** Defines the possible values types that can be used in the fields.
@@ -41,6 +44,8 @@ public enum IsoType {
 	LLVAR(false, 0),
 	/** A variable length alphanumeric value with a 3-digit header length. */
 	LLLVAR(false, 0),
+	/** A date in format YYYYMMddHHmmss */
+	DATE14(false, 14),
 	/** A date in format MMddHHmmss */
 	DATE10(false, 10),
 	/** A date in format MMdd */
@@ -57,12 +62,22 @@ public enum IsoType {
 	LLBIN(false, 0),
 	/** Similar to LLLVAR but holds byte arrays instead of strings. */
 	LLLBIN(false, 0),
-    /** variable length with 4-digit header length. */
-    LLLLVAR(false, 0),
-    /** variable length byte array with 4-digit header length. */
-    LLLLBIN(false, 0),
-    /** Date in format yyMMddHHmmss. */
-   	DATE12(false,12);
+	/** variable length with 4-digit header length. */
+	LLLLVAR(false, 0),
+	/** variable length byte array with 4-digit header length. */
+	LLLLBIN(false, 0),
+	/** Similar to LLBIN but with a BCD encoded length. */
+	LLBCDBIN(false, 0),
+	/** Similar to LLLBIN but with a BCD encoded length. */
+	LLLBCDBIN(false, 0),
+	/** Similar to LLLLBIN but with a BCD encoded length. */
+	LLLLBCDBIN(false, 0),
+	/** Date in format yyMMddHHmmss. */
+	DATE12(false,12),
+	/** Date in format yyMMdd */
+	DATE6(false,6);
+
+    public static final Set<IsoType> VARIABLE_LENGTH_BIN_TYPES = Collections.unmodifiableSet(EnumSet.of(LLBIN, LLLBIN, LLLLBIN, LLBCDBIN, LLLBCDBIN, LLLLBCDBIN));
 
 	private boolean needsLen;
 	private int length;
@@ -82,7 +97,7 @@ public enum IsoType {
 		return length;
 	}
 
-	/** Formats a Date if the receiver is DATE10, DATE4, DATE_EXP, DATE12 or TIME; throws an exception
+	/** Formats a Date if the receiver is DATE10, DATE4, DATE_EXP, DATE12, DATE14 or TIME; throws an exception
 	 * otherwise. */
 	public String format(final Date value, final TimeZone tz) {
         final SimpleDateFormat sdf;
@@ -96,7 +111,11 @@ public enum IsoType {
             sdf = new SimpleDateFormat("HHmmss");
         } else if (this == DATE12) {
             sdf = new SimpleDateFormat("yyMMddHHmmss");
-		} else {
+		} else if (this == DATE14) {
+            sdf = new SimpleDateFormat("YYYYMMddHHmmss");
+        } else if (this == DATE6) {
+            sdf = new SimpleDateFormat("yyMMdd");
+        } else {
             throw new IllegalArgumentException("Cannot format date as " + this);
         }
         if (tz != null) {
@@ -156,7 +175,7 @@ public enum IsoType {
 	        }
 	        return new String(c);
 
-		} else if (this == LLBIN || this == LLLBIN || this == LLLLBIN) {
+		} else if (VARIABLE_LENGTH_BIN_TYPES.contains(this)) {
 			return value;
 		}
 		throw new IllegalArgumentException("Cannot format String as " + this);
@@ -174,7 +193,7 @@ public enum IsoType {
 			return format(Long.toString(value), length);
 		} else if (this == AMOUNT) {
 			return String.format("%010d00", value);
-		} else if (this == BINARY || this == LLBIN || this == LLLBIN || this == LLLLBIN) {
+		} else if (this == BINARY || VARIABLE_LENGTH_BIN_TYPES.contains(this)) {
 			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format number as " + this);
@@ -188,7 +207,7 @@ public enum IsoType {
 			return format(value.longValue(), length);
 		} else if (this == ALPHA || this == LLVAR || this == LLLVAR || this == LLLLVAR) {
 			return format(value.toString(), length);
-		} else if (this == BINARY || this == LLBIN || this == LLLBIN || this == LLLLBIN) {
+		} else if (this == BINARY || VARIABLE_LENGTH_BIN_TYPES.contains(this)) {
 			//TODO
 		}
 		throw new IllegalArgumentException("Cannot format BigDecimal as " + this);

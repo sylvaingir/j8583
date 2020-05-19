@@ -5,7 +5,7 @@ Copyright (C) 2007 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,6 +26,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -186,8 +187,7 @@ public class ConfigParser {
                 continue;
             }
             @SuppressWarnings("unchecked")
-
-            T m = mfact.createIsoMessage(type);
+            T m = (T)new IsoMessage();
             m.setType(type);
             m.setCharacterEncoding(mfact.getCharacterEncoding());
             NodeList fields = elem.getElementsByTagName("field");
@@ -220,10 +220,10 @@ public class ConfigParser {
                             + elem.getAttribute("extends"));
                 }
                 @SuppressWarnings("unchecked")
-                T m = mfact.createIsoMessage(type);
+                T m = (T)new IsoMessage();
                 m.setType(type);
                 m.setCharacterEncoding(mfact.getCharacterEncoding());
-                for (int i = 2; i < 128; i++) {
+                for (int i = 2; i <= 128; i++) {
                     if (tref.hasField(i)) {
                         m.setField(i, tref.getField(i).clone());
                     }
@@ -275,8 +275,13 @@ public class ConfigParser {
                     }
                 }
             }
-            return itype.needsLength() ? new IsoValue<>(itype, cf, length, cf) :
+            IsoValue<?> rv = itype.needsLength() ? new IsoValue<>(itype, cf, length, cf) :
                     new IsoValue<>(itype, cf, cf);
+            if (f.hasAttribute("tz")) {
+                TimeZone tz = TimeZone.getTimeZone(f.getAttribute("tz"));
+                rv.setTimeZone(tz);
+            }
+            return rv;
         }
         final String v;
         if (f.getChildNodes().getLength() == 0) {
@@ -285,15 +290,22 @@ public class ConfigParser {
             v = f.getChildNodes().item(0).getNodeValue();
         }
         final CustomField<Object> cf = toplevel ? mfact.getCustomField(num) : null;
+        IsoValue<?> rv;
         if (cf == null) {
-            return itype.needsLength() ? new IsoValue<>(itype, v, length) : new IsoValue<>(itype, v);
+            rv = itype.needsLength() ? new IsoValue<>(itype, v, length) : new IsoValue<>(itype, v);
+        } else {
+            rv = itype.needsLength() ? new IsoValue<>(itype, cf.decodeField(v), length, cf) :
+                    new IsoValue<>(itype, cf.decodeField(v), cf);
         }
-        return itype.needsLength() ? new IsoValue<>(itype, cf.decodeField(v), length, cf) :
-                new IsoValue<>(itype, cf.decodeField(v), cf);
+        if (f.hasAttribute("tz")) {
+            TimeZone tz = TimeZone.getTimeZone(f.getAttribute("tz"));
+            rv.setTimeZone(tz);
+        }
+        return rv;
     }
 
     protected static <T extends IsoMessage> FieldParseInfo getParser(
-            Element f, MessageFactory<T> mfact) throws IOException {
+            Element f, MessageFactory<T> mfact) {
         IsoType itype = IsoType.valueOf(f.getAttribute("type"));
         int length = 0;
         if (f.getAttribute("length").length() > 0) {
@@ -310,6 +322,10 @@ public class ConfigParser {
                 }
             }
             fpi.setDecoder(combo);
+        }
+        if (f.hasAttribute("tz") && fpi instanceof DateTimeParseInfo) {
+            TimeZone tz = TimeZone.getTimeZone(f.getAttribute("tz"));
+            ((DateTimeParseInfo)fpi).setTimeZone(tz);
         }
         return fpi;
     }

@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.TimeZone;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,27 +15,18 @@ import com.solab.iso8583.util.HexCodec;
 /** Test binary message encoding and binary fields. */
 public class TestBinaries {
 
-	private MessageFactory<IsoMessage> mfactAscii = new MessageFactory<IsoMessage>();
-	private MessageFactory<IsoMessage> mfactBin = new MessageFactory<IsoMessage>();
-	private MessageFactory<IsoMessage> mfactBinMtiAsciiBody = new MessageFactory<IsoMessage>();
+	private MessageFactory<IsoMessage> mfactAscii = new MessageFactory<>();
+	private MessageFactory<IsoMessage> mfactBin = new MessageFactory<>();
 
 	@Before
 	public void setup() throws IOException {
 		mfactAscii.setCharacterEncoding("UTF-8");
 		mfactAscii.setConfigPath("config.xml");
 		mfactAscii.setAssignDate(true);
-
 		mfactBin.setCharacterEncoding("UTF-8");
 		mfactBin.setConfigPath("config.xml");
 		mfactBin.setAssignDate(true);
 		mfactBin.setUseBinaryMessages(true);
-		mfactBin.setUseBinaryBody(true);
-
-		mfactBinMtiAsciiBody.setCharacterEncoding(StandardCharsets.US_ASCII.name());
-		mfactBinMtiAsciiBody.setConfigPath("config800.xml");
-		mfactBinMtiAsciiBody.setUseBinaryMessages(true);
-		mfactBinMtiAsciiBody.setUseBinaryBitmap(true);
-		mfactBinMtiAsciiBody.setUseBinaryBody(false);
 	}
 
 	void testParsed(IsoMessage m) {
@@ -75,8 +63,8 @@ public class TestBinaries {
 		//Create a message with both factories
 		IsoMessage ascii = mfactAscii.newMessage(0x600);
 		IsoMessage bin = mfactBin.newMessage(0x600);
-        Assert.assertFalse(ascii.isBinary() || ascii.isBinaryBitmap());
-        Assert.assertTrue(bin.isBinary());
+        Assert.assertFalse(ascii.isBinaryHeader() || ascii.isBinaryFields() || ascii.isBinaryBitmap());
+        Assert.assertTrue(bin.isBinaryHeader() && bin.isBinaryFields());
 		//HEXencode the binary message, headers should be similar to the ASCII version
         final byte[] _v = bin.writeData();
 		String hexBin = HexCodec.hexEncode(_v, 0, _v.length);
@@ -135,19 +123,145 @@ public class TestBinaries {
         System.out.println(HexCodec.hexEncode(buf, 0, buf.length));
 		iso2 = mfactBin.parseMessage(buf, 0);
 		Assert.assertEquals(bignum, iso2.getObjectValue(3));
-	}
+    }
 
-	@Test
-	public void test0810() throws ParseException, UnsupportedEncodingException {
-		Date date = new Date();
+    @Test
+    public void testLLBCDBINWithoutZero() throws IOException, ParseException {
+        MessageFactory<IsoMessage> messageFactory = new MessageFactory<>();
+        messageFactory.setCharacterEncoding("UTF-8");
+        messageFactory.setConfigPath("config.xml");
+        messageFactory.setUseBinaryMessages(true);
 
-		IsoMessage iso1 = mfactBinMtiAsciiBody.newMessage(0x810);
-		iso1.setField(7, IsoType.DATE10.value(IsoType.DATE10.format(date, null)));
-		iso1.setField(11, IsoType.NUMERIC.value(562040, 6));
-		iso1.setField(70, IsoType.NUMERIC.value(1,3));
+        IsoMessage iso1 = messageFactory.newMessage(0x281);
+        iso1.setField(3, new IsoValue<>(IsoType.LLBCDBIN, "12345"));
+        byte[] buf = iso1.writeData();
 
-		IsoMessage iso2 = mfactBinMtiAsciiBody.parseMessage(iso1.writeData(), 0);
+        IsoMessage iso2 = messageFactory.parseMessage(buf, 0);
+        String value = iso2.getField(3).toString();
+        Assert.assertEquals("12345", value);
 
-		Assert.assertEquals(date.toString(), iso2.getObjectValue(7).toString());
-	}
+        iso1.setBinary(false);
+        buf = iso1.writeData();
+        messageFactory.setUseBinaryMessages(false);
+        iso2 = messageFactory.parseMessage(buf, 0);
+        value = iso2.getField(3).toString();
+        Assert.assertEquals("012345", value);
+    }
+
+    @Test
+    public void testLLBCDBINWithZero() throws IOException, ParseException {
+        MessageFactory<IsoMessage> messageFactory = new MessageFactory<>();
+        messageFactory.setCharacterEncoding("UTF-8");
+        messageFactory.setConfigPath("config.xml");
+        messageFactory.setUseBinaryMessages(true);
+
+        IsoMessage iso1 = messageFactory.newMessage(0x281);
+        iso1.setField(3, new IsoValue<>(IsoType.LLBCDBIN, "012345"));
+        byte[] buf = iso1.writeData();
+        
+        IsoMessage iso2 = messageFactory.parseMessage(buf, 0);
+        String value = iso2.getField(3).toString();
+        Assert.assertEquals("012345", value);
+
+        iso1.setBinary(false);
+        buf = iso1.writeData();
+        messageFactory.setUseBinaryMessages(false);
+        iso2 = messageFactory.parseMessage(buf, 0);
+        value = iso2.getField(3).toString();
+        Assert.assertEquals("012345", value);
+    }
+
+    @Test
+    public void testLLLBCDBINWithoutZero() throws IOException, ParseException {
+        MessageFactory<IsoMessage> messageFactory = new MessageFactory<>();
+        messageFactory.setCharacterEncoding("UTF-8");
+        messageFactory.setConfigPath("config.xml");
+        messageFactory.setUseBinaryMessages(true);
+
+        IsoMessage iso1 = messageFactory.newMessage(0x282);
+        iso1.setField(3, new IsoValue<>(IsoType.LLLBCDBIN, "123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD"));
+        byte[] buf = iso1.writeData();
+
+        IsoMessage iso2 = messageFactory.parseMessage(buf, 0);
+        String value = iso2.getField(3).toString();
+        Assert.assertEquals("123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+
+        iso1.setBinary(false);
+        buf = iso1.writeData();
+        messageFactory.setUseBinaryMessages(false);
+        iso2 = messageFactory.parseMessage(buf, 0);
+        value = iso2.getField(3).toString();
+        //In ASCII mode the leading 0 can't be truncated
+        Assert.assertEquals("0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+    }
+
+    @Test
+    public void testLLLBCDBINWithZero() throws IOException, ParseException {
+        MessageFactory<IsoMessage> messageFactory = new MessageFactory<>();
+        messageFactory.setCharacterEncoding("UTF-8");
+        messageFactory.setConfigPath("config.xml");
+        messageFactory.setUseBinaryMessages(true);
+
+        IsoMessage iso1 = messageFactory.newMessage(0x282);
+        iso1.setField(3, new IsoValue<>(IsoType.LLLBCDBIN, "0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD"));
+        byte[] buf = iso1.writeData();
+
+        IsoMessage iso2 = messageFactory.parseMessage(buf, 0);
+        String value = iso2.getField(3).toString();
+        Assert.assertEquals("0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+
+        iso1.setBinary(false);
+        buf = iso1.writeData();
+        messageFactory.setUseBinaryMessages(false);
+        iso2 = messageFactory.parseMessage(buf, 0);
+        value = iso2.getField(3).toString();
+        Assert.assertEquals("0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+    }
+
+    @Test
+    public void testLLLLBCDBINWithoutZero() throws IOException, ParseException {
+        MessageFactory<IsoMessage> messageFactory = new MessageFactory<>();
+        messageFactory.setCharacterEncoding("UTF-8");
+        messageFactory.setConfigPath("config.xml");
+        messageFactory.setUseBinaryMessages(true);
+
+        IsoMessage iso1 = messageFactory.newMessage(0x283);
+        iso1.setField(3, new IsoValue<>(IsoType.LLLLBCDBIN, "123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD"));
+        byte[] buf = iso1.writeData();
+
+        IsoMessage iso2 = messageFactory.parseMessage(buf, 0);
+        String value = iso2.getField(3).toString();
+        Assert.assertEquals("123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+
+        iso1.setBinary(false);
+        buf = iso1.writeData();
+        messageFactory.setUseBinaryMessages(false);
+        iso2 = messageFactory.parseMessage(buf, 0);
+        value = iso2.getField(3).toString();
+        //ASCII mode cannot truncate the leading 0
+        Assert.assertEquals("0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+    }
+
+    @Test
+    public void testLLLLBCDBINWithZero() throws IOException, ParseException {
+        MessageFactory<IsoMessage> messageFactory = new MessageFactory<>();
+        messageFactory.setCharacterEncoding("UTF-8");
+        messageFactory.setConfigPath("config.xml");
+        messageFactory.setUseBinaryMessages(true);
+
+        IsoMessage iso1 = messageFactory.newMessage(0x283);
+        iso1.setField(3, new IsoValue<>(IsoType.LLLLBCDBIN, "0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD"));
+        byte[] buf = iso1.writeData();
+
+        IsoMessage iso2 = messageFactory.parseMessage(buf, 0);
+        String value = iso2.getField(3).toString();
+        Assert.assertEquals("0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+
+        iso1.setBinary(false);
+        buf = iso1.writeData();
+        messageFactory.setUseBinaryMessages(false);
+        iso2 = messageFactory.parseMessage(buf, 0);
+        value = iso2.getField(3).toString();
+        Assert.assertEquals("0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD0123456789ABCDEF640123456789ABCD", value);
+    }
 }

@@ -3,6 +3,8 @@ package com.solab.iso8583.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigInteger;
+
 /**
  * BCD encoding tests.
  *
@@ -29,6 +31,8 @@ public class TestBcd {
         Assert.assertArrayEquals(new byte[]{7,      0x79}, buf);
         Bcd.encode("999", buf);
         Assert.assertArrayEquals(new byte[]{9,(byte)0x99}, buf);
+        Bcd.encodeRightPadded("999", buf);
+        Assert.assertArrayEquals(new byte[]{(byte)0x99,(byte)0x9f}, buf);
     }
 
     @Test
@@ -52,6 +56,11 @@ public class TestBcd {
         Assert.assertEquals(199, Bcd.decodeToLong(buf,0,4));
         buf[0]=9;
         Assert.assertEquals(999, Bcd.decodeToLong(buf,0,4));
+        Assert.assertEquals(new BigInteger("999"), Bcd.decodeToBigInteger(buf,0,3));
+        buf[0] = (byte)0x99;
+        buf[1] = (byte)0x9f;
+        Assert.assertEquals(999, Bcd.decodeRightPaddedToLong(buf,0,4));
+        Assert.assertEquals(new BigInteger("999"), Bcd.decodeRightPaddedToBigInteger(buf,0,4));
     }
 
 }

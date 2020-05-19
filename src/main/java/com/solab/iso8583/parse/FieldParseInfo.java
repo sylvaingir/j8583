@@ -5,7 +5,7 @@ Copyright (C) 2007 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,6 +35,7 @@ public abstract class FieldParseInfo {
 	protected final int length;
 	private String encoding = System.getProperty("file.encoding");
     protected boolean forceStringDecoding;
+    protected boolean forceHexadecimalLength;
     private CustomField<?> decoder;
 
 	/** Creates a new instance that parses a value of the specified type, with the specified length.
@@ -55,6 +56,12 @@ public abstract class FieldParseInfo {
     public void setForceStringDecoding(boolean flag) {
         forceStringDecoding = flag;
     }
+
+	/** Specifies whether length headers for variable-length fields in binary mode should
+	 * be decoded as a hexadecimal values. Default is false, which means decoding the length as BCD. */
+	public void setForceHexadecimalLength(boolean flag) {
+		this.forceHexadecimalLength = flag;
+	}
 
 	public void setCharacterEncoding(String value) {
 		encoding = value;
@@ -113,10 +120,14 @@ public abstract class FieldParseInfo {
 			fpi = new Date10ParseInfo();
 		} else if (t == IsoType.DATE12) {
 			fpi = new Date12ParseInfo();
+		} else if (t == IsoType.DATE14) {
+			fpi = new Date14ParseInfo();
 		} else if (t == IsoType.DATE4) {
 			fpi = new Date4ParseInfo();
 		} else if (t == IsoType.DATE_EXP) {
 			fpi = new DateExpParseInfo();
+		} else if (t == IsoType.DATE6) {
+			fpi = new Date6ParseInfo();
 		} else if (t == IsoType.LLBIN) {
 			fpi = new LlbinParseInfo();
 		} else if (t == IsoType.LLLBIN) {
@@ -133,7 +144,13 @@ public abstract class FieldParseInfo {
             fpi = new LlllvarParseInfo();
         } else if (t == IsoType.LLLLBIN) {
             fpi = new LlllbinParseInfo();
-        }
+		} else if (t == IsoType.LLBCDBIN) {
+			fpi = new BcdLengthLlbinParseInfo();
+		} else if (t == IsoType.LLLBCDBIN) {
+			fpi = new BcdLengthLllbinParseInfo();
+		} else if (t == IsoType.LLLLBCDBIN) {
+			fpi = new BcdLengthLlllbinParseInfo();
+		}
 		if (fpi == null) {
 	 		throw new IllegalArgumentException(String.format("Cannot parse type %s", t));
 		}

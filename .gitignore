@@ -5,3 +5,5 @@ out
 *.iws
 *.iml
 *.ipr
+.idea
+.DS_Store
