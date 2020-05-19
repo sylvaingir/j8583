@@ -1,0 +1,15 @@
+<j8583-config>
+
+    <template type="0100">
+        <field num="7" type="DATE10" tz="UTC" />
+        <field num="12" type="TIME" tz="GMT-500" />
+        <field num="13" type="TIME" />
+    </template>
+
+    <parse type="0110">
+        <field num="7" type="DATE10" tz="UTC" />
+        <field num="12" type="TIME" tz="GMT-500" />
+        <field num="13" type="TIME" />
+    </parse>
+
+</j8583-config>

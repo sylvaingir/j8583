@@ -5,7 +5,7 @@ Copyright (C) 2011 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,15 +25,19 @@ import com.solab.iso8583.CustomBinaryField;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.util.Bcd;
 import com.solab.iso8583.util.HexCodec;
 
 /** This class is used to parse fields of type LLBIN.
- * 
+ *
  * @author Enrique Zamudio
  */
 public class LlbinParseInfo extends FieldParseInfo {
 
-	
+    public LlbinParseInfo(IsoType t, int len) {
+        super(t, len);
+    }
+
 	public LlbinParseInfo() {
 		super(IsoType.LLBIN, 0);
 	}
@@ -97,7 +101,7 @@ public class LlbinParseInfo extends FieldParseInfo {
 			throw new ParseException(String.format("Insufficient bin LLBIN header field %d",
                     field), pos);
 		}
-		final int l = (((buf[pos] & 0xf0) >> 4) * 10) + (buf[pos] & 0x0f);
+		final int l = getLengthForBinaryParsing(buf[pos]);
 		if (l < 0) {
 			throw new ParseException(String.format("Invalid bin LLBIN length %d pos %d", l, pos), pos);
 		}
@@ -109,7 +113,8 @@ public class LlbinParseInfo extends FieldParseInfo {
 		byte[] _v = new byte[l];
 		System.arraycopy(buf, pos+1, _v, 0, l);
 		if (custom == null) {
-			return new IsoValue<>(type, _v, null);
+            int len = getFieldLength(buf[pos]);
+            return new IsoValue<>(type, _v, len, forceHexadecimalLength);
         } else if (custom instanceof CustomBinaryField) {
             try {
                 T dec = ((CustomBinaryField<T>)custom).decodeBinaryField(buf, pos + 1, l);
@@ -127,4 +132,14 @@ public class LlbinParseInfo extends FieldParseInfo {
 		}
 	}
 
+	protected int getLengthForBinaryParsing(final byte b) {
+    	return getFieldLength(b);
+	}
+
+	private int getFieldLength(final byte b) {
+		return forceHexadecimalLength ?
+				b & 0xff
+				:
+				Bcd.parseBcdLength(b);
+	}
 }

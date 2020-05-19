@@ -1,0 +1,104 @@
+version: 2
+
+working_directory: &working_directory
+  working_directory: ~/j8583
+
+simple_docker: &simple_docker
+  docker:
+    - image: arti.tw.ee/circle_openjdk11:c50
+      user: circleci
+
+jobs:
+  build:
+    <<: *working_directory
+    <<: *simple_docker
+    resource_class: medium
+    environment:
+      TERM: vt100
+    steps:
+      - checkout
+      - run:
+          name: Calculate gradle dependencies checksum
+          command: find . -name "*.gradle" -o -name "gradle.properties" -type f | sort | xargs md5sum > deps.md5
+      - restore_cache:
+          keys:
+            - j8583-gradle-cache-{{ checksum "deps.md5" }}
+      - run:
+          name: Run Tests
+          command: ./gradlew clean assemble testClasses --console=plain --stacktrace
+      - store_test_results:
+          path: ./j8583/build/test-results/
+      - store_artifacts:
+          path: ./build/test-results/
+      - save_cache:
+          key: j8583-gradle-cache-{{ checksum "deps.md5" }}
+          paths:
+            - "~/.gradle"
+      - persist_to_workspace:
+          root: .
+          paths:
+            - '*'
+  test:
+    <<: *working_directory
+    <<: *simple_docker
+    resource_class: medium
+    steps:
+      - attach_workspace:
+          at: ~/j8583
+      - restore_cache:
+          keys:
+            - j8583-gradle-cache-{{ checksum "deps.md5" }}
+      - run:
+          name: Run tests
+          command: ./gradlew test --info --no-daemon --stacktrace
+      - store_test_results:
+          path: ./build/test-results/
+  artifact-publish:
+    <<: *working_directory
+    <<: *simple_docker
+    resource_class: small
+    environment:
+      TERM: vt100
+    steps:
+      - attach_workspace:
+          at: ~/j8583
+      - restore_cache:
+          key: j8583-gradle-{{ checksum "build.gradle" }}-{{ checksum "gradle.properties" }}
+      - run:
+          name: Publishing iso connector library
+          command: ./gradlew generateRelease
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore:
+                - master
+      - test:
+          requires:
+            - build
+      - hold:
+          type: approval
+          requires:
+            - test
+      - artifact-publish:
+          context: artifactory-deploy
+          requires:
+            - hold
+  build_and_publish:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+      - test:
+          requires:
+            - build
+      - artifact-publish:
+          context: artifactory-deploy
+          requires:
+            - test

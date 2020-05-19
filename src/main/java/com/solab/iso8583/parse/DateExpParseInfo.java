@@ -5,7 +5,7 @@ Copyright (C) 2011 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,6 +26,7 @@ import java.util.Date;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.util.Bcd;
 
 /** This class is used to parse fields of type DATE_EXP.
  * 
@@ -64,10 +65,7 @@ public class DateExpParseInfo extends DateTimeParseInfo {
                     + ((buf[pos] - 48) * 10) + buf[pos + 1] - 48);
             cal.set(Calendar.MONTH, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 49);
         }
-        if (tz != null) {
-            cal.setTimeZone(tz);
-        }
-		return new IsoValue<>(type, cal.getTime(), null);
+        return createValue(cal, false);
 	}
 
 	@Override
@@ -85,7 +83,7 @@ public class DateExpParseInfo extends DateTimeParseInfo {
 		int[] tens = new int[2];
 		int start = 0;
 		for (int i = pos; i < pos + tens.length; i++) {
-			tens[start++] = (((buf[i] & 0xf0) >> 4) * 10) + (buf[i] & 0x0f);
+			tens[start++] = Bcd.parseBcdLength(buf[i]);
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -96,9 +94,6 @@ public class DateExpParseInfo extends DateTimeParseInfo {
 		cal.set(Calendar.YEAR, cal.get(Calendar.YEAR)
 				- (cal.get(Calendar.YEAR) % 100) + tens[0]);
 		cal.set(Calendar.MONTH, tens[1] - 1);
-        if (tz != null) {
-            cal.setTimeZone(tz);
-        }
-		return new IsoValue<>(type, cal.getTime(), null);
+        return createValue(cal, false);
 	}
 }

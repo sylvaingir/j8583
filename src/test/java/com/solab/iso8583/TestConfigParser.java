@@ -1,6 +1,7 @@
 package com.solab.iso8583;
 
 import com.solab.iso8583.codecs.CompositeField;
+import com.solab.iso8583.parse.FieldParseInfo;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -228,4 +229,11 @@ public class TestConfigParser {
         Assert.assertEquals("", msg.getObjectValue(3));
     }
 
+    @Test
+    public void testAllTypesHaveParseInfo() {
+        for (IsoType t : IsoType.values()) {
+            FieldParseInfo fpi = FieldParseInfo.getInstance(t, t.getLength(), "UTF-8");
+            Assert.assertNotNull(fpi);
+        }
+    }
 }

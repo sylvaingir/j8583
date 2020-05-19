@@ -5,7 +5,7 @@ Copyright (C) 2011 Enrique Zamudio Lopez
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,6 +26,7 @@ import java.util.Date;
 import com.solab.iso8583.CustomField;
 import com.solab.iso8583.IsoType;
 import com.solab.iso8583.IsoValue;
+import com.solab.iso8583.util.Bcd;
 
 /** This class is used to parse fields of type DATE4.
  * 
@@ -62,11 +63,7 @@ public class Date4ParseInfo extends DateTimeParseInfo {
             cal.set(Calendar.MONTH, ((buf[pos] - 48) * 10) + buf[pos + 1] - 49);
             cal.set(Calendar.DATE, ((buf[pos + 2] - 48) * 10) + buf[pos + 3] - 48);
         }
-        if (tz != null) {
-            cal.setTimeZone(tz);
-        }
-		Date10ParseInfo.adjustWithFutureTolerance(cal);
-		return new IsoValue<>(type, cal.getTime(), null);
+        return createValue(cal, true);
 	}
 
 	@Override
@@ -80,7 +77,7 @@ public class Date4ParseInfo extends DateTimeParseInfo {
                     field, pos), pos);
         }
 		for (int i = pos; i < pos + tens.length; i++) {
-			tens[start++] = (((buf[i] & 0xf0) >> 4) * 10) + (buf[i] & 0x0f);
+			tens[start++] = Bcd.parseBcdLength(buf[i]);
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -90,11 +87,7 @@ public class Date4ParseInfo extends DateTimeParseInfo {
 		cal.set(Calendar.MONTH, tens[0] - 1);
 		cal.set(Calendar.DATE, tens[1]);
 		cal.set(Calendar.MILLISECOND,0);
-        if (tz != null) {
-            cal.setTimeZone(tz);
-        }
-		DateTimeParseInfo.adjustWithFutureTolerance(cal);
-		return new IsoValue<>(type, cal.getTime(), null);
+        return createValue(cal, true);
 	}
 
 }

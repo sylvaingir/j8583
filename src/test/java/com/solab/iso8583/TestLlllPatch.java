@@ -3,39 +3,58 @@ package com.solab.iso8583;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Extended test for LLLLVar field
  *
  * @author Peter Margetiak
  */
+@RunWith(Parameterized.class)
 public class TestLlllPatch {
 
     private MessageFactory<IsoMessage> mfact = new MessageFactory<>();
+    private int fieldLength;
+
+    @Parameterized.Parameters
+    public static List<Integer> lengths() {
+        return Arrays.asList(5, 50, 500, 5000);
+    }
+
+    public TestLlllPatch(int l) {
+        fieldLength = l;
+    }
 
     @Before
     public void setup() throws IOException {
         mfact.setConfigPath("issue50.xml");
         mfact.setAssignDate(false);
-        mfact.setUseBinaryBody(false);
     }
 
     @Test
     public void testParsingLength() throws Exception {
-        final int LENGTH = 1234;
-
         // prepare
-        String LLLLVar = makeLLLLVar(LENGTH);
-        StringBuilder LLLLVarBuilder = new StringBuilder();
-        LLLLVarBuilder.append("01004000000000000000")
-                .append(String.format("%04d", LENGTH)).append(LLLLVar);
+        String llllvar = makeLLLLVar(fieldLength);
+        StringBuilder sb = new StringBuilder();
+        sb.append("01004000000000000000")
+                .append(String.format("%04d", fieldLength)).append(llllvar);
 
         // parse
-        IsoMessage m = mfact.parseMessage(LLLLVarBuilder.toString().getBytes(), 0);
+        IsoMessage m = mfact.parseMessage(sb.toString().getBytes(), 0);
         Assert.assertNotNull(m);
-        Assert.assertEquals(LLLLVar, m.getObjectValue(2));
+        String f2 = m.getObjectValue(2);
+        Assert.assertEquals(llllvar, f2);
+        Assert.assertEquals(fieldLength, f2.length());
+        //Encode
+        m = mfact.newMessage(0x100);
+        m.setIsoHeader(null);
+        m.setValue(2, llllvar, IsoType.LLLLVAR, 0);
+        Assert.assertEquals(sb.toString(), m.debugString());
     }
 
     @Test
@@ -84,11 +103,11 @@ public class TestLlllPatch {
     }
 
     private String makeLLLLVar(final int length) {
-        final StringBuilder sb = new StringBuilder();
+        final char[] chars = new char[length];
         for (int i = 0; i < length; i++) {
-            sb.append("a");
+            chars[i] = 'a';
         }
 
-        return sb.toString();
+        return new String(chars);
     }
 }

@@ -1,0 +1,12 @@
+<j8583-config>
+    <parse type="0100">
+        <field num="2" type="LLBCDBIN"/>
+        <field num="3" type="LLBCDBIN"/>
+        <field num="4" type="LLBIN"/>
+        <field num="5" type="LLLBCDBIN"/>
+        <field num="6" type="LLLBIN"/>
+        <field num="7" type="LLLLBCDBIN"/>
+        <field num="8" type="LLLLBIN"/>
+        <field num="9" type="BINARY" length="4"/>
+    </parse>
+</j8583-config>
