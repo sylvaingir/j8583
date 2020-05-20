@@ -22,7 +22,7 @@ public class TestDates {
 	public void testDate4FutureTolerance() throws ParseException, IOException {
 		GregorianCalendar today = new GregorianCalendar();
 		Date soon = new Date(today.getTime().getTime() + 50000);
-		today.set(GregorianCalendar.HOUR,0);
+		today.set(GregorianCalendar.HOUR_OF_DAY,0);
 		today.set(GregorianCalendar.MINUTE,0);
 		today.set(GregorianCalendar.SECOND,0);
 		today.set(GregorianCalendar.MILLISECOND,0);
