@@ -1,7 +1,7 @@
 apply plugin:'java'
 apply plugin: 'maven'
 defaultTasks 'build'
-version='1.15.0-TW-02'
+version='1.15.0-TW-03-rc'
 description='Java implementation of the ISO 8583 protocol, focused on making the creation, edition and reading of ISO8583 messages as simple and flexible as possible.'
 sourceCompatibility=7
 targetCompatibility=7
