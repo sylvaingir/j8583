@@ -115,6 +115,8 @@ public class TestHexadecimalLengthDecoding {
                 {IsoType.LLLBIN, "298", "012A", repeat("C1", 298)},
                 {IsoType.LLLLBCDBIN, "4394", "112A", repeat("7", 4394)},
                 {IsoType.LLLLBIN, "4394", "112A", repeat("C1", 4394)},
+                {IsoType.LLLBIN, "126", "007E", repeat("C1", 126)},
+                {IsoType.LLLLBIN, "126", "007E", repeat("C1", 126)},
         };
 
         for (Object[] input : inputs) {

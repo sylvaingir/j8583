@@ -302,7 +302,8 @@ public class IsoValue<T> implements Cloneable {
 				if (digits == 2) {
 					outs.write(new byte[]{(byte) (l & 0xff)});
 				} else {
-					outs.write(BigInteger.valueOf(l).toByteArray());
+					outs.write(new byte[]{(byte) ((l / 256) & 0xff)});
+					outs.write(new byte[]{(byte) (l & 0xff)});
 				}
 			} else {
 				if (digits == 4) {
